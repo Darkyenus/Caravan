@@ -1,8 +1,8 @@
 @file:BuildDependencyPlugin("wemi-plugin-jvm-hotswap")
-@file:BuildDependency("com.darkyen:ResourcePacker:2.5")
+@file:BuildDependency("com.darkyen:ResourcePacker:1548772a4d")
 
-import com.darkyen.resourcepacker.PackingOperation
 import com.darkyen.resourcepacker.PreferSymlinks
+import com.darkyen.resourcepacker.packResources
 import wemi.Keys
 import wemi.dependency.Jitpack
 import wemi.dependency.ProjectDependency
@@ -42,7 +42,7 @@ val caravan:Project by project(Archetypes.JavaProject) {
 
 	packedResourcesDir set { path("assets") }
 	packResources set {
-		resourcePack(PackingOperation(path("resources").toFile(), packedResourcesDir.get().toFile(), listOf(PreferSymlinks to SystemInfo.IS_POSIX)))
+		packResources(path("resources").toFile(), packedResourcesDir.get().toFile(), listOf(PreferSymlinks to SystemInfo.IS_POSIX))
 	}
 
 	run set { using(lwjgl3) { run.get() } } // Redirect running to lwjgl3 backend
@@ -64,7 +64,7 @@ val lwjgl3 by project(path("lwjgl3"), Archetypes.JavaProject) {
 
 	mainClass set { "caravan.Main" }
 
-	runOptions add { "-agentlib:jdwp=transport=dt_socket,server=n,address=10.0.0.129:5005,suspend=y" }
+	//runOptions add { "-agentlib:jdwp=transport=dt_socket,server=n,address=10.0.0.129:5005,suspend=y" }
 
 	if (SystemInfo.IS_MAC_OS) {
 		Keys.runOptions add { "-XstartOnFirstThread" }
