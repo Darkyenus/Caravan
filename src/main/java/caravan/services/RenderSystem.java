@@ -5,7 +5,10 @@ import caravan.components.PositionC;
 import caravan.components.RenderC;
 import caravan.util.PooledArray;
 import caravan.util.RenderUtil;
+import caravan.util.Sprite;
+import caravan.util.SpriteAnimation;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.Rectangle;
 import com.darkyen.retinazer.Mapper;
 import com.darkyen.retinazer.Wire;
@@ -24,6 +27,8 @@ public final class RenderSystem extends EntityProcessorSystem implements Renderi
 	private Mapper<RenderC> render;
 	@Wire
 	private Mapper<PositionC> position;
+	@Wire
+	private SimulationService simulation;
 
 	public RenderSystem() {
 		super(Components.DOMAIN.familyWith(RenderC.class, PositionC.class));
@@ -49,12 +54,32 @@ public final class RenderSystem extends EntityProcessorSystem implements Renderi
 		final EntityRenderable[] renderableItems = renderables.items;
 		Arrays.sort(renderableItems, 0, renderableCount, RENDERABLE_COMPARATOR);
 
+		final float animationTime = simulation.simulating ? simulation.delta : 0f;
+
 		batch.begin();
 		final Mapper<RenderC> renderMapper = this.render;
 		for (int i = 0; i < renderableCount; i++) {
 			final EntityRenderable renderable = renderableItems[i];
 			final RenderC render = renderMapper.get(renderable.entity);
-			RenderUtil.drawCentered(batch, render.sprite.getRegion(), renderable.x, renderable.y, render.sprite.size, render.scaleX, render.scaleY);
+			final SpriteAnimation animation = render.sprite;
+			if (animation == null) {
+				continue;
+			}
+
+			// Update frame animation
+			render.timeOnThisFrame += render.animationSpeed * animationTime;
+			while (render.timeOnThisFrame > animation.frameTime) {
+				render.currentFrame++;
+				render.timeOnThisFrame -= animation.frameTime;
+			}
+			render.currentFrame = render.currentFrame % animation.frames.length;
+
+
+			final Sprite frame = animation.frames[render.currentFrame];
+			if (frame == null) continue;
+			final TextureAtlas.AtlasRegion region = frame.getRegion();
+			if (region == null) continue;
+			RenderUtil.drawCentered(batch, region, renderable.x, renderable.y, frame.size, render.scaleX, render.scaleY);
 		}
 		batch.end();
 		renderables.clear();

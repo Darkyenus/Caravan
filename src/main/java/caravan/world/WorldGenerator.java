@@ -20,7 +20,7 @@ public final class WorldGenerator {
 				}else if(height < 0.55f){
 					world.setTile(x, y, Tiles.Grass);
 				}else{
-					world.setTile(x, y, Tiles.Dirt);
+					world.setTile(x, y, Tiles.Forest);
 				}
 			}
 		}

@@ -39,47 +39,53 @@ public final class Tile {
 		TILES.add(this);
 	}
 
-	private TextureRegion base = null;
-	private @NotNull TextureAtlas.AtlasRegion[] overlaps = null;
-	private String[] imageNames = null;
+	private @Nullable TextureRegion[] base = null;
+	private @Nullable TextureAtlas.AtlasRegion[] overlaps = null;
 
-	public Tile(int height, @NotNull String... images) {
-		assert images.length == OVERLAP_IMAGE_COUNT + 1 || images.length == 1; // one for base and rest for overlaps
-		this.height = (byte) height;
-		this.imageNames = images;
-	}
+	private String[] baseImageNames;
+	private String[] overlapImageNames;
 
-	public Tile(int height, @NotNull TextureRegion base, @NotNull TextureAtlas.AtlasRegion @Nullable [] overlaps) {
-		assert overlaps == null || overlaps.length == OVERLAP_IMAGE_COUNT;
+	public Tile(int height, @NotNull String @NotNull[] bases, @NotNull String @NotNull[] overlaps) {
+		assert bases.length >= 1;
+		assert overlaps.length % OVERLAP_IMAGE_COUNT == 0;
 		this.height = (byte) height;
-		this.base = base;
-		this.overlaps = overlaps;
+		this.baseImageNames = bases;
+		this.overlapImageNames = overlaps;
 	}
 
 	public void ensureLoaded() {
-		final String[] imageNames = this.imageNames;
-		if (imageNames == null) {
+		final String[] baseImageNames = this.baseImageNames;
+		final String[] overlapImageNames = this.overlapImageNames;
+		if (baseImageNames == null) {
 			return;
 		}
 
-		this.imageNames = null;
+		this.baseImageNames = null;
+		this.overlapImageNames = null;
+
+		this.base = new TextureRegion[baseImageNames.length];
+		this.overlaps = new TextureAtlas.AtlasRegion[overlapImageNames.length];
+
 		final TextureAtlas atlas = CaravanApplication.textureAtlas();
-		this.base = atlas.findRegion(imageNames[0]);
-		if (imageNames.length > 1) {
-            final TextureAtlas.AtlasRegion[] regions = new TextureAtlas.AtlasRegion[OVERLAP_IMAGE_COUNT];
-            for (int i = 1; i < imageNames.length; i++) {
-                if ((regions[i - 1] = atlas.findRegion(imageNames[i])) == null) {
-                    Gdx.app.error("Tile", "Overlap named "+imageNames[i]+" not found");
-                    return;
-                }
-            }
-            this.overlaps = regions;
-        }
+
+		for (int i = 0; i < baseImageNames.length; i++) {
+			if ((this.base[i] = atlas.findRegion(baseImageNames[i])) == null) {
+				Gdx.app.error("Tile", "Tile named "+baseImageNames[i]+" not found");
+			}
+		}
+		for (int i = 0; i < overlapImageNames.length; i++) {
+			if ((this.overlaps[i] = atlas.findRegion(overlapImageNames[i])) == null) {
+				Gdx.app.error("Tile", "Overlap named "+baseImageNames[i]+" not found");
+			}
+		}
 	}
 
-	public @NotNull TextureRegion getBaseTexture() {
+	public @Nullable TextureRegion getBaseTexture() {
 		ensureLoaded();
-		return base;
+		for (TextureRegion region : base) {
+			if (region != null) return region;
+		}
+		return null;
 	}
 
 	//region Overlap mask parts
@@ -105,7 +111,9 @@ public final class Tile {
 			for (int x = startX; x <= endX; x++) {
 				final Tile tile = t.getTile(x, y);
 
-				final TextureRegion base = tile.base;
+				final int tileHash = ((0x8c26b2de ^ x) * (0xbc671103 ^ y)) & 0x7FFFFFFF /* Force into being positive */;
+
+				final TextureRegion base = tile.base[tileHash % tile.base.length];
 				if (base != null) {
 					RenderUtil.drawTile(b, base, x, y);
 				}
@@ -188,7 +196,7 @@ public final class Tile {
 	 * @param y of lower left corner
 	 * @param overlapMask marks which parts of tile are overlapped into
 	 */
-	private static void drawTileOverlaps(@NotNull Batch batch, @NotNull final TextureAtlas.AtlasRegion[] overlaps, int x, int y, byte overlapMask) {
+	private static void drawTileOverlaps(@NotNull Batch batch, @Nullable final TextureAtlas.AtlasRegion @NotNull[] overlaps, int x, int y, byte overlapMask) {
 		byte cornerMask = 0;
 		switch (overlapMask & EDGE_MASK) {
 			case 0:

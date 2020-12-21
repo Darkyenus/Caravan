@@ -6,7 +6,7 @@ import caravan.components.Components;
 import caravan.components.PlayerC;
 import caravan.components.PositionC;
 import caravan.components.RenderC;
-import caravan.services.EntitySpawnService;
+import caravan.world.Sprites;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -135,7 +135,7 @@ public final class EntityEditorWindow extends Window {
 			final Engine e = engine;
 			final int entity = e.createEntity();
 			e.getMapper(PositionC.class).create(entity).set(trackedPosition.x, trackedPosition.y);
-			e.getMapper(RenderC.class).create(entity).set(EntitySpawnService.Flowers[0], 1f, 1f);
+			e.getMapper(RenderC.class).create(entity).set(Sprites.BAND_SMALL);
 			e.getMapper(CameraFocusC.class).create(entity).set(1f);
 		});
 		button(root, "Remove", () -> {

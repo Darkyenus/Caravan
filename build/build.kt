@@ -1,5 +1,5 @@
 @file:BuildDependencyPlugin("wemi-plugin-jvm-hotswap")
-@file:BuildDependency("com.darkyen:ResourcePacker:1548772a4d")
+@file:BuildDependency("com.darkyen:ResourcePacker:2.6")
 
 import com.darkyen.resourcepacker.PreferSymlinks
 import com.darkyen.resourcepacker.packResources

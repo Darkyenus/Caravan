@@ -1,18 +1,31 @@
 package caravan.world;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Tile definitions.
  */
 public final class Tiles {
 
-	public static final Tile Debug = new Tile(Tile.MAX_HEIGHT, "tile91");
+	public static final Tile Water = overlapTile(1, "water");
+	public static final Tile Forest = overlapTile(10, "forest");
+	public static final Tile Grass = overlapTile(2, "grass");
 
-	public static final Tile Water = new Tile(1, "tile25", "tile62", "tile64", "tile65", "tile63", "tile66", "tile67", "tile68", "tile69", "tile70", "tile71", "tile72", "tile73", "tile74", "tile76", "tile77", "tile75", "tile78");
-	public static final Tile Dirt = new Tile(0, "tile6");
-	public static final Tile Grass = new Tile(2, "tile13", "tile1", "tile5", "tile7", "tile11", "tile0", "tile2", "tile10", "tile12", "tile9", "tile8", "tile4", "tile3", "tile58", "tile60", "tile61", "tile59", "tile57");
-
-
-	public static final Tile FloorWood = new Tile(Tile.MAX_HEIGHT, "tile17");
-	public static final Tile FloorWoodDoor = new Tile(Tile.MAX_HEIGHT, "tile26");
+	@NotNull
+	private static Tile overlapTile(int height, @NotNull String baseName) {
+		return new Tile(height, new String[] {
+				baseName + 1,
+				baseName + 19,
+				baseName + 20,
+				baseName + 21,
+				baseName + 22,
+				baseName + 23
+		}, new String[] {
+				baseName + 8, baseName + 6, baseName + 5, baseName + 3,
+				baseName + 10, baseName + 11, baseName + 13, baseName + 12,
+				baseName + 9, baseName + 7, baseName + 4, baseName + 2,
+				baseName + 17, baseName + 16, baseName + 16, baseName + 18,
+				baseName + 14 });
+	}
 	
 }

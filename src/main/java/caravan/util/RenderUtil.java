@@ -5,13 +5,14 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
 /**
  * Render utilities.
  */
-public class RenderUtil {
+public final class RenderUtil {
 
 	private static final float[] draw_vertices = new float[4 * 5];
 	static {
@@ -48,7 +49,10 @@ public class RenderUtil {
 		b.draw(base.getTexture(), vertices, 0, vertices.length);
 	}
 
-	public static void drawTile(@NotNull Batch b, @NotNull TextureAtlas.AtlasRegion region, int x, int y) {
+	public static void drawTile(@NotNull Batch b, @Nullable TextureAtlas.AtlasRegion region, int x, int y) {
+		if (region == null) {
+			return;
+		}
 		final float[] vertices = draw_vertices;
 		vertices[5] = vertices[0] = x + region.offsetX / region.originalWidth;
 		vertices[16] = vertices[1] = y + region.offsetY / region.originalHeight;

@@ -7,6 +7,7 @@ import caravan.world.Tile;
 import caravan.world.TileWorld;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.darkyen.retinazer.Engine;
@@ -47,7 +48,12 @@ public final class WorldEditOverlay extends CaravanApplication.UIScreen {
 					final Rectangle lookAt = engine.getService(CameraFocusSystem.class).currentFraming;
 					engine.getService(TileWorld.class).setTile(Math.round(lookAt.x + lookAt.width / 2f), Math.round(lookAt.y + lookAt.height / 2f), tile);
 				},
-				(tile, batch, x, y, size) -> batch.draw(tile.getBaseTexture(), x, y, size, size),
+				(tile, batch, x, y, size) -> {
+					final TextureRegion tex = tile.getBaseTexture();
+					if (tex != null) {
+						batch.draw(tex, x, y, size, size);
+					}
+				},
 				new Iterator<Tile>() {
 
 					int i = 0;
