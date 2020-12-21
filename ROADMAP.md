@@ -1,0 +1,11 @@
+# Caravan Roadmap
+- Basic world generation with cities, static city needs and exports, ability to move around and trade
+- Competing caravans, which travel around using a simple AI, trying to find the best deals
+- Indirect information gathering from other caravans and cities, possibly with a reputation system
+- City prosperity evolution based on the profit from exports and fulfilled needs from import
+- Improved world generation, with realistic city and resource placement, which impacts the needs and exports of the cities
+- By world resources, I mean oceans, rivers, mountains, deserts, forests, roads, precipitation and temperature maps, etc.
+- Kingdom formation and conquest between cities, serving as a way to reset city’s wealth and to mixup needs and exports of warring cities/kingdoms
+- Caravan development, hiring more carriages, upgrading speed and/or carrying capacity, water and livestock feed requirements - don’t cross the desert without a good water reserve
+- Bandits and caravan guards
+- Better bandit, caravan, city and kingdom AI - by this point there will be enough of improvement opportunities

@@ -64,6 +64,7 @@ val lwjgl3 by project(path("lwjgl3"), Archetypes.JavaProject) {
 
 	mainClass set { "caravan.Main" }
 
+	runOptions add { "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005" }
 	//runOptions add { "-agentlib:jdwp=transport=dt_socket,server=n,address=10.0.0.129:5005,suspend=y" }
 
 	if (SystemInfo.IS_MAC_OS) {
