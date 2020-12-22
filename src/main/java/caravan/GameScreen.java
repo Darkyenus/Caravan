@@ -9,7 +9,7 @@ import caravan.services.PlayerControlSystem;
 import caravan.services.RenderSystem;
 import caravan.services.RenderingService;
 import caravan.services.SimulationService;
-import caravan.world.TileWorld;
+import caravan.services.WorldService;
 import caravan.world.Tiles;
 import caravan.world.WorldGenerator;
 import com.badlogic.gdx.math.Rectangle;
@@ -42,7 +42,7 @@ public final class GameScreen extends CaravanApplication.Screen {
 				new PlayerControlSystem(gameInput),
 				new MoveSystem(),
 				cameraFocusSystem = new CameraFocusSystem(),
-				new TileWorld(100, 100, Tiles.Water),
+				new WorldService(100, 100, Tiles.Water),
 				new RenderSystem()
 				);
 		renderingServices = engine.getServices(RenderingService.class).toArray(new RenderingService[0]);

@@ -104,12 +104,12 @@ public final class Tile {
 
 	private static final Tile[] draw_collisionTiles = new Tile[8];
 
-	public static void drawTiles(@NotNull final TileWorld t, @NotNull final Batch b, final int startX, final int startY, final int endX, final int endY) {
+	public static void drawTiles(@NotNull final WorldAttribute<Tile> t, @NotNull final Batch b, final int startX, final int startY, final int endX, final int endY) {
 		//Draw tiles & overlaps
 		final Tile[] tiles = draw_collisionTiles;
 		for (int y = endY; y >= startY; y--) {
 			for (int x = startX; x <= endX; x++) {
-				final Tile tile = t.getTile(x, y);
+				final Tile tile = t.get(x, y);
 
 				final int tileHash = ((0x8c26b2de ^ x) * (0xbc671103 ^ y)) & 0x7FFFFFFF /* Force into being positive */;
 
@@ -118,14 +118,14 @@ public final class Tile {
 					RenderUtil.drawTile(b, base, x, y);
 				}
 
-				tiles[0] = t.getTile(x+1,y-1); //BOTTOM_RIGHT
-				tiles[1] = t.getTile(x-1,y-1); //BOTTOM_LEFT
-				tiles[2] = t.getTile(x+1,y+1); //TOP_RIGHT
-				tiles[3] = t.getTile(x-1,y+1); //TOP_LEFT
-				tiles[4] = t.getTile(x,y-1); //BOTTOM
-				tiles[5] = t.getTile(x+1,y); //RIGHT
-				tiles[6] = t.getTile(x-1,y); //LEFT
-				tiles[7] = t.getTile(x,y+1); //TOP
+				tiles[0] = t.get(x+1,y-1); //BOTTOM_RIGHT
+				tiles[1] = t.get(x-1,y-1); //BOTTOM_LEFT
+				tiles[2] = t.get(x+1,y+1); //TOP_RIGHT
+				tiles[3] = t.get(x-1,y+1); //TOP_LEFT
+				tiles[4] = t.get(x,y-1); //BOTTOM
+				tiles[5] = t.get(x+1,y); //RIGHT
+				tiles[6] = t.get(x-1,y); //LEFT
+				tiles[7] = t.get(x,y+1); //TOP
 
 				byte lastHeight = tile.height;
 				while (true) {
