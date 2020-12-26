@@ -91,29 +91,29 @@
         - jam (from fresh + sugar|honey)
     - Vegetables
         - fresh
-        - pickled
+        - pickled (fresh + salt|any alcoholic drink (for vinegar) + any water)
     - Spices (farmed in temperate to hot, non-dry climates)
     - Salt (farmed in hot arid coastal regions or mined in super-arid mountains (sometimes))
 - Books (luxury, animal skins)
 - Metal
     - Gold
         - ore (mined)
-        - ingots (ore + wood|coal)
+        - ingots (ore + fuel)
     - Silver
         - ore (mined)
-        - ingots (ore + wood|coal)
+        - ingots (ore + fuel)
     - Iron
         - ore (mined)
-        - ingots (ore + wood|coal)
+        - ingots (ore + fuel)
     - Copper
         - ore (mined)
-        - ingots (ore + wood|coal)
+        - ingots (ore + fuel)
     - Tin
         - ore (mined)
-        - ingots (ore + wood|coal)
+        - ingots (ore + fuel)
     - Lead
         - ore (mined)
-        - ingots (ore + wood|coal)
+        - ingots (ore + fuel)
 - Coal (mined)
 - Jewels (mined)
 - Jewelry (gold|silver (+ jewels))

@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 /** A map which assigns an object attribute to the whole world.
  * @param <T> a type of the attribute to store */
-public class WorldAttribute<T> {
+public final class WorldAttribute<T> {
 
 	public final int width, height;
 	public final @NotNull T @NotNull[] values;

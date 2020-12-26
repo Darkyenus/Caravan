@@ -16,6 +16,7 @@ public final class WorldService implements EngineService, RenderingService {
 	public final int width, height;
 	public final WorldAttribute<Tile> tiles;
 
+
 	public WorldService(int width, int height, @NotNull Tile defaultTile) {
 		this.width = width;
 		this.height = height;

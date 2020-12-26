@@ -13,7 +13,8 @@ public final class Components {
 			MoveC.class,
 			PlayerC.class,
 			CameraFocusC.class,
-			RenderC.class
+			RenderC.class,
+			TownC.class
 	);
 
 }

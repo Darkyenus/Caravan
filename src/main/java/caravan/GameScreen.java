@@ -42,7 +42,7 @@ public final class GameScreen extends CaravanApplication.Screen {
 				new PlayerControlSystem(gameInput),
 				new MoveSystem(),
 				cameraFocusSystem = new CameraFocusSystem(),
-				new WorldService(100, 100, Tiles.Water),
+				new WorldService(300, 300, Tiles.Water),
 				new RenderSystem()
 				);
 		renderingServices = engine.getServices(RenderingService.class).toArray(new RenderingService[0]);

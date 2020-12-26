@@ -5,10 +5,13 @@ import caravan.components.MoveC;
 import caravan.components.PlayerC;
 import caravan.components.PositionC;
 import caravan.components.RenderC;
+import caravan.components.TownC;
+import caravan.world.Sprites;
 import com.darkyen.retinazer.Engine;
 import com.darkyen.retinazer.EngineService;
 import com.darkyen.retinazer.Mapper;
 import com.darkyen.retinazer.Wire;
+import org.jetbrains.annotations.NotNull;
 
 import static caravan.world.Sprites.CARAVAN_RIGHT;
 
@@ -23,6 +26,7 @@ public final class EntitySpawnService implements EngineService {
 	@Wire private Mapper<PlayerC> player;
 	@Wire private Mapper<CameraFocusC> cameraFocus;
 	@Wire private Mapper<RenderC> render;
+	@Wire private Mapper<TownC> town;
 
 	/** Create player's caravan at given position. */
 	public int spawnPlayerCaravan(float x, float y) {
@@ -33,5 +37,13 @@ public final class EntitySpawnService implements EngineService {
 		cameraFocus.create(entity).set(8f);
 		render.create(entity).set(CARAVAN_RIGHT);
 		return entity;
+	}
+
+	@NotNull
+	public TownC spawnTown(int x, int y) {
+		final int entity = engine.createEntity();
+		position.create(entity).set(x + 0.5f, y);
+		render.create(entity).set(Sprites.VILLAGE);
+		return town.create(entity);
 	}
 }
