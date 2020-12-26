@@ -1,15 +1,19 @@
 package caravan.services;
 
+import caravan.Inputs;
 import caravan.components.CameraFocusC;
 import caravan.components.Components;
 import caravan.components.PositionC;
+import caravan.input.BoundInputFunction;
+import caravan.input.GameInput;
+import caravan.input.Trigger;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.viewport.ExtendViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 import com.darkyen.retinazer.Mapper;
 import com.darkyen.retinazer.Wire;
 import com.darkyen.retinazer.systems.EntityProcessorSystem;
@@ -28,7 +32,9 @@ public final class CameraFocusSystem extends EntityProcessorSystem implements Re
     private boolean firstEntity = true;
 
     /** The framing (where camera looks) of the frame - more can be shown. */
-    public final Rectangle currentFraming = new Rectangle();
+    public final Rectangle currentFraming = new Rectangle();// TODO(jp): Private
+    /** Like {@link #currentFraming}, but with zoom applied and the origin being in the center of the rectangle. */
+    private final Rectangle zoomedCurrentFraming = new Rectangle();
     /** Current framing can get detached from the focus and be controlled independently. */
     private boolean currentFramingDetached = false;
     /** If the framing is detached, is it trying to catch up to the real value or not? (After it catches up, it will re-attach.) */
@@ -37,35 +43,73 @@ public final class CameraFocusSystem extends EntityProcessorSystem implements Re
     private final float minVisibleUnits;
 
     /** The viewport defined for the world. */
-    public final ExtendViewport viewport;
+    public final Viewport viewport;
 
     private final Vector3 frustumTmp = new Vector3();
 
     /** The screen dimensions, used to setup the viewport. */
     public int screenWidth = 800, screenHeight = 800;
+    /** World size in game units. */
+    public final float worldWidth, worldHeight;
+
+    private float zoomExponent = 0f;
+    private static final float MIN_ZOOM_EXPONENT = -1f;
+    private static final float MAX_ZOOM_EXPONENT = 3f;
+    private static final float ZOOM_EXPONENT_STEP = 0.1f;
 
     @Wire
     private Mapper<PositionC> positionMapper;
     @Wire
     private Mapper<CameraFocusC> cameraTrackerMapper;
 
-    public CameraFocusSystem() {
-        this(5f, 100f);
-    }
-
     /**
      * @param minVisibleUnits Defines the maximum zoom level in terms of units in smaller dimension.
-     * @param maxVisibleUnits Defines the minimum zoom level in terms of units in larger dimension.
      */
-    public CameraFocusSystem(float minVisibleUnits, float maxVisibleUnits) {
+    public CameraFocusSystem(float worldWidth, float worldHeight, float minVisibleUnits, @NotNull GameInput gameInput) {
         super(Components.DOMAIN.familyWith(PositionC.class, CameraFocusC.class));
+        this.worldWidth = worldWidth;
+        this.worldHeight = worldHeight;
         this.minVisibleUnits = minVisibleUnits;
-        viewport = new ExtendViewport(minVisibleUnits, minVisibleUnits, maxVisibleUnits, maxVisibleUnits, new OrthographicCamera());
+        viewport = new Viewport() {
+            {
+                setCamera(new OrthographicCamera());
+            }
+
+            @Override
+            public void update(int screenWidth, int screenHeight, boolean centerCamera) {
+                setScreenBounds(0, 0, screenWidth, screenHeight);
+                final float worldWidth = getWorldWidth();
+                final float worldHeight = getWorldHeight();
+                final float widthScaleFactor = screenWidth * worldHeight / (screenHeight * worldWidth);
+                if (widthScaleFactor >= 1f) {
+                    setWorldWidth(worldWidth * widthScaleFactor);
+                } else {
+                    setWorldHeight(worldHeight / widthScaleFactor);
+                }
+                super.update(screenWidth, screenHeight, centerCamera);
+            }
+        };
         final Camera camera = viewport.getCamera();
         camera.direction.set(0f, 0f, -1f);
         camera.up.set(0f, 1f, 0f);
         camera.near = 0.5f;
         camera.far = 1.5f;
+
+        final BoundInputFunction scroll = gameInput.use(Inputs.SCROLL);
+        gameInput.use(Inputs.ZOOM_OUT, (times, pressed) -> {
+            if (zoomExponent < MAX_ZOOM_EXPONENT) {
+                zoomExponent = Math.min(MAX_ZOOM_EXPONENT, zoomExponent + ZOOM_EXPONENT_STEP * times);
+                return true;
+            }
+            return false;
+        });
+        gameInput.use(Inputs.ZOOM_IN, (times, pressed) -> {
+            if (zoomExponent > MIN_ZOOM_EXPONENT) {
+                zoomExponent = Math.max(MIN_ZOOM_EXPONENT, zoomExponent - ZOOM_EXPONENT_STEP * times);
+                return true;
+            }
+            return false;
+        });
     }
 
     /** Switch whether the camera is attached to the focused entities or not. */
@@ -81,6 +125,20 @@ public final class CameraFocusSystem extends EntityProcessorSystem implements Re
     public void update() {
         if (currentFramingDetached && !currentFramingCatchUp) {
             // No need to follow anything when the framing is independent.
+            // Just make sure that it is still focused on the game area
+            float minX = currentFraming.x;
+            float minY = currentFraming.y;
+            float maxX = minX + currentFraming.width;
+            float maxY = minY + currentFraming.height;
+            final float minWorldX = 0 - currentFraming.width * 0.5f;
+            final float maxWorldX = worldWidth + currentFraming.width * 0.5f;
+            final float minWorldY = 0 - currentFraming.height * 0.5f;
+            final float maxWorldY = worldHeight + currentFraming.height * 0.5f;
+            minX = Math.max(minX, minWorldX);
+            minY = Math.max(minY, minWorldY);
+            maxX = Math.min(maxX, maxWorldX);
+            maxY = Math.min(maxY, maxWorldY);
+            currentFraming.set(minX, minY, maxX - minX, maxY - minY);
             return;
         }
         firstEntity = true;
@@ -132,11 +190,19 @@ public final class CameraFocusSystem extends EntityProcessorSystem implements Re
 
     @Override
     public void render(@NotNull Batch batch, @NotNull Rectangle frustum) {
-        // Update viewport
-        viewport.getCamera().position.set(currentFraming.x + currentFraming.width * 0.5f, currentFraming.y + currentFraming.height * 0.5f, 1);
-        viewport.setMinWorldWidth(currentFraming.width);
-        viewport.setMinWorldHeight(currentFraming.height);
+        final Rectangle currentFraming = this.zoomedCurrentFraming;
+        currentFraming.set(this.currentFraming);
+        // Apply zoom
+        currentFraming.x += currentFraming.width * 0.5f;
+        currentFraming.y += currentFraming.height * 0.5f;
+        final float zoomFactor = (float) Math.pow(2f, zoomExponent);
+        currentFraming.width *= zoomFactor;
+        currentFraming.height *= zoomFactor;
 
+        // Update viewport
+        viewport.getCamera().position.set(currentFraming.x, currentFraming.y, 1);
+        viewport.setWorldWidth(currentFraming.width);
+        viewport.setWorldHeight(currentFraming.height);
         viewport.update(screenWidth, screenHeight);
 
         // Update frustum

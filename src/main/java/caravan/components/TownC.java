@@ -1,11 +1,15 @@
 package caravan.components;
 
 import com.darkyen.retinazer.Component;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Entity represents a town.
  */
 public final class TownC implements Component {
+
+	@NotNull
+	public String name = "<no name>";
 
 	/** Amount of people that currently live in a city. */
 	public int population;

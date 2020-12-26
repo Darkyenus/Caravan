@@ -97,7 +97,7 @@ public final class GameInput implements InputProcessor {
 						}
 						break;
 					case MOUSE_WHEEL_X:
-						if (value > 1) {
+						if (value > 0) {
 							if (positiveXScrollBound == null) {
 								positiveXScrollBound = function;
 							} else {
@@ -112,7 +112,7 @@ public final class GameInput implements InputProcessor {
 						}
 						break;
 					case MOUSE_WHEEL_Y:
-						if (value > 1) {
+						if (value > 0) {
 							if (positiveYScrollBound == null) {
 								positiveYScrollBound = function;
 							} else {

@@ -7,6 +7,7 @@ import wemi.Keys
 import wemi.dependency.Jitpack
 import wemi.dependency.ProjectDependency
 import wemi.dependency.ScopeAggregate
+import wemi.expiresWith
 import wemi.key
 import wemi.util.FileSet
 import wemi.util.SystemInfo
@@ -42,7 +43,10 @@ val caravan:Project by project(Archetypes.JavaProject) {
 
 	packedResourcesDir set { path("assets") }
 	packResources set {
-		packResources(path("resources").toFile(), packedResourcesDir.get().toFile(), listOf(PreferSymlinks to SystemInfo.IS_POSIX))
+		System.setProperty("java.awt.headless", "true")
+		val resources = path("resources")
+		expiresWith(resources)
+		packResources(resources.toFile(), packedResourcesDir.get().toFile(), listOf(PreferSymlinks to SystemInfo.IS_POSIX))
 	}
 
 	run set { using(lwjgl3) { run.get() } } // Redirect running to lwjgl3 backend

@@ -34,7 +34,7 @@ public final class EntitySpawnService implements EngineService {
 		position.create(entity).set(x, y);
 		move.create(entity).set(x, y, 0f);
 		player.create(entity).set(true);
-		cameraFocus.create(entity).set(8f);
+		cameraFocus.create(entity).set(10f);
 		render.create(entity).set(CARAVAN_RIGHT);
 		return entity;
 	}

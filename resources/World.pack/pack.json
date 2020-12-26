@@ -2,6 +2,6 @@
 duplicatePadding: true,
 paddingX: 2,
 paddingY: 2,
-filterMin: Nearest,
+filterMin: MipMapNearestLinear,
 filterMag: Nearest
 }

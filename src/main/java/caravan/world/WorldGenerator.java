@@ -26,7 +26,7 @@ public final class WorldGenerator {
 
 		final WorldAttributeFloat temperature = generateTemperature(world, random, altitude);
 		final WorldAttributeFloat precipitation = generatePrecipitation(temperature, altitude, windX, windY, random);
-		final WorldAttributeFloat forest = generateForests(temperature, precipitation, random);
+		final WorldAttributeFloat forest = generateForests(altitude, temperature, precipitation, random);
 		final WorldAttributeFloat pastures = generatePastures(temperature, precipitation, random);
 
 		// Generate rivers
@@ -130,7 +130,7 @@ public final class WorldGenerator {
 			final int townY = townCellIndex / world.width;
 
 			// Decrement score around this place, to have towns more far away from each other
-			townPlacementScore.dent(townX, townY, 10, 1f);
+			townPlacementScore.dent(townX, townY, 20, 3f);
 
 			// Place the town and set it up
 			final TownC town = engine.getService(EntitySpawnService.class).spawnTown(townX, townY);
@@ -182,14 +182,16 @@ public final class WorldGenerator {
 		h.add(random.nextLong(), 50f, 5f);
 		h.add(random.nextLong(), 25f, 4f);
 		h.add(random.nextLong(), 12f, 3f);
+		h.add(5f);
 		h.attenuateEdges(30, Interpolation.pow2Out);
+		h.add(-5f);
 		h.clamp(0, Float.POSITIVE_INFINITY);
 		// Max attainable height is 51, average max is around 25-29
 		// So let's set 51 at 8km, which makes the average max at 4-4.5 km
-		h.scale(51f / 8f);
+		h.scale(8f / 51f);
 
 		//h.saveVisualization("height");
-		//System.out.println("Max height: "+h.max()+" km");
+		//System.out.println("Max height: "+h.max()+" km  Median: "+h.median() + "   Average:  "+h.average());
 		return h;
 	}
 
@@ -219,7 +221,7 @@ public final class WorldGenerator {
 	}
 
 	/** Temperature in degrees Celsius */
-	private static WorldAttributeFloat generateTemperature(WorldService world, RandomXS128 random, WorldAttributeFloat height) {
+	private static WorldAttributeFloat generateTemperature(WorldService world, RandomXS128 random, WorldAttributeFloat altitude) {
 		final WorldAttributeFloat temperature = new WorldAttributeFloat(world.width, world.height, 0f);
 		// Temperature is primarily determined by latitude, with south part of the map being very hot,
 		// while north being freezing, just because.
@@ -234,7 +236,7 @@ public final class WorldGenerator {
 		// Another contributor is height - most sources give drop of 6C per 1km of height
 		for (int y = 0; y < world.height; y++) {
 			for (int x = 0; x < world.width; x++) {
-				temperature.set(x, y, height.get(x, y) * -6f);
+				temperature.set(x, y, temperature.get(x, y) + altitude.get(x, y) * -6f);
 			}
 		}
 		// Another potential contributors: continentality, winds, slope etc.
@@ -253,7 +255,7 @@ public final class WorldGenerator {
 	}
 
 	/** Generate forest, 0 being no forest, 1 being forest, split point is at 0.5 */
-	private static WorldAttributeFloat generateForests(WorldAttributeFloat temperature, WorldAttributeFloat precipitation, RandomXS128 random) {
+	private static WorldAttributeFloat generateForests(WorldAttributeFloat altitude, WorldAttributeFloat temperature, WorldAttributeFloat precipitation, RandomXS128 random) {
 		final WorldAttributeFloat forest = new WorldAttributeFloat(temperature.width, temperature.height, 0f);
 		forest.fill((x, y, old) -> {
 			final float temp = temperature.get(x, y);
@@ -261,10 +263,14 @@ public final class WorldGenerator {
 			// The idea behind this:
 			// Forests like rain and medium temperature - the ideal temperature is between 1.5C and 35C, with peak in the middle and slow falloff
 			// This is not ideal or super realistic, but eh.
-			return MathUtils.clamp((float) Math.sqrt(rain) + (float) Math.sqrt(MathUtils.clamp(1f - (temp - 18.25f)/16.75f, 0f, 1f)), 0f, 1f);
+			float score = MathUtils.clamp((float) Math.sqrt(rain) + (float) Math.sqrt(MathUtils.clamp(1f - (temp - 18.25f) / 16.75f, 0f, 1f)), 0f, 1f);
+			final float alt = altitude.get(x, y);
+			score *= MathUtils.clamp(alt / 0.2f, 0f, 1f);// Prevent forests near large bodies of water
+			return score;
 		});
-		forest.add(random.nextLong(), 20f, 0.4f);
-		forest.add(random.nextLong(), 2f, 0.15f);
+		forest.add(random.nextLong(), 40f, 0.5f);
+		forest.add(random.nextLong(), 10f, 0.2f);
+		forest.add(-0.1f);
 		return forest;
 	}
 

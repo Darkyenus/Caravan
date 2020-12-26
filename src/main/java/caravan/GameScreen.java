@@ -36,20 +36,22 @@ public final class GameScreen extends CaravanApplication.Screen {
 
 		final EntitySpawnService entitySpawn;
 
+		final int worldWidth = 300;
+		final int worldHeight = 300;
 		engine = new Engine(Components.DOMAIN,
 				simulationService = new SimulationService(),
 				entitySpawn = new EntitySpawnService(),
 				new PlayerControlSystem(gameInput),
 				new MoveSystem(),
-				cameraFocusSystem = new CameraFocusSystem(),
-				new WorldService(300, 300, Tiles.Water),
+				cameraFocusSystem = new CameraFocusSystem(worldWidth, worldHeight, 5f, gameInput),
+				new WorldService(worldWidth, worldHeight, Tiles.Water),
 				new RenderSystem()
 				);
 		renderingServices = engine.getServices(RenderingService.class).toArray(new RenderingService[0]);
 
 		WorldGenerator.generateWorld(engine, System.nanoTime());
 
-		entitySpawn.spawnPlayerCaravan(5f, 5f);
+		entitySpawn.spawnPlayerCaravan(worldWidth * 0.5f, worldHeight * 0.5f);
 	}
 
 	@Override

@@ -190,6 +190,27 @@ public final class WorldAttributeFloat {
 		return max;
 	}
 
+	/** @return average value of the values in the array */
+	public float average() {
+		double sum = 0f;
+		for (float value : this.values) {
+			sum += value;
+		}
+		return (float) (sum / this.values.length);
+	}
+
+	/** @return median value of the values in the array */
+	public float median() {
+		final float[] sorted = Arrays.copyOf(values, values.length);
+		Arrays.sort(sorted);
+		final int length = sorted.length;
+		if (length % 2 == 1) {
+			return sorted[length / 2];
+		} else {
+			return (sorted[length / 2] + sorted[length / 2 + 1]) * 0.5f;
+		}
+	}
+
 	@FunctionalInterface
 	interface FillFunction {
 		float value(int x, int y, float currentValue);

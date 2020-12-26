@@ -26,11 +26,9 @@ public final class BoundInputFunction {
 		this.trigger = trigger;
 	}
 
-
 	public boolean isPressed() {
 		return pressed;
 	}
-
 
 	//region Internal logic
 	private boolean trigger(boolean pressed) {
