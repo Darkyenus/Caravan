@@ -13,5 +13,4 @@ public final class PositionC implements Component {
         this.x = x;
         this.y = y;
     }
-
 }

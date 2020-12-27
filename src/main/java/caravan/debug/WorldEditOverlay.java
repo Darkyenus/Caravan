@@ -45,8 +45,8 @@ public final class WorldEditOverlay extends CaravanApplication.UIScreen {
 		tileSelector = new ItemSelector<>(
 				CaravanApplication.uiSkin(), "Tiles",
 				tile -> {
-					final Rectangle lookAt = engine.getService(CameraFocusSystem.class).currentFraming;
-					engine.getService(WorldService.class).tiles.set(Math.round(lookAt.x + lookAt.width / 2f), Math.round(lookAt.y + lookAt.height / 2f), tile);
+					final Rectangle lookAt = engine.getService(CameraFocusSystem.class).lastFrustum;
+					engine.getService(WorldService.class).tiles.set((int) Math.floor(lookAt.x + lookAt.width * 0.5f), (int) Math.floor(lookAt.y + lookAt.height * 0.5f), tile);
 				},
 				(tile, batch, x, y, size) -> {
 					final TextureRegion tex = tile.getBaseTexture();

@@ -6,7 +6,7 @@ import caravan.components.Components;
 import caravan.components.PositionC;
 import caravan.input.BoundInputFunction;
 import caravan.input.GameInput;
-import caravan.input.Trigger;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Batch;
@@ -32,7 +32,7 @@ public final class CameraFocusSystem extends EntityProcessorSystem implements Re
     private boolean firstEntity = true;
 
     /** The framing (where camera looks) of the frame - more can be shown. */
-    public final Rectangle currentFraming = new Rectangle();// TODO(jp): Private
+    private final Rectangle currentFraming = new Rectangle();
     /** Like {@link #currentFraming}, but with zoom applied and the origin being in the center of the rectangle. */
     private final Rectangle zoomedCurrentFraming = new Rectangle();
     /** Current framing can get detached from the focus and be controlled independently. */
@@ -40,12 +40,15 @@ public final class CameraFocusSystem extends EntityProcessorSystem implements Re
     /** If the framing is detached, is it trying to catch up to the real value or not? (After it catches up, it will re-attach.) */
     private boolean currentFramingCatchUp = false;
 
+    /** Last used frustum in world-space. */
+    public final Rectangle lastFrustum = new Rectangle();
+
     private final float minVisibleUnits;
 
     /** The viewport defined for the world. */
     public final Viewport viewport;
 
-    private final Vector3 frustumTmp = new Vector3();
+    private final Vector3 unprojectTmp = new Vector3();
 
     /** The screen dimensions, used to setup the viewport. */
     public int screenWidth = 800, screenHeight = 800;
@@ -54,8 +57,10 @@ public final class CameraFocusSystem extends EntityProcessorSystem implements Re
 
     private float zoomExponent = 0f;
     private static final float MIN_ZOOM_EXPONENT = -1f;
-    private static final float MAX_ZOOM_EXPONENT = 3f;
+    private static final float MAX_ZOOM_EXPONENT = 4f;
     private static final float ZOOM_EXPONENT_STEP = 0.1f;
+
+    private final BoundInputFunction scrollFunction;
 
     @Wire
     private Mapper<PositionC> positionMapper;
@@ -95,7 +100,7 @@ public final class CameraFocusSystem extends EntityProcessorSystem implements Re
         camera.near = 0.5f;
         camera.far = 1.5f;
 
-        final BoundInputFunction scroll = gameInput.use(Inputs.SCROLL);
+        scrollFunction = gameInput.use(Inputs.SCROLL);
         gameInput.use(Inputs.ZOOM_OUT, (times, pressed) -> {
             if (zoomExponent < MAX_ZOOM_EXPONENT) {
                 zoomExponent = Math.min(MAX_ZOOM_EXPONENT, zoomExponent + ZOOM_EXPONENT_STEP * times);
@@ -121,8 +126,29 @@ public final class CameraFocusSystem extends EntityProcessorSystem implements Re
         }
     }
 
+    public Vector3 unproject(int screenX, int screenY) {
+        return viewport.unproject(unprojectTmp.set(screenX, screenY, 0f));
+    }
+
     @Override
     public void update() {
+        if (scrollFunction.isPressed()) {
+            currentFramingDetached = true;
+            final float shiftX;
+            final float shiftY;
+            {
+                final Vector3 beforeShift = unproject(Gdx.input.getX() - Gdx.input.getDeltaX(), Gdx.input.getY() - Gdx.input.getDeltaY());
+                final float beforeX = beforeShift.x;
+                final float beforeY = beforeShift.y;
+                // do not touch beforeShift after this, it is the same instance as afterShift
+                final Vector3 afterShift = unproject(Gdx.input.getX(), Gdx.input.getY());
+                shiftX = afterShift.x - beforeX;
+                shiftY = afterShift.y - beforeY;
+            }
+            currentFraming.x -= shiftX;
+            currentFraming.y -= shiftY;
+        }
+
         if (currentFramingDetached && !currentFramingCatchUp) {
             // No need to follow anything when the framing is independent.
             // Just make sure that it is still focused on the game area
@@ -206,12 +232,13 @@ public final class CameraFocusSystem extends EntityProcessorSystem implements Re
         viewport.update(screenWidth, screenHeight);
 
         // Update frustum
-        final Vector3 frustumCorner = viewport.unproject(frustumTmp.set(0, viewport.getScreenHeight(), 0));
+        final Vector3 frustumCorner = viewport.unproject(unprojectTmp.set(0, viewport.getScreenHeight(), 0));
         frustum.x = frustumCorner.x;
         frustum.y = frustumCorner.y;
         viewport.unproject(frustumCorner.set(viewport.getScreenWidth(), 0, 0));
         frustum.width = frustumCorner.x - frustum.x;
         frustum.height = frustumCorner.y - frustum.y;
+        lastFrustum.set(frustum);
 
         batch.setProjectionMatrix(viewport.getCamera().combined);
     }

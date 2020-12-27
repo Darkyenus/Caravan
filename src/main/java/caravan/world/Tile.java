@@ -45,7 +45,10 @@ public final class Tile {
 	private String[] baseImageNames;
 	private String[] overlapImageNames;
 
-	public Tile(int height, @NotNull String @NotNull[] bases, @NotNull String @NotNull[] overlaps) {
+	public final float movementSpeedMultiplier;
+
+	public Tile(int height, @NotNull String @NotNull [] bases, @NotNull String @NotNull [] overlaps, float movSpeed) {
+		this.movementSpeedMultiplier = movSpeed;
 		assert bases.length >= 1;
 		assert overlaps.length % OVERLAP_IMAGE_COUNT == 0;
 		this.height = (byte) height;

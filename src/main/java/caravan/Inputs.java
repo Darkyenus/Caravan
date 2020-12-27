@@ -19,6 +19,8 @@ public final class Inputs {
 	public static final InputFunction LEFT  = InputFunction.function("Walk Left", Binding.keyboard(A), Binding.keyboard(Input.Keys.LEFT));
 	public static final InputFunction RIGHT = InputFunction.function("Walk Right", Binding.keyboard(D), Binding.keyboard(Input.Keys.RIGHT));
 
+	public static final InputFunction MOVE = InputFunction.function("Move to Cursor", Binding.mouseButton(Input.Buttons.LEFT));
+
 	public static final InputFunction SCROLL = InputFunction.function("Scroll", Binding.mouseButton(Input.Buttons.RIGHT));
 	public static final InputFunction ZOOM_IN = InputFunction.function("Zoom In", Binding.scrollWheelY(false));
 	public static final InputFunction ZOOM_OUT = InputFunction.function("Zoom Out", Binding.scrollWheelY(true));
@@ -28,6 +30,7 @@ public final class Inputs {
 			DOWN,
 			LEFT,
 			RIGHT,
+			MOVE,
 			SCROLL,
 			ZOOM_IN,
 			ZOOM_OUT

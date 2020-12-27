@@ -32,7 +32,7 @@ public final class EntitySpawnService implements EngineService {
 	public int spawnPlayerCaravan(float x, float y) {
 		final int entity = engine.createEntity();
 		position.create(entity).set(x, y);
-		move.create(entity).set(x, y, 0f);
+		move.create(entity);
 		player.create(entity).set(true);
 		cameraFocus.create(entity).set(10f);
 		render.create(entity).set(CARAVAN_RIGHT);

@@ -3,7 +3,9 @@ package caravan.services;
 import caravan.components.Components;
 import caravan.components.MoveC;
 import caravan.components.PositionC;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.FloatArray;
 import com.darkyen.retinazer.*;
 import com.darkyen.retinazer.systems.EntityProcessorSystem;
 
@@ -38,23 +40,54 @@ public final class MoveSystem extends EntityProcessorSystem {
         float delta = simulation.delta;
 
         final PositionC position = positionMapper.get(entity);
+        final FloatArray path = moveMapper.get(entity).waypoints;
+
+        while (path.size >= 3) {
+            final float targetX = path.get(0);
+            final float targetY = path.get(1);
+            final float speed = path.get(2);
+
+            final float maxPossibleMove = speed * delta;
+            final float maxPossibleMove2 = maxPossibleMove * maxPossibleMove;
+
+            final Vector2 requiredMove = tmp_move.set(targetX - position.x, targetY - position.y);
+            final float requiredMoveLen2 = requiredMove.len2();
+            if (maxPossibleMove2 >= requiredMoveLen2) {
+                // Full move is possible
+                position.x = targetX;
+                position.y = targetY;
+                // Move done, prepare move moving
+                path.removeRange(0, 2);
+                delta -= Math.sqrt(requiredMoveLen2) / speed;
+            } else {
+                // Only part of the move is possible
+                final float requiredMoveScale = maxPossibleMove / (float) Math.sqrt(requiredMoveLen2);
+                requiredMove.scl(requiredMoveScale);
+                position.x += requiredMove.x;
+                position.y += requiredMove.y;
+                break; // No more moving
+            }
+        }
+    }
+
+    public void addTileMoveWaypoint(int entity, int deltaX, int deltaY, float speed) {
         final MoveC move = moveMapper.get(entity);
 
-        final float maxPossibleMove = move.speed * delta;
-        final float maxPossibleMove2 = maxPossibleMove * maxPossibleMove;
-
-        final Vector2 requiredMove = tmp_move.set(move.targetX - position.x, move.targetY - position.y);
-        final float requiredMoveLen2 = requiredMove.len2();
-        if (maxPossibleMove2 >= requiredMoveLen2) {
-            // Full move is possible
-            position.x = move.targetX;
-            position.y = move.targetY;
+        float previousX;
+        float previousY;
+        if (move.waypoints.size > 0) {
+            previousX = move.waypoints.items[move.waypoints.size - 3];
+            previousY = move.waypoints.items[move.waypoints.size - 2];
         } else {
-            // Only part of the move is possible
-            final float requiredMoveScale = maxPossibleMove / (float) Math.sqrt(requiredMoveLen2);
-            requiredMove.scl(requiredMoveScale);
-            position.x += requiredMove.x;
-            position.y += requiredMove.y;
+            final PositionC position = positionMapper.get(entity);
+            previousX = position.x;
+            previousY = position.y;
+        }
+
+        if (deltaX != 0) {
+            move.addWaypoint(MathUtils.floor(previousX) + 0.5f + deltaX, previousY, speed);
+        } else if (deltaY != 0) {
+            move.addWaypoint(previousX, MathUtils.floor(previousY) + 0.5f + deltaY, speed);
         }
     }
 }

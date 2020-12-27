@@ -1,5 +1,6 @@
 package caravan.services;
 
+import caravan.util.PathFinding;
 import caravan.world.Tile;
 import caravan.world.WorldAttribute;
 import com.badlogic.gdx.graphics.g2d.Batch;
@@ -16,11 +17,24 @@ public final class WorldService implements EngineService, RenderingService {
 	public final int width, height;
 	public final WorldAttribute<Tile> tiles;
 
+	public final PathFinding pathFinding;
 
 	public WorldService(int width, int height, @NotNull Tile defaultTile) {
 		this.width = width;
 		this.height = height;
 		this.tiles = new WorldAttribute<>(width, height, defaultTile);
+
+		this.pathFinding = new PathFinding(width, height, new PathFinding.PathWorld() {
+			@Override
+			public boolean isAccessible(int x, int y) {
+				return tiles.get(x, y).movementSpeedMultiplier > 0f;
+			}
+
+			@Override
+			public float movementSpeedMultiplier(int x, int y) {
+				return tiles.get(x, y).movementSpeedMultiplier;
+			}
+		});
 	}
 
 	@Override
