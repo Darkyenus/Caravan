@@ -3,7 +3,7 @@ package caravan.world;
 /**
  * Various world properties and ways to generate them.
  */
-public class WorldProperty {
+public final class WorldProperty {
 
 	/** Temperature of an area */
 	public enum Temperature {

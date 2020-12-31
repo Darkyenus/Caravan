@@ -72,6 +72,8 @@ public enum Merchandise {
 	PERFUME
 	;
 
+	public static final Merchandise[] VALUES = values();
+
 	/** Merchandise categories and subcategories. */
 	public enum Category {
 		TEXTILE(RAW_WOOL, UNSPUN_COTTON, FLAX, ANIMAL_SKINS, LINEN, COTTON, SILK, WOOL),
@@ -103,5 +105,7 @@ public enum Merchandise {
 		Category(Merchandise...merch) {
 			this.merch = merch;
 		}
+
+		public static final Category[] VALUES = values();
 	}
 }

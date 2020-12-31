@@ -29,6 +29,32 @@ public final class WorldGenerator {
 		final WorldAttributeFloat forest = generateForests(altitude, temperature, precipitation, random);
 		final WorldAttributeFloat pastures = generatePastures(temperature, precipitation, random);
 
+		final WorldAttribute<WorldProperty.Temperature> temperatureClass = new WorldAttribute<>(world.width, world.height, WorldProperty.Temperature.TEMPERATE);
+		temperatureClass.fill((x, y, currentValue) -> {
+			float temp = temperature.get(x, y);
+			if (temp < 10f) {
+				return WorldProperty.Temperature.COLD;
+			} else if (temp < 25f) {
+				return WorldProperty.Temperature.TEMPERATE;
+			} else {
+				return WorldProperty.Temperature.HOT;
+			}
+		});
+
+		final WorldAttribute<WorldProperty.Precipitation> precipitationClass = new WorldAttribute<>(world.width, world.height, WorldProperty.Precipitation.HUMID);
+		precipitationClass.fill((x, y, currentValue) -> {
+			float prec = precipitation.get(x, y);
+			if (prec < 0.1f) {
+				return WorldProperty.Precipitation.SUPER_ARID;
+			} else if (prec < 0.4f) {
+				return WorldProperty.Precipitation.ARID;
+			} else if (prec < 0.85f) {
+				return WorldProperty.Precipitation.HUMID;
+			} else {
+				return WorldProperty.Precipitation.SUPER_HUMID;
+			}
+		});
+
 		// Generate rivers
 		//TODO
 
@@ -143,8 +169,8 @@ public final class WorldGenerator {
 			town.pastureAbundance = pastures.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);
 			town.fishAbundance = fish.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);
 
-			town.temperature = temperature.get(townX, townY);
-			town.precipitation = precipitation.get(townX, townY);
+			town.temperature = temperatureClass.get(townX, townY);
+			town.precipitation = precipitationClass.get(townX, townY);
 
 			town.goldOccurrence = goldOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);
 			town.silverOccurrence = silverOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);

@@ -47,4 +47,23 @@ public final class WorldAttribute<T> {
 		values[index] = value;
 		return result;
 	}
+
+	@FunctionalInterface
+	interface FillFunction<T> {
+		@NotNull T value(int x, int y, @NotNull T currentValue);
+	}
+
+	/** Set each cell value to whatever the f function returns. */
+	public void fill(@NotNull FillFunction<T> f) {
+		final int width = this.width;
+		final int height = this.height;
+		final T[] values = this.values;
+		int i = 0;
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				values[i] = f.value(x, y, values[i]);
+				i++;
+			}
+		}
+	}
 }

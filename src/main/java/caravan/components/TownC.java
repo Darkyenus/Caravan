@@ -1,12 +1,13 @@
 package caravan.components;
 
+import caravan.world.PriceList;
+import caravan.world.WorldProperty;
+import com.badlogic.gdx.utils.Pool;
 import com.darkyen.retinazer.Component;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Entity represents a town.
- */
-public final class TownC implements Component {
+/** Entity represents a town. */
+public final class TownC implements Component, Pool.Poolable {
 
 	@NotNull
 	public String name = "<no name>";
@@ -16,6 +17,9 @@ public final class TownC implements Component {
 
 	/** Current amount of money a town has */
 	public int money;
+
+	/** The town prices and inventory */
+	public final PriceList prices = new PriceList();
 
 	//region Town economic properties
 	/** Whether the town has own source of water for its own consumption. */
@@ -33,11 +37,13 @@ public final class TownC implements Component {
 	/** [0, 1] how much fish for fishing is there around this town */
 	public float fishAbundance;
 
-	/** Average temperature in Celsius at the town's location. */
-	public float temperature;
+	/** Average temperature at the town's location. */
+	@NotNull
+	public WorldProperty.Temperature temperature = WorldProperty.Temperature.TEMPERATE;
 
-	/** [0, 1] How much rain falls down here. */
-	public float precipitation;
+	/** How much rain falls down here. */
+	@NotNull
+	public WorldProperty.Precipitation precipitation = WorldProperty.Precipitation.HUMID;
 
 	/** [0, 1] how easy is it to mine each material here, 0 = impossible, 1 = very easy */
 	public float goldOccurrence;
@@ -51,4 +57,31 @@ public final class TownC implements Component {
 	public float stoneOccurrence;
 	public float limestoneOccurrence;
 	//endregion
+
+	@Override
+	public void reset() {
+		name = "<no name>";
+		population = 0;
+		money = 0;
+		prices.clear();
+
+		hasFreshWater = false;
+		hasSaltWater = false;
+		woodAbundance = 0;
+		pastureAbundance = 0;
+		fishAbundance = 0;
+		temperature = WorldProperty.Temperature.TEMPERATE;
+		precipitation = WorldProperty.Precipitation.HUMID;
+
+		goldOccurrence = 0;
+		silverOccurrence = 0;
+		ironOccurrence = 0;
+		copperOccurrence = 0;
+		tinOccurrence = 0;
+		leadOccurrence = 0;
+		coalOccurrence = 0;
+		jewelOccurrence = 0;
+		stoneOccurrence = 0;
+		limestoneOccurrence = 0;
+	}
 }

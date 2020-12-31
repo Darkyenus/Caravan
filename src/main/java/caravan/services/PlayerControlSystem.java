@@ -12,12 +12,10 @@ import caravan.util.Vec2;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.FloatArray;
 import com.badlogic.gdx.utils.LongArray;
 import com.darkyen.retinazer.Mapper;
 import com.darkyen.retinazer.Wire;
 import com.darkyen.retinazer.systems.EntityProcessorSystem;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * A system for controlling the player movement on the map.
@@ -143,8 +141,9 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
         }
     }
 
+    // TODO(jp): implement for NPC caravans
     /** Add waypoints to move the entity from its current position to the specified position. */
-    public void moveTo(int entity, float x, float y) {
+    private void moveTo(int entity, float x, float y) {
         final PositionC position = positionMapper.get(entity);
         final MoveC move = moveMapper.get(entity);
 
