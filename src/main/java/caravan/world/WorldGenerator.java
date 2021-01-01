@@ -92,22 +92,14 @@ public final class WorldGenerator {
 		}
 
 		// Generate ore locations
-		final WorldAttributeFloat goldOccurrence = new WorldAttributeFloat(world.width, world.height, 0f);
-		final WorldAttributeFloat silverOccurrence = new WorldAttributeFloat(world.width, world.height, 0f);
-		final WorldAttributeFloat ironOccurrence = new WorldAttributeFloat(world.width, world.height, 0f);
-		final WorldAttributeFloat copperOccurrence = new WorldAttributeFloat(world.width, world.height, 0f);
-		final WorldAttributeFloat tinOccurrence = new WorldAttributeFloat(world.width, world.height, 0f);
-		final WorldAttributeFloat leadOccurrence = new WorldAttributeFloat(world.width, world.height, 0f);
+		final WorldAttributeFloat rareMetalOccurrence = new WorldAttributeFloat(world.width, world.height, 0f);
+		final WorldAttributeFloat metalOccurrence = new WorldAttributeFloat(world.width, world.height, 0f);
 		final WorldAttributeFloat coalOccurrence = new WorldAttributeFloat(world.width, world.height, 0f);
 		final WorldAttributeFloat jewelOccurrence = new WorldAttributeFloat(world.width, world.height, 0f);
 		final WorldAttributeFloat stoneOccurrence = new WorldAttributeFloat(world.width, world.height, 0f);
 		final WorldAttributeFloat limestoneOccurrence = new WorldAttributeFloat(world.width, world.height, 0f);
-		generateMineral(goldOccurrence, 0.01f, 30f, random);
-		generateMineral(silverOccurrence, 0.015f, 30f, random);
-		generateMineral(ironOccurrence, 0.03f, 40f, random);
-		generateMineral(copperOccurrence, 0.035f, 40f, random);
-		generateMineral(tinOccurrence, 0.04f, 40f, random);
-		generateMineral(leadOccurrence, 0.04f, 40f, random);
+		generateMineral(rareMetalOccurrence, 0.025f, 30f, random);
+		generateMineral(metalOccurrence, 0.145f, 40f, random);
 		generateMineral(coalOccurrence, 0.07f, 50f, random);
 		generateMineral(jewelOccurrence, 0.03f, 20f, random);
 		generateMineral(stoneOccurrence, 0.2f, 50f, random);
@@ -122,17 +114,13 @@ public final class WorldGenerator {
 				return Float.NEGATIVE_INFINITY;
 			}
 
-			final float gold = goldOccurrence.getKernelMax(x, y, MINERAL_REACH_KERNEL, 5, 5);
-			final float silver = silverOccurrence.getKernelMax(x, y, MINERAL_REACH_KERNEL, 5, 5);
-			final float iron = ironOccurrence.getKernelMax(x, y, MINERAL_REACH_KERNEL, 5, 5);
-			final float copper = copperOccurrence.getKernelMax(x, y, MINERAL_REACH_KERNEL, 5, 5);
-			final float tin = tinOccurrence.getKernelMax(x, y, MINERAL_REACH_KERNEL, 5, 5);
-			final float lead = leadOccurrence.getKernelMax(x, y, MINERAL_REACH_KERNEL, 5, 5);
+			final float rareMetal = rareMetalOccurrence.getKernelMax(x, y, MINERAL_REACH_KERNEL, 5, 5);
+			final float metal = metalOccurrence.getKernelMax(x, y, MINERAL_REACH_KERNEL, 5, 5);
 			final float coal = coalOccurrence.getKernelMax(x, y, MINERAL_REACH_KERNEL, 5, 5);
 			final float jewel = jewelOccurrence.getKernelMax(x, y, MINERAL_REACH_KERNEL, 5, 5);
 			final float stone = stoneOccurrence.getKernelMax(x, y, MINERAL_REACH_KERNEL, 5, 5);
 			final float limestone = limestoneOccurrence.getKernelMax(x, y, MINERAL_REACH_KERNEL, 5, 5);
-			final float mineral = max(gold, silver, iron, copper, tin, lead, coal, jewel, stone, limestone);
+			final float mineral = max(rareMetal, metal, coal, jewel, stone, limestone);
 
 			final float wood = forest.getKernelMax(x, y, MINERAL_REACH_KERNEL, 5, 5);
 			final float pasture = pastures.getKernelMax(x, y, MINERAL_REACH_KERNEL, 5, 5);
@@ -172,12 +160,8 @@ public final class WorldGenerator {
 			town.temperature = temperatureClass.get(townX, townY);
 			town.precipitation = precipitationClass.get(townX, townY);
 
-			town.goldOccurrence = goldOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);
-			town.silverOccurrence = silverOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);
-			town.ironOccurrence = ironOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);
-			town.copperOccurrence = copperOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);
-			town.tinOccurrence = tinOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);
-			town.leadOccurrence = leadOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);
+			town.rareMetalOccurrence = rareMetalOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);
+			town.metalOccurrence = metalOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);
 			town.coalOccurrence = coalOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);
 			town.jewelOccurrence = jewelOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);
 			town.stoneOccurrence = stoneOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);
@@ -292,11 +276,12 @@ public final class WorldGenerator {
 			float score = MathUtils.clamp((float) Math.sqrt(rain) + (float) Math.sqrt(MathUtils.clamp(1f - (temp - 18.25f) / 16.75f, 0f, 1f)), 0f, 1f);
 			final float alt = altitude.get(x, y);
 			score *= MathUtils.clamp(alt / 0.2f, 0f, 1f);// Prevent forests near large bodies of water
-			return score;
+			return MathUtils.clamp(score, 0, 1);
 		});
 		forest.add(random.nextLong(), 40f, 0.5f);
 		forest.add(random.nextLong(), 10f, 0.2f);
 		forest.add(-0.1f);
+		forest.clamp(0f, 1f);
 		return forest;
 	}
 

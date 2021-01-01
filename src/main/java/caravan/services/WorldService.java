@@ -19,22 +19,25 @@ public final class WorldService implements EngineService, RenderingService {
 
 	public final PathFinding pathFinding;
 
+	public final PathFinding.PathWorld defaultPathWorld = new PathFinding.PathWorld() {
+		@Override
+		public boolean isAccessible(int x, int y) {
+			return x >= 0 && x < width && y >= 0 && y < height;
+			//return tiles.get(x, y).movementSpeedMultiplier > 0f;
+		}
+
+		@Override
+		public float movementSpeedMultiplier(int x, int y) {
+			return tiles.get(x, y).movementSpeedMultiplier;
+		}
+	};
+
 	public WorldService(int width, int height, @NotNull Tile defaultTile) {
 		this.width = width;
 		this.height = height;
 		this.tiles = new WorldAttribute<>(width, height, defaultTile);
 
-		this.pathFinding = new PathFinding(width, height, new PathFinding.PathWorld() {
-			@Override
-			public boolean isAccessible(int x, int y) {
-				return tiles.get(x, y).movementSpeedMultiplier > 0f;
-			}
-
-			@Override
-			public float movementSpeedMultiplier(int x, int y) {
-				return tiles.get(x, y).movementSpeedMultiplier;
-			}
-		});
+		this.pathFinding = new PathFinding(width, height, defaultPathWorld);
 	}
 
 	@Override

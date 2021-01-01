@@ -1,6 +1,7 @@
 package caravan.services;
 
 import caravan.components.CameraFocusC;
+import caravan.components.CaravanC;
 import caravan.components.MoveC;
 import caravan.components.PlayerC;
 import caravan.components.PositionC;
@@ -27,6 +28,7 @@ public final class EntitySpawnService implements EngineService {
 	@Wire private Mapper<CameraFocusC> cameraFocus;
 	@Wire private Mapper<RenderC> render;
 	@Wire private Mapper<TownC> town;
+	@Wire private Mapper<CaravanC> caravan;
 
 	/** Create player's caravan at given position. */
 	public int spawnPlayerCaravan(float x, float y) {
@@ -36,6 +38,7 @@ public final class EntitySpawnService implements EngineService {
 		player.create(entity).set(true);
 		cameraFocus.create(entity).set(10f);
 		render.create(entity).set(CARAVAN_RIGHT);
+		caravan.create(entity).money = 100;
 		return entity;
 	}
 

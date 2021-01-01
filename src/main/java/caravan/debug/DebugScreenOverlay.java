@@ -20,7 +20,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class DebugScreenOverlay extends CaravanApplication.UIScreen {
 
-	private boolean visible = false;
 	private final GraphPane.GraphData renderedData = new GraphPane.GraphData(256, Color.BLUE, 10f, 80f, true);
 	private final GraphPane.GraphData stepTimeData = new GraphPane.GraphData(256, Color.RED, 0f, 0.1f, false);
 	private final GraphPane.GraphData memData      = new GraphPane.GraphData(256, Color.GREEN, 0f, 20000f, true);
@@ -36,6 +35,8 @@ public final class DebugScreenOverlay extends CaravanApplication.UIScreen {
 
 	@Override
 	protected void initializeUI(@NotNull CaravanApplication application,  @NotNull Table table) {
+		stage.getRoot().setVisible(false);
+
 		final GraphPane grapherPane = new GraphPane();
 		grapherPane.graphs.add(renderedData);
 		grapherPane.graphs.add(stepTimeData);
@@ -118,24 +119,13 @@ public final class DebugScreenOverlay extends CaravanApplication.UIScreen {
 		final Runtime rt = Runtime.getRuntime();
 		memData.addDataPoint((rt.totalMemory() - rt.freeMemory())/1000f);
 
-		if (!visible) return;
 		super.update(application, delta);
-	}
-
-	@Override
-	public void render(@NotNull CaravanApplication application) {
-		if (!visible) return;
-		super.render(application);
 	}
 
 	@Override
 	public boolean keyDown(int keycode) {
 		if (keycode == Input.Keys.F3) {
-			visible = !visible;
-		}
-
-		if (!visible) {
-			return false;
+			stage.getRoot().setVisible(!stage.getRoot().isVisible());
 		}
 
 		return super.keyDown(keycode);

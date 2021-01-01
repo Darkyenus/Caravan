@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -324,7 +325,7 @@ public final class CaravanApplication implements ApplicationListener {
 		@Override
 		public void create(@NotNull CaravanApplication application) {
 			stage = new Stage(application.uiViewport, batch);
-			addProcessor(stage);
+			addProcessor(0, stage);
 			initializeUI(application, stage);
 		}
 
@@ -343,6 +344,14 @@ public final class CaravanApplication implements ApplicationListener {
 		@Override
 		public void update(@NotNull CaravanApplication application, float delta) {
 			stage.act(delta);
+			final Actor keyboardFocus = stage.getKeyboardFocus();
+			if (keyboardFocus != null && !keyboardFocus.ascendantsVisible()) {
+				stage.setKeyboardFocus(null);
+			}
+			final Actor scrollFocus = stage.getScrollFocus();
+			if (scrollFocus != null && !scrollFocus.ascendantsVisible()) {
+				stage.setScrollFocus(null);
+			}
 		}
 
 		@Override

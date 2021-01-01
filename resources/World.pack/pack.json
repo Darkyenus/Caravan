@@ -1,7 +1,7 @@
 {
-duplicatePadding: true,
-paddingX: 2,
-paddingY: 2,
-filterMin: MipMapNearestLinear,
-filterMag: Nearest
+"duplicatePadding": true,
+"paddingX": 8,
+"paddingY": 8,
+"filterMin": "MipMapNearestLinear",
+"filterMag": "Nearest"
 }

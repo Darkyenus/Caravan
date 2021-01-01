@@ -46,17 +46,16 @@ public final class TownC implements Component, Pool.Poolable {
 	public WorldProperty.Precipitation precipitation = WorldProperty.Precipitation.HUMID;
 
 	/** [0, 1] how easy is it to mine each material here, 0 = impossible, 1 = very easy */
-	public float goldOccurrence;
-	public float silverOccurrence;
-	public float ironOccurrence;
-	public float copperOccurrence;
-	public float tinOccurrence;
-	public float leadOccurrence;
+	public float rareMetalOccurrence;
+	public float metalOccurrence;
 	public float coalOccurrence;
 	public float jewelOccurrence;
 	public float stoneOccurrence;
 	public float limestoneOccurrence;
 	//endregion
+
+	/** Increment this value whenever the content changes, used to detect changes in other systems. */
+	public short modificationCounter;
 
 	@Override
 	public void reset() {
@@ -73,12 +72,8 @@ public final class TownC implements Component, Pool.Poolable {
 		temperature = WorldProperty.Temperature.TEMPERATE;
 		precipitation = WorldProperty.Precipitation.HUMID;
 
-		goldOccurrence = 0;
-		silverOccurrence = 0;
-		ironOccurrence = 0;
-		copperOccurrence = 0;
-		tinOccurrence = 0;
-		leadOccurrence = 0;
+		rareMetalOccurrence = 0;
+		metalOccurrence = 0;
 		coalOccurrence = 0;
 		jewelOccurrence = 0;
 		stoneOccurrence = 0;

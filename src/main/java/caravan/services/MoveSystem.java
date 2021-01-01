@@ -70,7 +70,7 @@ public final class MoveSystem extends EntityProcessorSystem {
         }
     }
 
-    public void addTileMoveWaypoint(int entity, int deltaX, int deltaY, float speed) {
+    public void addTileMoveWaypoint(int entity, int deltaX, int deltaY, float speedTile0, float speedTile1) {
         final MoveC move = moveMapper.get(entity);
 
         float previousX;
@@ -85,9 +85,14 @@ public final class MoveSystem extends EntityProcessorSystem {
         }
 
         if (deltaX != 0) {
-            move.addWaypoint(MathUtils.floor(previousX) + 0.5f + deltaX, previousY, speed);
+            // Moving right or left
+            float targetX = MathUtils.floor(previousX) + 0.5f + deltaX;
+            move.addWaypoint(MathUtils.round((previousX + targetX) * 0.5f), previousY, speedTile0);
+            move.addWaypoint(targetX, previousY, speedTile1);
         } else if (deltaY != 0) {
-            move.addWaypoint(previousX, MathUtils.floor(previousY) + 0.5f + deltaY, speed);
+            float targetY = MathUtils.floor(previousY) + 0.5f + deltaY;
+            move.addWaypoint(previousX, MathUtils.round((previousY + targetY) * 0.5f), speedTile0);
+            move.addWaypoint(previousX, targetY, speedTile1);
         }
     }
 }

@@ -302,9 +302,9 @@ public final class EntityEditorWindow extends Window {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private <T> String convertToString(Object v, Function<T, String> toString) {
 		try {
-			//noinspection unchecked
 			return toString.apply((T) v);
 		} catch (Exception ex) {
 			return "<" + v + ">";

@@ -176,14 +176,14 @@ public final class CameraFocusSystem extends EntityProcessorSystem implements Re
 
         if (currentFramingCatchUp) {
             // TODO(jp): Animate this part correctly
-            currentFraming.x = MathUtils.lerp(currentFraming.x, thisFrameFraming.x, 0.5f);
-            currentFraming.y = MathUtils.lerp(currentFraming.y, thisFrameFraming.y, 0.5f);
-            currentFraming.width = MathUtils.lerp(currentFraming.width, thisFrameFraming.width, 0.5f);
-            currentFraming.height = MathUtils.lerp(currentFraming.height, thisFrameFraming.height, 0.5f);
-            if (MathUtils.isEqual(currentFraming.x, thisFrameFraming.x)
-                    && MathUtils.isEqual(currentFraming.y, thisFrameFraming.y)
-                    && MathUtils.isEqual(currentFraming.width, thisFrameFraming.width)
-                    && MathUtils.isEqual(currentFraming.height, thisFrameFraming.height)) {
+            currentFraming.x = MathUtils.lerp(currentFraming.x, thisFrameFraming.x, 0.2f);
+            currentFraming.y = MathUtils.lerp(currentFraming.y, thisFrameFraming.y, 0.2f);
+            currentFraming.width = MathUtils.lerp(currentFraming.width, thisFrameFraming.width, 0.2f);
+            currentFraming.height = MathUtils.lerp(currentFraming.height, thisFrameFraming.height, 0.2f);
+            if (MathUtils.isEqual(currentFraming.x, thisFrameFraming.x, 0.1f)
+                    && MathUtils.isEqual(currentFraming.y, thisFrameFraming.y, 0.1f)
+                    && MathUtils.isEqual(currentFraming.width, thisFrameFraming.width, 0.1f)
+                    && MathUtils.isEqual(currentFraming.height, thisFrameFraming.height, 0.1f)) {
                 currentFramingCatchUp = false;
                 currentFramingDetached = false;
             }

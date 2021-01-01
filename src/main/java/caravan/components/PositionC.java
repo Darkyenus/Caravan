@@ -13,4 +13,8 @@ public final class PositionC implements Component {
         this.x = x;
         this.y = y;
     }
+
+    public static float manhattanDistance(PositionC a, PositionC b) {
+        return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+    }
 }

@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class Tiles {
 
-	public static final Tile Water = overlapTile(1, "water", 0f);
+	public static final Tile Water = overlapTile(1, "water", 0.1f);
 	public static final Tile Forest = overlapTile(10, "forest", 0.8f);
 	public static final Tile Grass = overlapTile(2, "grass", 1f);
 

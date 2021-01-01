@@ -74,6 +74,9 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
             return;
         }
 
+        final PositionC position = positionMapper.get(entity);
+        final int originTileX = MathUtils.floor(position.x);
+        final int originTileY = MathUtils.floor(position.y);
         final MoveC move = moveMapper.get(entity);
 
         float speed = 2f;
@@ -85,8 +88,9 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
             if (LEFT.isPressed()) {
                 deltaX = -1;
             } else if (RIGHT.isPressed()) {
-                deltaX = 1;
+                deltaX = +1;
             }
+
             if (UP.isPressed()) {
                 deltaY = +1;
             } else if (DOWN.isPressed()) {
@@ -103,8 +107,11 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
             }
 
             move.waypoints.clear();
-            moveSystem.addTileMoveWaypoint(entity, deltaX, deltaY, speed);
+            moveSystem.addTileMoveWaypoint(entity, deltaX, deltaY,
+                    worldService.defaultPathWorld.movementSpeedMultiplier(originTileX, originTileY) * speed,
+                    worldService.defaultPathWorld.movementSpeedMultiplier(originTileX + deltaX, originTileY + deltaY) * speed);
             directionalMove = true;
+            cameraFocusSystem.setFree(false);
         } else if (directionalMove) {
             // Stop movement after keys are released
             move.waypoints.clear();
@@ -113,31 +120,31 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
 
         if (!directionalMove && MOVE.isPressed()) {
             // Move to clicked location
-            final PositionC position = positionMapper.get(entity);
-            final int originTileX = MathUtils.floor(position.x);
-            final int originTileY = MathUtils.floor(position.y);
-
             final Vector3 clickedTarget = cameraFocusSystem.unproject(Gdx.input.getX(), Gdx.input.getY());
             final int targetTileX = MathUtils.floor(clickedTarget.x);
             final int targetTileY = MathUtils.floor(clickedTarget.y);
 
             final LongArray path = new LongArray(1);
             path.add(Vec2.make(targetTileX, targetTileY));
-            final PathFinding.Path foundPath = worldService.pathFinding.findPathWithMaxComplexity(Vec2.make(originTileX, originTileY), path.get(0), path, 3f);
+            final PathFinding.Path foundPath = worldService.pathFinding.findPathWithMaxComplexity(Vec2.make(originTileX, originTileY), path.get(0), path, 10f);
 
             move.waypoints.clear();
             if (foundPath != null) {
                 int lastX = originTileX;
                 int lastY = originTileY;
+                float tileSpeed0 = worldService.defaultPathWorld.movementSpeedMultiplier(lastX, lastY) * speed;
 
                 for (int i = 0; i < foundPath.length(); i++) {
                     final int x = foundPath.nodeX(i);
                     final int y = foundPath.nodeY(i);
-                    moveSystem.addTileMoveWaypoint(entity, x - lastX, y - lastY, speed);
+                    float tileSpeed1 = worldService.defaultPathWorld.movementSpeedMultiplier(x, y) * speed;
+                    moveSystem.addTileMoveWaypoint(entity, x - lastX, y - lastY, tileSpeed0, tileSpeed1);
                     lastX = x;
                     lastY = y;
+                    tileSpeed0 = tileSpeed1;
                 }
             }
+            cameraFocusSystem.setFree(false);
         }
     }
 
