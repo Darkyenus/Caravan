@@ -32,7 +32,7 @@ public final class TownC implements Component, Pool.Poolable {
 	public float woodAbundance;
 
 	/** [0, 1] how much pasture space is there around this town */
-	public float pastureAbundance;
+	public float fieldSpace;
 
 	/** [0, 1] how much fish for fishing is there around this town */
 	public float fishAbundance;
@@ -67,7 +67,7 @@ public final class TownC implements Component, Pool.Poolable {
 		hasFreshWater = false;
 		hasSaltWater = false;
 		woodAbundance = 0;
-		pastureAbundance = 0;
+		fieldSpace = 0;
 		fishAbundance = 0;
 		temperature = WorldProperty.Temperature.TEMPERATE;
 		precipitation = WorldProperty.Precipitation.HUMID;

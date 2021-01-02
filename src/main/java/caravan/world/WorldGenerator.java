@@ -154,7 +154,7 @@ public final class WorldGenerator {
 			town.hasSaltWater = altitude.getKernelMin(townX, townY, null, 5, 5) <= 0f;
 
 			town.woodAbundance = forest.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);
-			town.pastureAbundance = pastures.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);
+			town.fieldSpace = pastures.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);
 			town.fishAbundance = fish.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);
 
 			town.temperature = temperatureClass.get(townX, townY);

@@ -4,16 +4,11 @@ package caravan.world;
  * Types of merchandise.
  */
 public enum Merchandise {
-	RAW_WOOL("Raw wool"),
-	RAW_COTTON("Raw cotton"),
-	FLAX("Flax"),
-	ANIMAL_SKINS("Animal skins"),
-	LINEN("Linen cloth"),
-	COTTON("Cotton cloth"),
-	SILK("Silk cloth"),
-	WOOL("Wool cloth"),
-	CLOTHING_CHEAP("Cheap clothing"),
-	CLOTHING_REGULAR("Regular clothing"),
+	RAW_PLANT_FIBER("Raw plant fiber"),
+	RAW_ANIMAL_FIBER("Raw animal fiber"),
+	CLOTH("Cloth"),
+	CLOTH_LUXURY("Luxury cloth"),
+	CLOTHING("Clothing"),
 	CLOTHING_LUXURY("Luxury clothing"),
 	/** red, poultry or fish */
 	MEAT_FRESH("Fresh meat"),
@@ -23,12 +18,13 @@ public enum Merchandise {
 	MEAT_LUXURY("Luxury meat"),
 	GRAIN("Grain"),
 	BAKED_GOODS("Baked goods"),
-	EGGS("Eggs"),
-	DAIRY_MILK("Milk"),
-	DAIRY_CHEESE("Cheese"),
+	BAKED_GOODS_LUXURY("Luxury baked goods"),
+	//EGGS("Eggs"),
+	//DAIRY_MILK("Milk"),
+	//DAIRY_CHEESE("Cheese"),
 	HONEY("Honey"),
 	SUGAR("Sugar"),
-	FOOD_OIL_FAT("Cooking oil"),
+	//FOOD_OIL_FAT("Cooking oil"),
 	BEER("Beer"),
 	WINE("Wine"),
 	LIQUOR("Liquor"),
@@ -59,8 +55,8 @@ public enum Merchandise {
 	WOOD_LOG("Wood logs"),
 	WOOD_FUEL("Fuel wood"),
 	WOOD_LUMBER("Lumber"),
-	STONE("Masonry stone"),
-	LIMESTONE("Limestone"),
+	//STONE("Masonry stone"),
+	//LIMESTONE("Limestone"),
 	;
 
 	public final String name;
@@ -73,21 +69,14 @@ public enum Merchandise {
 
 	/** Merchandise categories and subcategories. */
 	public enum Category {
-		TEXTILE(RAW_WOOL, RAW_COTTON, FLAX, ANIMAL_SKINS, LINEN, COTTON, SILK, WOOL),
-		TEXTILE_RAW(RAW_WOOL, RAW_COTTON, FLAX, ANIMAL_SKINS),
-		TEXTILE_CHEAP(LINEN, COTTON),
-		TEXTILE_LUXURY(SILK, WOOL),
-		CLOTHING(CLOTHING_CHEAP, CLOTHING_REGULAR, CLOTHING_LUXURY),
-		FOOD(MEAT_FRESH, MEAT_PRESERVED, MEAT_LUXURY, GRAIN, BAKED_GOODS, EGGS, DAIRY_MILK, DAIRY_CHEESE, HONEY, SUGAR, FOOD_OIL_FAT, BEER, WINE, LIQUOR, MEAD, WATER_FRESH, FRUIT_FRESH, FRUIT_DRIED,
-				FRUIT_JAM, VEGETABLES_FRESH, VEGETABLES_PICKLED, SPICES, SALT),
-		FOOD_ALCOHOLIC_DRINK(BEER, WINE, LIQUOR, MEAD),
-		FOOD_FRUIT(FRUIT_FRESH, FRUIT_DRIED, FRUIT_JAM),
-		FOOD_VEGETABLE(VEGETABLES_FRESH, VEGETABLES_PICKLED),
+		TEXTILE(RAW_ANIMAL_FIBER, RAW_PLANT_FIBER, CLOTH, CLOTH_LUXURY, CLOTHING, CLOTHING_LUXURY),
+		FOOD(MEAT_FRESH, MEAT_PRESERVED, MEAT_LUXURY, GRAIN, BAKED_GOODS, /*EGGS, DAIRY_MILK, DAIRY_CHEESE,*/ HONEY, SUGAR, /*FOOD_OIL_FAT,*/ WATER_FRESH, SPICES, SALT),
+		FRUIT_AND_VEGETABLES(FRUIT_FRESH, FRUIT_DRIED, FRUIT_JAM, VEGETABLES_FRESH, VEGETABLES_PICKLED),
+		ALCOHOL(BEER, WINE, LIQUOR, MEAD),
 		MINING(METAL_RARE_ORE, METAL_RARE_INGOT, METAL_ORE, METAL_INGOT, COAL, JEWELS),
 		WOOD(WOOD_LOG, WOOD_FUEL, WOOD_LUMBER),
-		STONE(Merchandise.STONE, LIMESTONE),
-		OTHER(ARMOR_AND_WEAPONS, TOOLS),
-		OTHER_LUXURY(BOOK, JEWELRY, PERFUME)
+		//STONE(Merchandise.STONE, LIMESTONE),
+		OTHER(ARMOR_AND_WEAPONS, TOOLS, BOOK, JEWELRY, PERFUME),
 		;
 
 		public final Merchandise[] merch;
