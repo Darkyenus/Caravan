@@ -1,13 +1,24 @@
 package caravan.world;
 
+import caravan.components.Components;
+import caravan.components.PositionC;
 import caravan.components.TownC;
 import caravan.services.EntitySpawnService;
 import caravan.services.WorldService;
+import caravan.util.PooledArray;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.RandomXS128;
+import com.badlogic.gdx.utils.IntArray;
 import com.darkyen.retinazer.Engine;
+import com.darkyen.retinazer.Mapper;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Arrays;
+
+import static caravan.services.TownSystem.simulateInternalEconomy;
+import static caravan.util.Util.max;
+import static caravan.util.Util.maxIndex;
 
 /**
  * Generates game worlds.
@@ -138,6 +149,10 @@ public final class WorldGenerator {
 			return score;
 		});
 
+		final Mapper<TownC> townMapper = engine.getMapper(TownC.class);
+		final Mapper<PositionC> positionMapper = engine.getMapper(PositionC.class);
+		final IntArray townEntities = new IntArray();
+
 		for (int townIndex = 0; townIndex < 16; townIndex++) {
 			final int townCellIndex = maxIndex(townPlacementScore.values);
 			final int townX = townCellIndex % world.width;
@@ -147,9 +162,12 @@ public final class WorldGenerator {
 			townPlacementScore.dent(townX, townY, 20, 3f);
 
 			// Place the town and set it up
-			final TownC town = engine.getService(EntitySpawnService.class).spawnTown(townX, townY);
+			final int townEntity = engine.getService(EntitySpawnService.class).spawnTown(townX, townY);
+			townEntities.add(townEntity);
+
+			final TownC town = townMapper.get(townEntity);
 			town.population = 10 + random.nextInt(90);
-			town.money = town.population + random.nextInt(10);
+			town.money = town.population * 10 + random.nextInt(50);
 			town.hasFreshWater = precipitation.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5) >= 0.4f;
 			town.hasSaltWater = altitude.getKernelMin(townX, townY, null, 5, 5) <= 0f;
 
@@ -166,10 +184,136 @@ public final class WorldGenerator {
 			town.jewelOccurrence = jewelOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);
 			town.stoneOccurrence = stoneOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);
 			town.limestoneOccurrence = limestoneOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, 5, 5);
+
+			town.prices.initialize((short) 10, (short) 10);
 		}
+
+		// Fill in town neighbor distances
+		class TownDistance implements Comparable<TownDistance> {
+			int townEntity;
+			float distance;
+
+			@Override
+			public int compareTo(@NotNull TownDistance o) {
+				return Float.compare(distance, o.distance);
+			}
+		}
+		final PooledArray<TownDistance> distances = new PooledArray<>(TownDistance::new);
+
+		for (int i = 0; i < townEntities.size; i++) {
+			final int townEntity = townEntities.get(i);
+			final PositionC townPos = positionMapper.get(townEntity);
+			distances.clear();
+
+			for (int o = 0; o < townEntities.size; o++) {
+				if (o == i) {
+					continue;
+				}
+				final int otherTownEntity = townEntities.get(o);
+				final PositionC otherTownPos = positionMapper.get(otherTownEntity);
+
+				final TownDistance td = distances.add();
+				td.townEntity = otherTownEntity;
+				td.distance = PositionC.manhattanDistance(townPos, otherTownPos);
+			}
+
+			Arrays.sort(distances.items, 0, distances.size);
+			final float maxTradingDistance = distances.get(0).distance * 2.5f;
+			int closeTownCount = 1;
+			while (closeTownCount < distances.size && distances.get(closeTownCount).distance <= maxTradingDistance) {
+				closeTownCount++;
+			}
+			closeTownCount = Math.max(closeTownCount, 3);
+
+			final int[] closeTowns = new int[closeTownCount];
+			for (int t = 0; t < closeTownCount; t++) {
+				closeTowns[t] = distances.get(t).townEntity;
+			}
+			townMapper.get(townEntity).closestNeighbors = closeTowns;
+		}
+
 
 		// Generate some roads and bridges
 		//TODO
+
+		engine.flush();
+	}
+
+	public static void generatePlayerCaravan(@NotNull Engine engine) {
+		final Mapper<PositionC> position = engine.getMapper(PositionC.class);
+		final IntArray townEntities = engine.getEntities(Components.DOMAIN.familyWith(TownC.class, PositionC.class)).getIndices();
+		final int starterTown = townEntities.random();
+		final PositionC starterTownPosition = position.get(starterTown);
+		int closestTown = -1;
+		float closestTownDistance = Float.POSITIVE_INFINITY;
+		for (int i = 0; i < townEntities.size; i++) {
+			final int t = townEntities.get(i);
+			if (t == starterTown) {
+				continue;
+			}
+			final float dist = PositionC.manhattanDistance(starterTownPosition, position.get(t));
+			if (dist < closestTownDistance) {
+				closestTownDistance = dist;
+				closestTown = t;
+			}
+		}
+
+		final PositionC otherTownPosition = position.get(closestTown);
+		float offX = otherTownPosition.x - starterTownPosition.x;
+		float offY = otherTownPosition.y - starterTownPosition.y;
+		final float scale = 5f / (Math.abs(offX) + Math.abs(offY));
+		offX *= scale;
+		offY *= scale;
+		float posX = starterTownPosition.x + offX;
+		float posY = starterTownPosition.y + offY;
+
+		engine.getService(EntitySpawnService.class).spawnPlayerCaravan(posX, posY);
+		engine.flush();
+	}
+
+	public static void simulateInitialWorldPrices(@NotNull Engine engine, int iterations) {
+		final Mapper<TownC> town = engine.getMapper(TownC.class);
+		final IntArray townEntities = engine.getEntities(Components.DOMAIN.familyWith(TownC.class, PositionC.class)).getIndices();
+
+		for (int i = 0; i < iterations; i++) {
+			// Update internal economy and production
+			for (int ti = 0; ti < townEntities.size; ti++) {
+				simulateInternalEconomy(town.get(townEntities.get(ti)));
+			}
+
+			// Simulate trade
+			townEntities.shuffle();
+			for (int ti = 0; ti < townEntities.size; ti++) {
+				final int townEntity = townEntities.get(ti);
+				final TownC localTown = town.get(townEntity);
+				final PriceList localPrices = localTown.prices;
+
+				for (int neighborTownEntity : localTown.closestNeighbors) {
+					final TownC otherTown = town.get(neighborTownEntity);
+					final PriceList otherPrices = otherTown.prices;
+
+					// Moving stuff from local to other
+					for (Merchandise m : Merchandise.VALUES) {
+						while (true) {
+							final int buy = localPrices.buyPrice(m);
+							final int sell = Math.min(otherPrices.sellPrice(m), otherTown.money);
+							if (buy >= sell) {
+								break;
+							}
+
+							localTown.money += buy;
+							localPrices.buyUnit(m);
+							otherTown.money -= sell;
+							otherPrices.sellUnit(m);
+
+							final int profit = ((sell - buy) + 1) / 2;
+							localTown.money += profit;
+							otherTown.money += profit;
+						}
+					}
+				}
+			}
+		}
 	}
 
 	private static final float[] MINERAL_REACH_KERNEL = new float[] {
@@ -313,33 +457,5 @@ public final class WorldGenerator {
 		map.add(rarity * 2f - 1f);
 		map.clamp(0f, 1f);
 		map.fill((x, y, v) -> (float) Math.sqrt(v)); // To make nicer falloff
-	}
-
-	private static float max(float value0, float...values) {
-		float result = value0;
-		for (float value : values) {
-			result = Math.max(result, value);
-		}
-		return result;
-	}
-
-	private static float min(float value0, float...values) {
-		float result = value0;
-		for (float value : values) {
-			result = Math.min(result, value);
-		}
-		return result;
-	}
-
-	private static int maxIndex(float[] values) {
-		float max = values[0];
-		int maxIndex = 0;
-		for (int i = 1; i < values.length; i++) {
-			if (values[i] > max) {
-				max = values[i];
-				maxIndex = i;
-			}
-		}
-		return maxIndex;
 	}
 }

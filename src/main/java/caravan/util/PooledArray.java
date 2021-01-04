@@ -6,29 +6,43 @@ import com.badlogic.gdx.utils.Pool;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 /**
  * A dynamically sized array, whose elements are all pooled.
  */
 public final class PooledArray<T> {
 
-	private final Class<T> elementType;
-	private final Constructor<T> constructor;
+	private final Supplier<T> constructor;
 
 	public T[] items;
 	public int size;
 
 	public PooledArray(Class<T> elementType) {
-		this.elementType = elementType;
 		//noinspection unchecked
 		items = (T[]) Array.newInstance(elementType, 16);
 
 		try {
-			constructor = elementType.getConstructor();
+			Constructor<T> constructor = elementType.getConstructor();
 			constructor.setAccessible(false);
+			this.constructor = () -> {
+				try {
+					return constructor.newInstance();
+				} catch (Exception e) {
+					throw new RuntimeException("Failed to instantiate new element", e);
+				}
+			};
 		} catch (Exception e) {
 			throw new IllegalArgumentException("Can't access constructor", e);
 		}
+	}
+
+	public PooledArray(Supplier<T> constructor) {
+		this.constructor = constructor;
+		final T item = constructor.get();
+		//noinspection unchecked
+		items = (T[]) Array.newInstance(item.getClass(), 16);
+		items[0] = item;
 	}
 
 	public void ensureCapacity(int extraElements) {
@@ -46,11 +60,7 @@ public final class PooledArray<T> {
 		ensureCapacity(1);
 		T item = items[size];
 		if (item == null) {
-			try {
-				items[size] = item = constructor.newInstance();
-			} catch (Exception e) {
-				throw new RuntimeException("Failed to instantiate new element", e);
-			}
+			items[size] = item = constructor.get();
 		} else if (item instanceof Pool.Poolable) {
 			((Pool.Poolable) item).reset();
 		}

@@ -43,10 +43,11 @@ public final class EntitySpawnService implements EngineService {
 	}
 
 	@NotNull
-	public TownC spawnTown(int x, int y) {
+	public int spawnTown(int x, int y) {
 		final int entity = engine.createEntity();
 		position.create(entity).set(x + 0.5f, y);
 		render.create(entity).set(Sprites.VILLAGE);
-		return town.create(entity);
+		town.create(entity);
+		return entity;
 	}
 }

@@ -1,5 +1,6 @@
 package caravan.world;
 
+import com.badlogic.gdx.math.MathUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -19,11 +20,24 @@ public final class Inventory {
 		assert amount >= 0;
 	}
 
+	public void add(@NotNull Merchandise m, float amount) {
+		this.add(m, (int) (amount + MathUtils.random()));
+	}
+
 	public void add(@NotNull Merchandise m, int amount) {
 		final int ordinal = m.ordinal();
 		int a = this.amount[ordinal] + amount;
 		this.amount[ordinal] = (short) (a < 0 ? 0 : (a > Short.MAX_VALUE ? Short.MAX_VALUE : a));
 		assert a >= 0;
+	}
+
+	public void add(@NotNull Inventory inventory, float scale) {
+		final short[] amount = this.amount;
+		final short[] otherAmount = inventory.amount;
+		for (int i = 0; i < amount.length; i++) {
+			// Random rounding
+			amount[i] += (short) (otherAmount[i] * scale + MathUtils.random());
+		}
 	}
 
 	public boolean remove(@NotNull Merchandise m, int amount) {

@@ -1,8 +1,6 @@
 package caravan;
 
 import caravan.components.Components;
-import caravan.components.PositionC;
-import caravan.components.TownC;
 import caravan.input.GameInput;
 import caravan.services.CameraFocusSystem;
 import caravan.services.EntitySpawnService;
@@ -18,9 +16,7 @@ import caravan.world.Tiles;
 import caravan.world.WorldGenerator;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.utils.IntArray;
 import com.darkyen.retinazer.Engine;
-import com.darkyen.retinazer.Mapper;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -41,13 +37,11 @@ public final class GameScreen extends CaravanApplication.UIScreen {
 		final GameInput gameInput = new GameInput();
 		addProcessor(gameInput);
 
-		final EntitySpawnService entitySpawn;
-
 		final int worldWidth = 300;
 		final int worldHeight = 300;
 		engine = new Engine(Components.DOMAIN,
 				simulationService = new SimulationService(),
-				entitySpawn = new EntitySpawnService(),
+				new EntitySpawnService(),
 				new PlayerControlSystem(gameInput),
 				new TradingSystem(),
 				new MoveSystem(),
@@ -58,36 +52,12 @@ public final class GameScreen extends CaravanApplication.UIScreen {
 		renderingServices = engine.getServices(RenderingService.class).toArray(new RenderingService[0]);
 
 		WorldGenerator.generateWorld(engine, System.nanoTime());
-		engine.flush();
 
-		final Mapper<PositionC> position = engine.getMapper(PositionC.class);
-		final IntArray townEntities = engine.getEntities(Components.DOMAIN.familyWith(TownC.class, PositionC.class)).getIndices();
-		final int starterTown = townEntities.random();
-		final PositionC starterTownPosition = position.get(starterTown);
-		int closestTown = -1;
-		float closestTownDistance = Float.POSITIVE_INFINITY;
-		for (int i = 0; i < townEntities.size; i++) {
-			final int t = townEntities.get(i);
-			if (t == starterTown) {
-				continue;
-			}
-			final float dist = PositionC.manhattanDistance(starterTownPosition, position.get(t));
-			if (dist < closestTownDistance) {
-				closestTownDistance = dist;
-				closestTown = t;
-			}
-		}
+		// Spawn player caravan
+		WorldGenerator.generatePlayerCaravan(engine);
 
-		final PositionC otherTownPosition = position.get(closestTown);
-		float offX = otherTownPosition.x - starterTownPosition.x;
-		float offY = otherTownPosition.y - starterTownPosition.y;
-		final float scale = 5f / (Math.abs(offX) + Math.abs(offY));
-		offX *= scale;
-		offY *= scale;
-		float posX = starterTownPosition.x + offX;
-		float posY = starterTownPosition.y + offY;
-
-		entitySpawn.spawnPlayerCaravan(posX, posY);
+		// Simulate the game world a bit to initialize
+		WorldGenerator.simulateInitialWorldPrices(engine, 200);
 	}
 
 	@Override
