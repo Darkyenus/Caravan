@@ -20,6 +20,9 @@ public final class TownC implements Component, Pool.Poolable {
 	/** Current amount of money a town has */
 	public int money;
 
+	/** [-1, 1] how wealthy this town thinks it is */
+	public float wealth;
+
 	/** The town prices and inventory */
 	public final PriceList prices = new PriceList();
 
@@ -66,6 +69,11 @@ public final class TownC implements Component, Pool.Poolable {
 
 	/** Increment this value whenever the content changes, used to detect changes in other systems. */
 	public short modificationCounter;
+
+	/** How many trades did occur with this city, selling goods to them. */
+	public int tradeSellCounter;
+	/** How many trades did occur with this city, buying goods from them. */
+	public int tradeBuyCounter;
 	//endregion
 
 	@Override
@@ -73,6 +81,7 @@ public final class TownC implements Component, Pool.Poolable {
 		name = "<no name>";
 		population = 0;
 		money = 0;
+		wealth = 0;
 		prices.clear();
 		production.clear();
 

@@ -51,6 +51,9 @@ public final class PriceList {
 		}
 	}
 
+	public short supply(@NotNull Merchandise m) { return this.supply[m.ordinal()]; }
+	public short demand(@NotNull Merchandise m) { return this.demand[m.ordinal()]; }
+
 	public void clear() {
 		Arrays.fill(this.demand, (short) 0);
 		Arrays.fill(this.supply, (short) 0);

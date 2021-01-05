@@ -60,22 +60,18 @@ public enum Merchandise {
 	;
 
 	public final String name;
-	public final float price;
 
 	public static final Merchandise[] VALUES = values();
 
 	Merchandise(String name) {
 		this.name = name;
-		this.price = this.name().contains("LUXURY") ? 50 : 10;
 	}
 
 	/** Stuff that is considered food for internal town consumption, including luxuries. */
 	public static final Merchandise[] FOOD = new Merchandise[] {
 			MEAT_FRESH,
 			MEAT_PRESERVED,
-			MEAT_LUXURY,
 			BAKED_GOODS,
-			BAKED_GOODS_LUXURY,
 			FRUIT_FRESH,
 			FRUIT_DRIED,
 			FRUIT_JAM,
@@ -87,25 +83,6 @@ public enum Merchandise {
 	/** required only when the city does not have its own source */
 	public static final Merchandise[] FRESH_WATER = new Merchandise[] {
 			WATER_FRESH
-	};
-
-	/** Demand of these foods grows when the town is wealthy. */
-	public static final Merchandise[] FOOD_LUXURY = new Merchandise[] {
-			MEAT_LUXURY,
-			BAKED_GOODS_LUXURY,
-			FRUIT_FRESH,
-			FRUIT_DRIED,
-			FRUIT_JAM,
-			VEGETABLES_FRESH,
-			VEGETABLES_PICKLED,
-			SALT,
-			SPICES,
-			HONEY,
-			SUGAR,
-			BEER,
-			WINE,
-			LIQUOR,
-			MEAD
 	};
 
 	/** People also buy these things, always. */
@@ -120,6 +97,15 @@ public enum Merchandise {
 			BOOK,
 			PERFUME,
 			JEWELRY,
+			MEAT_LUXURY,
+			BAKED_GOODS_LUXURY,
+			FRUIT_DRIED,
+			FRUIT_JAM,
+			VEGETABLES_PICKLED,
+			BEER,
+			WINE,
+			LIQUOR,
+			MEAD
 	};
 
 	/** Towns that grow require these materials. */

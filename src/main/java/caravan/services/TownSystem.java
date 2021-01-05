@@ -94,19 +94,22 @@ public final class TownSystem extends EntityProcessorSystem {
 		float value = 0;
 		while (amount > 0) {
 			int toBuyIndex = minIndex(prices);
-			value += prices[toBuyIndex];
+			value += town.prices.basePrice(merch[toBuyIndex]);
 			town.prices.buyUnit(merch[toBuyIndex]);
-			prices[toBuyIndex] = town.prices.basePrice(merch[toBuyIndex]);
+			// Steadily increase price to simulate lowered demand of the same good type in large quantities.
+			// i.e. people don't want to eat only one thing and would rather pay up for something else
+			prices[toBuyIndex] = Math.max(town.prices.basePrice(merch[toBuyIndex]), prices[toBuyIndex] * 1.2f);
 			amount--;
 		}
 		return value;
 	}
 
 	/** Simulate buying amount*every entry of merch. */
-	private static float fulfillGeneralNeed(@NotNull TownC town, @NotNull Merchandise[] merch, int amount) {
+	private static float fulfillGeneralNeed(@NotNull TownC town, @NotNull Merchandise[] merch, float amount) {
 		float value = 0;
 		for (Merchandise m : merch) {
-			for (int i = 0; i < amount; i++) {
+			int roundedAmount = rRound(amount);
+			for (int i = 0; i < roundedAmount; i++) {
 				value += town.prices.basePrice(m);
 				town.prices.buyUnit(m);
 			}
@@ -128,14 +131,11 @@ public final class TownSystem extends EntityProcessorSystem {
 			for (Merchandise m : shuffle) {
 				final float p = town.prices.basePrice(m);
 				value += p;
-				if (p <= budget) {
-					budget -= p;
-					town.prices.buyUnit(m);
-					boughtSomething = true;
-
-					if (--amount <= 0) {
-						break outer;
-					}
+				budget -= p;
+				town.prices.buyUnit(m);
+				boughtSomething = true;
+				if (--amount <= 0 || budget < 0) {
+					break outer;
 				}
 			}
 		} while (boughtSomething);
@@ -152,12 +152,13 @@ public final class TownSystem extends EntityProcessorSystem {
 		}
 
 		// Basic goods
-		valueOfBoughtStuff += fulfillGeneralNeed(town, Merchandise.COMMON_GOODS, rRound(town.population / 60f));
+		valueOfBoughtStuff += fulfillGeneralNeed(town, Merchandise.COMMON_GOODS, town.population / 50f);
 
 		// Luxury goods, as budget allows
 		float budget = (town.money - valueOfBoughtStuff) * 0.5f;
-		valueOfBoughtStuff += fulfillLuxuryNeed(town, Merchandise.FOOD_LUXURY, rRound(town.population / 50f), budget * 2f / 3f);
-		valueOfBoughtStuff += fulfillLuxuryNeed(town, Merchandise.LUXURY_GOODS, rRound(town.population / 50f), budget / 3f);
+		town.wealth = MathUtils.clamp(town.wealth + (float) Math.tanh(budget * 0.1) * 0.1f, -1, 1);
+
+		fulfillLuxuryNeed(town, Merchandise.LUXURY_GOODS, rRound(town.population / 5f), budget);
 	}
 
 	/** Pick which production leads to most money. */
@@ -169,7 +170,8 @@ public final class TownSystem extends EntityProcessorSystem {
 			profitByProduction[i] = productionProfit(town, Production.PRODUCTION.get(i));
 		}
 		final float maxProfitableProduction = max(profitByProduction);
-		final float minProfitNeededForSustainableProduction = maxProfitableProduction / 3f;
+		final float veryLowProfitThreshold = maxProfitableProduction / 10f;
+		final float lowProfitThreshold = maxProfitableProduction / 2f;
 
 		int employed = 0;
 		final Array<Production> productionToRemove = new Array<>(town.production.size / 2);
@@ -178,10 +180,12 @@ public final class TownSystem extends EntityProcessorSystem {
 			final Production production = entry.key;
 			int workers = entry.value;
 			final float profit = productionProfit(town, production);
-			if (profit <= minProfitNeededForSustainableProduction) {
+			if (profit <= veryLowProfitThreshold) {
 				workers = workers / 2;
+			} else if (profit <= lowProfitThreshold) {
+				workers -= random.nextInt(Math.min(3, workers));
 			} else {
-				int dropout = random.nextInt(Math.max((workers + 3) / 5, 1));
+				int dropout = Math.max(random.nextInt(Math.min(6, workers)) - 3, 0);
 				workers -= dropout;
 			}
 

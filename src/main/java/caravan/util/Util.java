@@ -51,4 +51,23 @@ public final class Util {
 	public static int rRound(float v) {
 		return (int) (v + MathUtils.random());
 	}
+
+	public static float[] manhattanKernel(float falloff, int offset) {
+		final int steps = MathUtils.ceilPositive(1f / falloff) + offset;
+		final int size = steps * 2 + 1;
+		final float[] kernel = new float[size * size];
+		int k = 0;
+		for (int y = 0; y < size; y++) {
+			final int yOff = Math.abs(steps - y);
+			for (int x = 0; x < size; x++) {
+				final int xOff = Math.abs(steps - x);
+				kernel[k++] = Math.max(0f , 1f - falloff * (Math.max(xOff + yOff - offset, 0f)));
+			}
+		}
+		return kernel;
+	}
+
+	public static int kernelSide(float[] kernel) {
+		return Math.round((float) Math.sqrt(kernel.length));
+	}
 }

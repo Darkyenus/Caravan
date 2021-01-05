@@ -385,7 +385,7 @@ public abstract class Production {
 			@Override
 			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
 				resources.add(Merchandise.RAW_ANIMAL_FIBER, 1);
-				return 0.1f;
+				return 0.2f;
 			}
 		};
 
@@ -410,7 +410,7 @@ public abstract class Production {
 			@Override
 			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
 				resources.add(Merchandise.METAL_RARE_ORE, 20);
-				resources.add(Merchandise.WOOD_FUEL, 40);
+				resources.add(Merchandise.WOOD_FUEL, 20);
 				return 10;
 			}
 		};
@@ -418,7 +418,7 @@ public abstract class Production {
 			@Override
 			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
 				resources.add(Merchandise.METAL_RARE_ORE, 20);
-				resources.add(Merchandise.COAL, 40);
+				resources.add(Merchandise.COAL, 20);
 				return 10;
 			}
 		};
@@ -467,7 +467,8 @@ public abstract class Production {
 			new Production("Jewelry crafting ("+fuelName+")", Merchandise.JEWELRY) {
 				@Override
 				public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
-					resources.add(Merchandise.METAL_RARE_INGOT, 8);
+					resources.add(Merchandise.METAL_RARE_INGOT, 7);
+					resources.add(Merchandise.METAL_INGOT, 1);
 					resources.add(Merchandise.JEWELS, 5);
 					resources.add(fuel, 3);
 					return 5;
@@ -478,17 +479,17 @@ public abstract class Production {
 				@Override
 				public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
 					resources.add(Merchandise.METAL_INGOT, 10);
-					resources.add(fuel, 15);
+					resources.add(fuel, 7);
 					return 9;
 				}
 			};
 
-			new Production("Tool smithing ("+fuelName+")", Merchandise.ARMOR_AND_WEAPONS) {
+			new Production("Tool smithing ("+fuelName+")", Merchandise.TOOLS) {
 				@Override
 				public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
 					resources.add(Merchandise.METAL_INGOT, 10);
 					resources.add(Merchandise.WOOD_LUMBER, 10);
-					resources.add(fuel, 15);
+					resources.add(fuel, 7);
 					return 15;
 				}
 			};

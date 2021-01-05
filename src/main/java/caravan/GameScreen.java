@@ -57,7 +57,7 @@ public final class GameScreen extends CaravanApplication.UIScreen {
 		WorldGenerator.generatePlayerCaravan(engine);
 
 		// Simulate the game world a bit to initialize
-		WorldGenerator.simulateInitialWorldPrices(engine, 200);
+		WorldGenerator.simulateInitialWorldPrices(engine, 200, false);
 	}
 
 	@Override
