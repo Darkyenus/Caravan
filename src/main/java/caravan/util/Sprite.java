@@ -13,6 +13,9 @@ public final class Sprite {
     /** Size of the sprite in world units, in particular its width. */
     public float size = 1f;
 
+    public float originX = 0.5f;
+    public float originY = 0.5f;
+
     public Sprite(String regionName) {
         this.regionName = regionName;
     }

@@ -18,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Overlay which shows debug data.
  */
-public final class DebugScreenOverlay extends CaravanApplication.UIScreen {
+public final class ApplicationDebugOverlay extends CaravanApplication.UIScreen {
 
 	private final GraphPane.GraphData renderedData = new GraphPane.GraphData(256, Color.BLUE, 10f, 80f, true);
 	private final GraphPane.GraphData stepTimeData = new GraphPane.GraphData(256, Color.RED, 0f, 0.1f, false);
@@ -29,7 +29,7 @@ public final class DebugScreenOverlay extends CaravanApplication.UIScreen {
 	private static final int MAX_MESSAGES = 64;
 	private final Queue<String> messages = new Queue<>(MAX_MESSAGES, String.class);
 
-	public DebugScreenOverlay() {
+	public ApplicationDebugOverlay() {
 		super(1000, true, false);
 	}
 
@@ -161,9 +161,9 @@ public final class DebugScreenOverlay extends CaravanApplication.UIScreen {
 	private static final class ConsolePrintingLogger implements ApplicationLogger {
 
 		public final ApplicationLogger parent;
-		private final DebugScreenOverlay dso;
+		private final ApplicationDebugOverlay dso;
 
-		ConsolePrintingLogger(@NotNull ApplicationLogger parent, @NotNull DebugScreenOverlay dso) {
+		ConsolePrintingLogger(@NotNull ApplicationLogger parent, @NotNull ApplicationDebugOverlay dso) {
 			this.parent = parent;
 			this.dso = dso;
 		}

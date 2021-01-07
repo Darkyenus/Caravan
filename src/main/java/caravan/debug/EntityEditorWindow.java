@@ -29,6 +29,7 @@ import com.darkyen.retinazer.Component;
 import com.darkyen.retinazer.Engine;
 import com.darkyen.retinazer.EntitySetView;
 import com.darkyen.retinazer.Mapper;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -43,15 +44,9 @@ public final class EntityEditorWindow extends Window {
 
 	private final Tree<Node, Object> entityTree;
 
-	private Engine engine;
-	private EntitySetView playerEntities;
-	private Mapper<PlayerC> playerMapper;
-
-	public void setWorld(Engine engine) {
-		this.engine = engine;
-		this.playerMapper = engine.getMapper(PlayerC.class);
-		this.playerEntities = engine.getEntities(Components.DOMAIN.familyWith(PlayerC.class, PositionC.class));
-	}
+	private final Engine engine;
+	private final EntitySetView playerEntities;
+	private final Mapper<PlayerC> playerMapper;
 
 	private int getPlayerEntity() {
 		final IntArray playerEntities = this.playerEntities.getIndices();
@@ -67,8 +62,11 @@ public final class EntityEditorWindow extends Window {
 
 	private int selectedEntity = -1;
 
-	public EntityEditorWindow(Skin skin) {
+	public EntityEditorWindow(@NotNull Skin skin, @NotNull Engine engine, @NotNull Vector2 nearestPointCursor) {
 		super("Entity Editor", skin);
+		this.engine = engine;
+		this.playerMapper = engine.getMapper(PlayerC.class);
+		this.playerEntities = engine.getEntities(Components.DOMAIN.familyWith(PlayerC.class, PositionC.class));
 
 		final Table root = new Table(skin);
 		entityTree = new Tree<>(skin);
@@ -81,19 +79,8 @@ public final class EntityEditorWindow extends Window {
 			refreshEntityView();
 		});
 		final Vector2 nearestVector1 = new Vector2();
-		final Vector2 nearestVector2 = new Vector2();
 		button(root, "Nearest", () -> {
 			final Mapper<PositionC> positionMapper = engine.getMapper(PositionC.class);
-			final int tracked = getPlayerEntity();
-
-			if (tracked == -1) {
-				selectedEntity = -1;
-				refreshEntityView();
-				return;
-			}
-			final PositionC positionC = positionMapper.getOrNull(tracked);
-			if (positionC == null) return;
-			final Vector2 trackedPosition = nearestVector1.set(positionC.x, positionC.y);
 
 			int nearest = -1;
 			float nearestDist2 = Float.MAX_VALUE;
@@ -104,12 +91,10 @@ public final class EntityEditorWindow extends Window {
 			for (int i = 0; i < entitiesSize; i++) {
 				final int entity = entities[i];
 
-				if (entity == tracked) continue;
-
 				final PositionC position = positionMapper.getOrNull(entity);
 				if (position == null) continue;
 
-				final float entityDst2 = nearestVector2.set(position.x, position.y).dst2(trackedPosition);
+				final float entityDst2 = nearestVector1.set(position.x, position.y).dst2(nearestPointCursor);
 				if (entityDst2 < nearestDist2) {
 					nearest = entity;
 					nearestDist2 = entityDst2;
@@ -132,11 +117,10 @@ public final class EntityEditorWindow extends Window {
 			if (positionC == null) return;
 			final Vector2 trackedPosition = nearestVector1.set(positionC.x, positionC.y);
 
-			final Engine e = engine;
-			final int entity = e.createEntity();
-			e.getMapper(PositionC.class).create(entity).set(trackedPosition.x, trackedPosition.y);
-			e.getMapper(RenderC.class).create(entity).set(Sprites.BAND_SMALL);
-			e.getMapper(CameraFocusC.class).create(entity).set(1f);
+			final int entity = engine.createEntity();
+			engine.getMapper(PositionC.class).create(entity).set(trackedPosition.x, trackedPosition.y);
+			engine.getMapper(RenderC.class).create(entity).set(Sprites.BAND_SMALL);
+			engine.getMapper(CameraFocusC.class).create(entity).set(1f);
 		});
 		button(root, "Remove", () -> {
 			if (selectedEntity != -1) {

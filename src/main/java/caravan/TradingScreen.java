@@ -69,18 +69,29 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 		playerMoneyLabel.setText(caravan.money);
 
 		for (Merchandise merch : Merchandise.VALUES) {
+			if (!merch.tradeable) {
+				continue;
+			}
+
 			final TextButton buyButton = buyButtons[merch.ordinal()];
+			final TextButton sellButton = sellButtons[merch.ordinal()];
+			final Label inventoryLabel = inventoryLabels[merch.ordinal()];
+
+			final boolean visible = caravan.categories[merch.category.ordinal()];
+
 			final int buyPrice = town.prices.buyPrice(merch);
 			buyButton.setText("Buy for "+ buyPrice);
-			buyButton.setDisabled(buyPrice > caravan.money);
+			buyButton.setDisabled(buyPrice > caravan.money || !visible);
+
 			final int amountInInventory = caravan.inventory.get(merch);
-			final TextButton sellButton = sellButtons[merch.ordinal()];
 			final int sellPrice = town.prices.sellPrice(merch);
 			final int realSellPrice = Math.min(sellPrice, town.money);
 			sellButton.setText("Sell for "+ realSellPrice);
-			sellButton.setDisabled(amountInInventory < 1);
+			sellButton.setDisabled(amountInInventory < 1 || !visible);
 			sellButton.getLabel().setColor(sellPrice == realSellPrice ? sellButton.getStyle().fontColor : Color.RED);
-			inventoryLabels[merch.ordinal()].setText(amountInInventory);
+
+			inventoryLabel.setVisible(visible);
+			inventoryLabel.setText(amountInInventory);
 		}
 
 		final PooledArray<ProductionAmountPair> productionEntries = this.productionTmp;
@@ -178,8 +189,20 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 			}
 		};
 
-		int m = 0;
+		Merchandise.Category prevCategory = null;
 		for (Merchandise merchandise : Merchandise.VALUES) {
+			if (!merchandise.tradeable) {
+				continue;
+			}
+
+			if (prevCategory != merchandise.category) {
+				prevCategory = merchandise.category;
+
+				final Label categoryLabel = new Label(merchandise.category.name, skin);
+				merchTable.add(categoryLabel).colspan(4).align(Align.center).fillX().padTop(5f).row();
+				categoryLabel.setAlignment(Align.center);
+			}
+
 			final Label nameLabel = new Label(merchandise.name, skin);
 			final TextButton buyButton = new TextButton("Buy 000", skin);
 			final TextButton sellButton = new TextButton("Sell 000", skin);
@@ -193,10 +216,10 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 			merchTable.add(inventoryLabel);
 			merchTable.row();
 
+			final int m = merchandise.ordinal();
 			buyButtons[m] = buyButton;
 			sellButtons[m] = sellButton;
 			inventoryLabels[m] = inventoryLabel;
-			m++;
 
 			buyButton.setUserObject(merchandise);
 			buyButton.addListener(buyListener);

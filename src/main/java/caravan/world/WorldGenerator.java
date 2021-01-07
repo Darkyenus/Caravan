@@ -18,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.Arrays;
 
 import static caravan.services.TownSystem.simulateInternalEconomy;
 import static caravan.util.Util.kernelSide;
@@ -36,6 +35,7 @@ public final class WorldGenerator {
 		final RandomXS128 random = new RandomXS128(seed);
 
 		final WorldAttributeFloat altitude = generateHeight(world.width, world.height, random);
+		final WorldAttributeFloat slope = altitude.slope();
 
 		final WorldAttributeFloat windX = new WorldAttributeFloat(world.width, world.height, 0f);
 		final WorldAttributeFloat windY = new WorldAttributeFloat(world.width, world.height, 0f);
@@ -92,6 +92,11 @@ public final class WorldGenerator {
 					continue;
 				}
 
+				if (slope.get(x, y) > 0.03f || h > 5f) {
+					world.tiles.set(x, y, Tiles.Rock);
+					continue;
+				}
+
 				final float frs = forestMap.get(x, y);
 				if (frs > 0.5f) {
 					world.tiles.set(x, y, Tiles.Forest);
@@ -101,10 +106,10 @@ public final class WorldGenerator {
 				final float pst = pastureMap.get(x, y);
 				if (pst > 0.5f) {
 					world.tiles.set(x, y, Tiles.Grass);
+					continue;
 				}
 
-				// TODO(jp): More terrain types (desert, rocky area...)
-				world.tiles.set(x, y, Tiles.Grass);
+				world.tiles.set(x, y, Tiles.Desert);
 			}
 		}
 
@@ -160,13 +165,15 @@ public final class WorldGenerator {
 			world.tiles.set(townX, townY, Tiles.Grass); // TODO(jp): Town base tile
 
 			// Decrement score around this place, to have towns more far away from each other
-			townPlacementScore.dent(townX, townY, 20, 3f);
+			townPlacementScore.dent(townX, townY, 15, 3f);
 
 			// Place the town and set it up
 			final int townEntity = engine.getService(EntitySpawnService.class).spawnTown(townX, townY);
 			townEntities.add(townEntity);
 
 			final TownC town = townMapper.get(townEntity);
+			town.name = generateTownName();
+
 			town.population = 10 + random.nextInt(90);
 			town.money = town.population * 10 + random.nextInt(50);
 			town.hasFreshWater = precipitation.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE) >= 0.4f;
@@ -268,7 +275,7 @@ public final class WorldGenerator {
 		float posX = starterTownPosition.x + offX;
 		float posY = starterTownPosition.y + offY;
 
-		engine.getService(EntitySpawnService.class).spawnPlayerCaravan(posX, posY);
+		engine.getService(EntitySpawnService.class).spawnPlayerCaravan(posX, posY, Merchandise.Category.VALUES);
 		engine.flush();
 	}
 
@@ -332,6 +339,10 @@ public final class WorldGenerator {
 
 		// Moving stuff from local to other
 		for (Merchandise m : Merchandise.VALUES) {
+			if (!m.tradeable) {
+				continue;
+			}
+
 			while (true) {
 				final int buy = localPrices.buyPrice(m);
 				final int sell = Math.min(otherPrices.sellPrice(m), otherTown.money);
@@ -368,15 +379,20 @@ public final class WorldGenerator {
 		h.add(random.nextLong(), 80f, 10f);
 		h.add(random.nextLong(), 70f, 9f);
 		h.add(random.nextLong(), 50f, 5f);
+		h.add(5f);
+		h.attenuateEdges(60, Interpolation.pow2Out);
+		h.add(-5f);
 		h.add(random.nextLong(), 25f, 4f);
 		h.add(random.nextLong(), 12f, 3f);
-		h.add(5f);
-		h.attenuateEdges(30, Interpolation.pow2Out);
-		h.add(-5f);
 		h.clamp(0, Float.POSITIVE_INFINITY);
 		// Max attainable height is 51, average max is around 25-29
 		// So let's set 51 at 8km, which makes the average max at 4-4.5 km
 		h.scale(8f / 51f);
+		h.fill((x, y, currentValue) -> {
+			float a = currentValue / 8f;
+			a *= a;
+			return a * 8f;
+		});
 
 		//h.saveVisualization("height");
 		//System.out.println("Max height: "+h.max()+" km  Median: "+h.median() + "   Average:  "+h.average());
@@ -451,13 +467,22 @@ public final class WorldGenerator {
 			// The idea behind this:
 			// Forests like rain and medium temperature - the ideal temperature is between 1.5C and 35C, with peak in the middle and slow falloff
 			// This is not ideal or super realistic, but eh.
-			float score = MathUtils.clamp((float) Math.sqrt(rain) + (float) Math.sqrt(MathUtils.clamp(1f - (temp - 18.25f) / 16.75f, 0f, 1f)), 0f, 1f);
+			float score = MathUtils.clamp((float) Math.sqrt(rain) * (float) Math.sqrt(MathUtils.clamp(1f - (temp - 18.25f) / 16.75f, 0f, 1f)), 0f, 1f);
+			score *= score;
+
 			final float alt = altitude.get(x, y);
-			score *= MathUtils.clamp(alt / 0.2f, 0f, 1f);// Prevent forests near large bodies of water
+			score *= MathUtils.clamp(alt / 0.01f, 0f, 1f);// Prevent forests near large bodies of water
+
+			float treeLine = MathUtils.clamp(MathUtils.map(-12, 45, 0f, 4, temp), 0f, 4);
+			if (alt > treeLine) {
+				score = 0;
+			}
+
 			return MathUtils.clamp(score, 0, 1);
 		});
-		forest.add(random.nextLong(), 40f, 0.5f);
-		forest.add(random.nextLong(), 10f, 0.2f);
+		forest.add(random.nextLong(), 40f, 0.8f);
+		forest.add(random.nextLong(), 10f, 0.6f);
+		forest.add(random.nextLong(), 5f, 0.4f);
 		forest.add(-0.1f);
 		forest.clamp(0f, 1f);
 		return forest;
@@ -472,7 +497,8 @@ public final class WorldGenerator {
 			// The idea behind this:
 			// Forests like rain and medium temperature - the ideal temperature is between 1.5C and 35C, with peak in the middle and slow falloff
 			// This is not ideal or super realistic, but eh.
-			return MathUtils.clamp((float) Math.sqrt(rain) + (float) Math.sqrt(MathUtils.clamp(1f - (temp - 18.25f)/16.75f, 0f, 1f)), 0f, 1f);
+			final float r = MathUtils.clamp((float) Math.sqrt(rain) * (float) Math.sqrt(MathUtils.clamp(1f - (temp - 18.25f) / 16.75f, 0f, 1f)), 0f, 1f);
+			return r * r;
 		});
 		pasture.add(0.4f);
 		pasture.add(random.nextLong(), 20f, 0.4f);
@@ -595,5 +621,29 @@ public final class WorldGenerator {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private static final String VOWELS = "euioay";
+	private static final String CONSONANTS = "qwrtzpsdfghjklxcvbnm";
+
+	private static char random(@NotNull String from) {
+		return from.charAt(MathUtils.random(from.length() - 1));
+	}
+
+	public static @NotNull String generateTownName() {
+		final StringBuilder sb = new StringBuilder();
+		boolean vowel = MathUtils.random(9) == 0;
+		sb.append(Character.toUpperCase(random(vowel ? VOWELS : CONSONANTS)));
+
+		final int length = 3 + MathUtils.random(4);
+		for (int i = 1; i < length; i++) {
+			vowel = !vowel;
+			sb.append(random(vowel ? VOWELS : CONSONANTS));
+			if (MathUtils.random(30) == 0) {
+				sb.append('-');
+			}
+		}
+
+		return sb.toString();
 	}
 }

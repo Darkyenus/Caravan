@@ -1,6 +1,5 @@
 package caravan;
 
-import caravan.debug.WorldEditOverlay;
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -30,7 +29,6 @@ public final class MainMenuScreen extends CaravanApplication.UIScreen {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
 				application.setScreen(new GameScreen());
-				application.addScreen(new WorldEditOverlay());
 			}
 		});
 		root.add(playButton)

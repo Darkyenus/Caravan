@@ -1,6 +1,6 @@
 package caravan;
 
-import caravan.debug.DebugScreenOverlay;
+import caravan.debug.ApplicationDebugOverlay;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
@@ -162,7 +162,7 @@ public final class CaravanApplication implements ApplicationListener {
 		atlas = assetManager.get("World.atlas");
 
 		Gdx.input.setInputProcessor(input);
-		addScreen(new DebugScreenOverlay());
+		addScreen(new ApplicationDebugOverlay());
 
 
 		// TODO(jp): resume the screen which was active on exit

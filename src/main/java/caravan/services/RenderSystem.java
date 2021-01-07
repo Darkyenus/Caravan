@@ -79,7 +79,7 @@ public final class RenderSystem extends EntityProcessorSystem implements Renderi
 			if (frame == null) continue;
 			final TextureAtlas.AtlasRegion region = frame.getRegion();
 			if (region == null) continue;
-			RenderUtil.drawCentered(batch, region, renderable.x, renderable.y, frame.size, render.scaleX, render.scaleY);
+			RenderUtil.drawSprite(batch, region, renderable.x, renderable.y, frame.size, frame.originX, frame.originY, render.scaleX, render.scaleY);
 		}
 		batch.end();
 		renderables.clear();

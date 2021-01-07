@@ -1,6 +1,7 @@
 package caravan;
 
 import caravan.components.Components;
+import caravan.debug.WorldDebugService;
 import caravan.input.GameInput;
 import caravan.services.CameraFocusSystem;
 import caravan.services.EntitySpawnService;
@@ -46,7 +47,8 @@ public final class GameScreen extends CaravanApplication.UIScreen {
 				new MoveSystem(),
 				cameraFocusSystem = new CameraFocusSystem(worldWidth, worldHeight, 5f, gameInput),
 				new WorldService(worldWidth, worldHeight, Tiles.Water),
-				new RenderSystem()
+				new RenderSystem(),
+				new WorldDebugService()
 		);
 		renderingServices = engine.getServices(RenderingService.class).toArray(new RenderingService[0]);
 

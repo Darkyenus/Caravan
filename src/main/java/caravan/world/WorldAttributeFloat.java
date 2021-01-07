@@ -211,6 +211,18 @@ public final class WorldAttributeFloat {
 		}
 	}
 
+	/** Calculate slope into a new map. */
+	public WorldAttributeFloat slope() {
+		return new WorldAttributeFloat(width, height, 0f, (x, y, currentValue) -> {
+			final float c = get(x, y);
+			final float left = Math.abs(get(x - 1, y) - c);
+			final float right = Math.abs(get(x + 1, y) - c);
+			final float up = Math.abs(get(x, y - 1) - c);
+			final float down = Math.abs(get(x, y + 1) - c);
+			return (left + right + up + down) * 0.25f;
+		});
+	}
+
 	@FunctionalInterface
 	interface FillFunction {
 		float value(int x, int y, float currentValue);
@@ -245,7 +257,7 @@ public final class WorldAttributeFloat {
 					continue;
 				}
 
-				values[width * y + x] -= dent;
+				values[width * y + x] -= dent * scale;
 			}
 		}
 	}

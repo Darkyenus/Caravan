@@ -152,7 +152,7 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
 
             final LongArray path = new LongArray(1);
             path.add(Vec2.make(targetTileX, targetTileY));
-            final PathFinding.Path foundPath = worldService.pathFinding.findPathWithMaxComplexity(Vec2.make(originTileX, originTileY), path.get(0), path, 10f);
+            final PathFinding.Path foundPath = worldService.pathFinding.findPath(Vec2.make(originTileX, originTileY), path.get(0), path);
 
             move.waypoints.clear();
             if (foundPath != null) {

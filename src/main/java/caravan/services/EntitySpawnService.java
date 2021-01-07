@@ -7,6 +7,7 @@ import caravan.components.PlayerC;
 import caravan.components.PositionC;
 import caravan.components.RenderC;
 import caravan.components.TownC;
+import caravan.world.Merchandise;
 import caravan.world.Sprites;
 import com.darkyen.retinazer.Engine;
 import com.darkyen.retinazer.EngineService;
@@ -31,21 +32,24 @@ public final class EntitySpawnService implements EngineService {
 	@Wire private Mapper<CaravanC> caravan;
 
 	/** Create player's caravan at given position. */
-	public int spawnPlayerCaravan(float x, float y) {
+	public int spawnPlayerCaravan(float x, float y, Merchandise.Category...categories) {
 		final int entity = engine.createEntity();
 		position.create(entity).set(x, y);
 		move.create(entity);
 		player.create(entity).set(true);
 		cameraFocus.create(entity).set(10f);
 		render.create(entity).set(CARAVAN_RIGHT);
-		caravan.create(entity).money = 100;
+		final CaravanC c = caravan.create(entity);
+		for (Merchandise.Category cat : categories) {
+			c.categories[cat.ordinal()] = true;
+		}
+		c.money = 100;
 		return entity;
 	}
 
-	@NotNull
 	public int spawnTown(int x, int y) {
 		final int entity = engine.createEntity();
-		position.create(entity).set(x + 0.5f, y);
+		position.create(entity).set(x + 0.5f, y + 0.5f);
 		render.create(entity).set(Sprites.VILLAGE);
 		town.create(entity);
 		return entity;

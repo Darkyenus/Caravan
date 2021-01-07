@@ -66,19 +66,27 @@ public final class RenderUtil {
 		b.draw(region.getTexture(), vertices, 0, vertices.length);
 	}
 
-	public static void drawCentered(@NotNull Batch batch, @NotNull TextureAtlas.AtlasRegion region, float x, float y, float width, float scaleX, float scaleY) {
+	/**
+	 * @param x world space coordinate at which the sprite origin should be at
+	 * @param y world space coordinate at which the sprite origin should be at
+	 * @param width of the sprite - height is calculated automatically to maintain aspect ratio
+	 * @param originX 0 = the origin should be at left edge of the region, width = the origin should be at the right edge, and anything in between
+	 * @param originY similar to originX, but in Y axis, 0 = the origin should be at the bottom edge
+	 * @param scaleX to apply, scales around the origin
+	 * @param scaleY to apply, scales around the origin
+	 */
+	public static void drawSprite(@NotNull Batch batch, @NotNull TextureAtlas.AtlasRegion region, float x, float y, float width, float originX, float originY, float scaleX, float scaleY) {
 		// Ideal centered drawing coordinates
 		float dw = width * scaleX;
 		float dh = width * region.originalHeight / region.originalWidth * scaleY;
-		float dx = x - dw * 0.5f;
-		float dy = y /*+ dh*/; //TODO???
+		float dx = x - originX * scaleX;
+		float dy = y - originY * scaleY;
 
 		// Account for texture atlas shift
 		final float ox0 = region.offsetX / region.originalWidth;
 		final float ox1 = (region.offsetX + region.packedWidth) / region.originalWidth;
 		final float oy0 = region.offsetY / region.originalHeight;
 		final float oy1 = (region.offsetY + region.packedHeight) / region.originalHeight;
-
 
 		final float[] vertices = draw_vertices;
 		vertices[5] = vertices[0] = dx + ox0 * dw;
