@@ -67,9 +67,6 @@ public final class TownC implements Component, Pool.Poolable {
 
 	public int[] closestNeighbors = NO_NEIGHBORS;
 
-	/** Increment this value whenever the content changes, used to detect changes in other systems. */
-	public short modificationCounter;
-
 	/** How many trades did occur with this city, selling goods to them. */
 	public int tradeSellCounter;
 	/** How many trades did occur with this city, buying goods from them. */

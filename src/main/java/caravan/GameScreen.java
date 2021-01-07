@@ -9,7 +9,6 @@ import caravan.services.PlayerControlSystem;
 import caravan.services.RenderSystem;
 import caravan.services.RenderingService;
 import caravan.services.SimulationService;
-import caravan.services.TradingSystem;
 import caravan.services.UIService;
 import caravan.services.WorldService;
 import caravan.world.Tiles;
@@ -25,15 +24,16 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class GameScreen extends CaravanApplication.UIScreen {
 
-	public final Engine engine;
+	public Engine engine;
 
-	private final SimulationService simulationService;
-	private final CameraFocusSystem cameraFocusSystem;
+	private SimulationService simulationService;
+	private CameraFocusSystem cameraFocusSystem;
 
-	private final RenderingService[] renderingServices;
+	private RenderingService[] renderingServices;
 	private final Rectangle frustum = new Rectangle();
 
-	public GameScreen() {
+	@Override
+	public void create(@NotNull CaravanApplication application) {
 		final GameInput gameInput = new GameInput();
 		addProcessor(gameInput);
 
@@ -42,13 +42,12 @@ public final class GameScreen extends CaravanApplication.UIScreen {
 		engine = new Engine(Components.DOMAIN,
 				simulationService = new SimulationService(),
 				new EntitySpawnService(),
-				new PlayerControlSystem(gameInput),
-				new TradingSystem(),
+				new PlayerControlSystem(application, gameInput),
 				new MoveSystem(),
 				cameraFocusSystem = new CameraFocusSystem(worldWidth, worldHeight, 5f, gameInput),
 				new WorldService(worldWidth, worldHeight, Tiles.Water),
 				new RenderSystem()
-				);
+		);
 		renderingServices = engine.getServices(RenderingService.class).toArray(new RenderingService[0]);
 
 		WorldGenerator.generateWorld(engine, System.nanoTime());
@@ -58,6 +57,8 @@ public final class GameScreen extends CaravanApplication.UIScreen {
 
 		// Simulate the game world a bit to initialize
 		WorldGenerator.simulateInitialWorldPrices(engine, 200, false);
+
+		super.create(application);
 	}
 
 	@Override

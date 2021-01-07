@@ -126,14 +126,14 @@ public final class WorldGenerator {
 			final boolean freshWaterSource = precipitation.getKernelMax(x, y, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE) >= 0.4f;
 
 			float score = 0;
-			score += freshWaterSource ? 0.8f : 0f;
-			score += saltWaterSource ? 0.3f : 0f;
+			score += freshWaterSource ? 0.6f : 0f;
+			score += saltWaterSource ? 0.2f : 0f;
 			score += wood * 0.5f;
 			score += pasture * 0.5f;
 			score += fish * 0.5f;
 			return score;
 		});
-		townPlacementScore.add(random.nextLong(), 30, 1f);// Some interesting randomness
+		townPlacementScore.add(random.nextLong(), 30, 2f);// Some interesting randomness
 
 		final Mapper<TownC> townMapper = engine.getMapper(TownC.class);
 		final Mapper<PositionC> positionMapper = engine.getMapper(PositionC.class);
@@ -157,6 +157,7 @@ public final class WorldGenerator {
 			final int townCellIndex = maxIndex(townPlacementScore.values);
 			final int townX = townCellIndex % world.width;
 			final int townY = townCellIndex / world.width;
+			world.tiles.set(townX, townY, Tiles.Grass); // TODO(jp): Town base tile
 
 			// Decrement score around this place, to have towns more far away from each other
 			townPlacementScore.dent(townX, townY, 20, 3f);
@@ -217,7 +218,7 @@ public final class WorldGenerator {
 				td.distance = PositionC.manhattanDistance(townPos, otherTownPos);
 			}
 
-			Arrays.sort(distances.items, 0, distances.size);
+			distances.sort();
 			final float maxTradingDistance = distances.get(0).distance * 2.5f;
 			int closeTownCount = 1;
 			while (closeTownCount < distances.size && distances.get(closeTownCount).distance <= maxTradingDistance) {
@@ -273,6 +274,7 @@ public final class WorldGenerator {
 
 	public static void simulateInitialWorldPrices(@NotNull Engine engine, int iterations, boolean dumpResults) {
 		final Mapper<TownC> town = engine.getMapper(TownC.class);
+		final Mapper<PositionC> position = engine.getMapper(PositionC.class);
 		final IntArray townEntities = engine.getEntities(Components.DOMAIN.familyWith(TownC.class, PositionC.class)).getIndices();
 
 		for (int i = 0; i < iterations; i++) {
@@ -286,16 +288,20 @@ public final class WorldGenerator {
 			for (int ti = 0; ti < townEntities.size; ti++) {
 				final int townEntity = townEntities.get(ti);
 				final TownC localTown = town.get(townEntity);
+				final PositionC localTownPosition = position.get(townEntity);
 
 				for (int neighborTownEntity : localTown.closestNeighbors) {
 					final TownC otherTown = town.get(neighborTownEntity);
-					arbitrageTowns(localTown, otherTown);
-					arbitrageTowns(otherTown, localTown);
+					final PositionC otherTownPosition = position.get(neighborTownEntity);
+					final float distance = PositionC.manhattanDistance(localTownPosition, otherTownPosition);
+
+					arbitrageTowns(localTown, otherTown, distance);
+					arbitrageTowns(otherTown, localTown, distance);
 				}
 			}
 
 			if (i < iterations/2) {
-				// Apply communism
+				// Apply communism to reset initial price instability
 				int totalMoney = 0;
 				for (int ti = 0; ti < townEntities.size; ti++) {
 					final TownC localTown = town.get(townEntities.get(ti));
@@ -305,21 +311,22 @@ public final class WorldGenerator {
 				for (int ti = 0; ti < townEntities.size; ti++) {
 					final TownC localTown = town.get(townEntities.get(ti));
 					localTown.money = townMoney;
+					localTown.wealth = 0;
 				}
 			}
 
 			if (dumpResults && (i % 10) == 0) {
-				dumpTownData(i, town, engine.getMapper(PositionC.class), townEntities);
+				dumpTownData(i, town, position, townEntities);
 			}
 		}
 
 		if (dumpResults) {
-			dumpTownData(iterations, town, engine.getMapper(PositionC.class), townEntities);
+			dumpTownData(iterations, town, position, townEntities);
 		}
 	}
 
 	/** Single direction arbitrage, goods moving from localTown to otherTown */
-	private static void arbitrageTowns(TownC localTown, TownC otherTown) {
+	private static void arbitrageTowns(TownC localTown, TownC otherTown, float distance) {
 		final PriceList localPrices = localTown.prices;
 		final PriceList otherPrices = otherTown.prices;
 
@@ -328,7 +335,8 @@ public final class WorldGenerator {
 			while (true) {
 				final int buy = localPrices.buyPrice(m);
 				final int sell = Math.min(otherPrices.sellPrice(m), otherTown.money);
-				if (buy >= sell) {
+				float caravanProfit = sell - buy - distance * 0.05f;
+				if (caravanProfit <= 0) {
 					break;
 				}
 

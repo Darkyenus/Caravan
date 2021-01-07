@@ -37,7 +37,7 @@ public final class WorldEditOverlay extends CaravanApplication.UIScreen {
 		}
 		if (engine_ == null) {
 			Gdx.app.error("WorldEditOverlay", "Can't enable when there is no GameScreen in application");
-			removeScreen();
+			removeScreen(true);
 			return;
 		}
 		final Engine engine = engine_;

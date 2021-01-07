@@ -1,10 +1,14 @@
 package caravan.services;
 
+import caravan.CaravanApplication;
 import caravan.Inputs;
+import caravan.TradingScreen;
+import caravan.components.CaravanC;
 import caravan.components.Components;
 import caravan.components.MoveC;
 import caravan.components.PlayerC;
 import caravan.components.PositionC;
+import caravan.components.TownC;
 import caravan.input.BoundInputFunction;
 import caravan.input.GameInput;
 import caravan.util.PathFinding;
@@ -12,7 +16,9 @@ import caravan.util.Vec2;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.IntArray;
 import com.badlogic.gdx.utils.LongArray;
+import com.darkyen.retinazer.EntitySetView;
 import com.darkyen.retinazer.Mapper;
 import com.darkyen.retinazer.Wire;
 import com.darkyen.retinazer.systems.EntityProcessorSystem;
@@ -27,7 +33,11 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
     @Wire
     private Mapper<MoveC> moveMapper;
     @Wire
-    private Mapper<PlayerC>   playerMapper;
+    private Mapper<PlayerC> playerMapper;
+	@Wire
+	private Mapper<CaravanC> caravanMapper;
+	@Wire
+	private Mapper<TownC> townMapper;
 
     @Wire
     private SimulationService simulation;
@@ -39,6 +49,8 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
     @Wire
     private WorldService worldService;
 
+    private EntitySetView towns;
+
     private final BoundInputFunction UP;
     private final BoundInputFunction DOWN;
     private final BoundInputFunction LEFT;
@@ -46,18 +58,31 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
 
     private final BoundInputFunction MOVE;
 
+    private final CaravanApplication application;
+    private final TradingScreen tradingScreen;
+
     /** Used for alternating direction */
     private boolean nextMoveVertical = false;
     private boolean directionalMove = false;
 
-    public PlayerControlSystem(GameInput gameInput) {
-        super(Components.DOMAIN.familyWith(PlayerC.class, PositionC.class, MoveC.class));
+    public PlayerControlSystem(CaravanApplication application, GameInput gameInput) {
+        super(Components.DOMAIN.familyWith(PlayerC.class, PositionC.class, MoveC.class, CaravanC.class));
+        this.application = application;
+
         UP = gameInput.use(Inputs.UP);
         DOWN = gameInput.use(Inputs.DOWN);
         LEFT = gameInput.use(Inputs.LEFT);
         RIGHT = gameInput.use(Inputs.RIGHT);
 
         MOVE = gameInput.use(Inputs.MOVE);
+
+        tradingScreen = new TradingScreen();
+    }
+
+    @Override
+    public void initialize() {
+        super.initialize();
+        towns = engine.getEntities(Components.DOMAIN.familyWith(PositionC.class, TownC.class));
     }
 
     @Override
@@ -112,6 +137,7 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
                     worldService.defaultPathWorld.movementSpeedMultiplier(originTileX + deltaX, originTileY + deltaY) * speed);
             directionalMove = true;
             cameraFocusSystem.setFree(false);
+            playerC.openTradeOnArrival = true;
         } else if (directionalMove) {
             // Stop movement after keys are released
             move.waypoints.clear();
@@ -143,8 +169,35 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
                     lastY = y;
                     tileSpeed0 = tileSpeed1;
                 }
+
+                playerC.openTradeOnArrival = true;
             }
             cameraFocusSystem.setFree(false);
+        }
+
+        if (move.waypoints.size == 0 && playerC.openTradeOnArrival) {
+	        int town = -1;
+            float townDistance = 1.5f;
+
+            final IntArray townIndices = towns.getIndices();
+            for (int i = 0; i < townIndices.size; i++) {
+                final int townEntity = townIndices.get(i);
+                final PositionC townPos = positionMapper.get(townEntity);
+                final float distance = PositionC.manhattanDistance(townPos, position);
+                if (distance < townDistance) {
+                    town = townEntity;
+                    townDistance = distance;
+                }
+            }
+
+            if (town != -1) {
+                if (application.addScreen(tradingScreen)) {
+                    tradingScreen.reset(townMapper.get(town), caravanMapper.get(entity));
+                    playerC.openTradeOnArrival = false;
+                }
+            } else {
+                playerC.openTradeOnArrival = false;
+            }
         }
     }
 
@@ -155,7 +208,7 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
         final MoveC move = moveMapper.get(entity);
 
         move.waypoints.clear();
-        
+
     }
 
 }

@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 public final class OptionsScreen extends CaravanApplication.UIScreen {
 
 	public OptionsScreen() {
-		super(10, false, true);
+		super(900, false, true);
 	}
 
 	@Override
@@ -27,7 +27,7 @@ public final class OptionsScreen extends CaravanApplication.UIScreen {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
 				Options.save(application.saveDir());
-				removeScreen();
+				removeScreen(true);
 			}
 		});
 		root.add(back);

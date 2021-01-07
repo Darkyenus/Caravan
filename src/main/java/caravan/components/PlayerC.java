@@ -8,6 +8,7 @@ import com.darkyen.retinazer.Component;
 public final class PlayerC implements Component {
 
     public boolean selected;
+    public boolean openTradeOnArrival;
 
     public void set(boolean selected) {
         this.selected = selected;

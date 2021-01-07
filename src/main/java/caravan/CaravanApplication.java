@@ -31,17 +31,17 @@ public final class CaravanApplication implements ApplicationListener {
 	private final SnapshotArray<Screen> activeScreens = new SnapshotArray<>(true, 4, Screen.class);
 
 	private int lastResizeW = -1, lastResizeH = -1;
-	private boolean paused   = false;
+	private boolean paused = false;
 	private boolean disposed = false;
 
 	private final InputMultiplexer input = new InputMultiplexer();
 
-	private        FileHandle     saveDir;
-	private final  AssetManager   assetManager = new AssetManager(new LocalFileHandleResolver());
-	private static Batch          batch;
-	private static Skin           skin;
-	private static TextureAtlas   atlas;
-	private final  ScreenViewport uiViewport   = new ScreenViewport();
+	private FileHandle saveDir;
+	private final AssetManager assetManager = new AssetManager(new LocalFileHandleResolver());
+	private static Batch batch;
+	private static Skin skin;
+	private static TextureAtlas atlas;
+	private final ScreenViewport uiViewport = new ScreenViewport();
 
 	/** @return the shared batch */
 	public static @NotNull Batch batch() {
@@ -100,12 +100,18 @@ public final class CaravanApplication implements ApplicationListener {
 	}
 
 	/** Add given screen on top of the screen stack. */
-	public final void addScreen(@NotNull Screen screen) {
+	public final boolean addScreen(@NotNull Screen screen) {
 		if (disposed) {
-			throw new IllegalStateException("Can't add screen, already disposed");
+			return false;
+		}
+		if (screen.application != null) {
+			return false;
 		}
 		screen.application = this;
-		screen.create(this);
+		if (!screen.created) {
+			screen.create(this);
+			screen.created = true;
+		}
 		if (screen.application == this && lastResizeW != -1 && lastResizeH != -1) {
 			screen.resize(this, lastResizeW, lastResizeH);
 		}
@@ -115,22 +121,26 @@ public final class CaravanApplication implements ApplicationListener {
 
 		if (screen.application != this) {
 			// It removed and disposed itself!
-			return;
+			return true;
 		}
 
 		activeScreens.add(screen);
 		input.addProcessor(screen);
 		activeScreens.sort(RENDER_SCREEN_COMPARATOR);
 		input.getProcessors().sort(INPUT_SCREEN_COMPARATOR);
+		return true;
 	}
 
 	/** Remove the given screen from the screen stack. */
-	public final boolean removeScreen(@NotNull Screen screen) {
+	public final boolean removeScreen(@NotNull Screen screen, boolean dispose) {
 		if (screen.application == this) {
 			screen.application = null;
 			activeScreens.removeValue(screen, true);
 			input.removeProcessor(screen);
-			screen.dispose();
+			if (dispose) {
+				screen.dispose();
+				screen.created = false;
+			}
 			return true;
 		}
 		return false;
@@ -253,15 +263,16 @@ public final class CaravanApplication implements ApplicationListener {
 		atlas = null;
 	}
 
-	private static final Comparator<Screen>         RENDER_SCREEN_COMPARATOR = (s1, s2) -> Integer.compare(s1.z, s2.z);
-	private static final Comparator<InputProcessor> INPUT_SCREEN_COMPARATOR  = (s1, s2) -> Integer.compare(((Screen) s2).z, ((Screen) s1).z);
+	private static final Comparator<Screen> RENDER_SCREEN_COMPARATOR = (s1, s2) -> Integer.compare(s1.z, s2.z);
+	private static final Comparator<InputProcessor> INPUT_SCREEN_COMPARATOR = (s1, s2) -> Integer.compare(((Screen) s2).z, ((Screen) s1).z);
 
 	public static abstract class Screen extends InputMultiplexer {
 
-		private       CaravanApplication application;
-		private final int                z;
-		private final boolean            sticky;
-		private final boolean            opaque;
+		private CaravanApplication application;
+		private final int z;
+		private final boolean sticky;
+		private final boolean opaque;
+		private boolean created = false;
 
 		/**
 		 * @param z sorting priority. Lower Z is drawn earlier, but receives inputs later.
@@ -283,8 +294,8 @@ public final class CaravanApplication implements ApplicationListener {
 		 *
 		 * @return true if removed and disposed, false if not added
 		 */
-		public final boolean removeScreen() {
-			return application != null && application.removeScreen(this);
+		public final boolean removeScreen(boolean dispose) {
+			return application != null && application.removeScreen(this, dispose);
 		}
 
 		public void create(@NotNull CaravanApplication application) {

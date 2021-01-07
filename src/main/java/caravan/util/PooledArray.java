@@ -73,6 +73,10 @@ public final class PooledArray<T> {
 		return items[index];
 	}
 
+	public void sort() {
+		Arrays.sort(items, 0, size);
+	}
+
 	public int size() {
 		return size;
 	}

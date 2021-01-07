@@ -4,67 +4,70 @@ package caravan.world;
  * Types of merchandise.
  */
 public enum Merchandise {
-	RAW_PLANT_FIBER("Raw plant fiber"),
-	RAW_ANIMAL_FIBER("Raw animal fiber"),
-	CLOTH("Cloth"),
-	CLOTH_LUXURY("Luxury cloth"),
-	CLOTHING("Clothing"),
-	CLOTHING_LUXURY("Luxury clothing"),
+	RAW_PLANT_FIBER("Raw plant fiber", true),
+	RAW_ANIMAL_FIBER("Raw animal fiber", true),
+	CLOTH("Cloth", true),
+	CLOTH_LUXURY("Luxury cloth", true),
+	CLOTHING("Clothing", true),
+	CLOTHING_LUXURY("Luxury clothing", true),
 	/** red, poultry or fish */
-	MEAT_FRESH("Fresh meat"),
+	MEAT_FRESH("Fresh meat", false),
 	/** smoked or salted meat */
-	MEAT_PRESERVED("Preserved meat"),
+	MEAT_PRESERVED("Preserved meat", true),
 	/** preserved luxury meats (dried meat, sausages, pates...) */
-	MEAT_LUXURY("Luxury meat"),
-	GRAIN("Grain"),
-	BAKED_GOODS("Baked goods"),
-	BAKED_GOODS_LUXURY("Luxury baked goods"),
+	MEAT_LUXURY("Luxury meat", true),
+	GRAIN("Grain", true),
+	BAKED_GOODS("Baked goods", true),
+	BAKED_GOODS_LUXURY("Luxury baked goods", true),
 	//EGGS("Eggs"),
 	//DAIRY_MILK("Milk"),
 	//DAIRY_CHEESE("Cheese"),
-	HONEY("Honey"),
-	SUGAR("Sugar"),
+	HONEY("Honey", true),
+	SUGAR("Sugar", true),
 	//FOOD_OIL_FAT("Cooking oil"),
-	BEER("Beer"),
-	WINE("Wine"),
-	LIQUOR("Liquor"),
-	MEAD("Mead"),
-	WATER_FRESH("Fresh water"),
-	FRUIT_FRESH("Fresh fruit"),
-	FRUIT_DRIED("Dried fruit"),
-	FRUIT_JAM("Fruit jam"),
-	VEGETABLES_FRESH("Fresh vegetables"),
-	VEGETABLES_PICKLED("Pickled vegetables"),
-	SPICES("Spices"),
-	SALT("Salt"),
-	BOOK("Books"),
-	PERFUME("Perfume"),
+	BEER("Beer", true),
+	WINE("Wine", true),
+	LIQUOR("Liquor", true),
+	MEAD("Mead", true),
+	WATER_FRESH("Fresh water", true),
+	FRUIT_FRESH("Fresh fruit", false),
+	FRUIT_DRIED("Dried fruit", true),
+	FRUIT_JAM("Fruit jam", true),
+	VEGETABLES_FRESH("Fresh vegetables", false),
+	VEGETABLES_PICKLED("Pickled vegetables", true),
+	SPICES("Spices", true),
+	SALT("Salt", true),
+	BOOK("Books", true),
+	PERFUME("Perfume", true),
 	/** gold and silver ore */
-	METAL_RARE_ORE("Rare metal ore"),
+	METAL_RARE_ORE("Rare metal ore", true),
 	/** gold and silver ingots */
-	METAL_RARE_INGOT("Rare metal ingots"),
+	METAL_RARE_INGOT("Rare metal ingots", true),
 	/** Iron, copper, tin or lead ore */
-	METAL_ORE("Metal ore"),
+	METAL_ORE("Metal ore", true),
 	/** Iron, copper, tin or lead ingot */
-	METAL_INGOT("Metal ingots"),
-	COAL("Coal"),
-	JEWELS("Jewels"),
-	JEWELRY("Jewelry"),
-	ARMOR_AND_WEAPONS("Armor and weapons"),
-	TOOLS("Tools"),
-	WOOD_LOG("Wood logs"),
-	WOOD_FUEL("Fuel wood"),
-	WOOD_LUMBER("Lumber"),
+	METAL_INGOT("Metal ingots", true),
+	COAL("Coal", true),
+	JEWELS("Jewels", true),
+	JEWELRY("Jewelry", true),
+	ARMOR_AND_WEAPONS("Armor and weapons", true),
+	TOOLS("Tools", true),
+	WOOD_LOG("Wood logs", true),
+	WOOD_FUEL("Fuel wood", true),
+	WOOD_LUMBER("Lumber", true),
 	//STONE("Masonry stone"),
 	//LIMESTONE("Limestone"),
 	;
 
 	public final String name;
+	public final boolean tradeable;
 
 	public static final Merchandise[] VALUES = values();
 
-	Merchandise(String name) {
+	Merchandise(String name, boolean tradeable) {
 		this.name = name;
+		this.tradeable = tradeable;
+
 	}
 
 	/** Stuff that is considered food for internal town consumption, including luxuries. */
