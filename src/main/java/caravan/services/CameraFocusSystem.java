@@ -121,6 +121,7 @@ public final class CameraFocusSystem extends EntityProcessorSystem implements Re
     public void setFree(boolean free) {
         if (free) {
             currentFramingDetached = true;
+            currentFramingCatchUp = false;
         } else if (currentFramingDetached) {
             currentFramingCatchUp = true;
         }

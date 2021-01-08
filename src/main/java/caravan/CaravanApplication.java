@@ -26,15 +26,13 @@ import java.util.Comparator;
 /**
  * Base application which manages screens and basic assets.
  */
-public final class CaravanApplication implements ApplicationListener {
+public final class CaravanApplication implements ApplicationListener, InputProcessor {
 
 	private final SnapshotArray<Screen> activeScreens = new SnapshotArray<>(true, 4, Screen.class);
 
 	private int lastResizeW = -1, lastResizeH = -1;
 	private boolean paused = false;
 	private boolean disposed = false;
-
-	private final InputMultiplexer input = new InputMultiplexer();
 
 	private FileHandle saveDir;
 	private final AssetManager assetManager = new AssetManager(new LocalFileHandleResolver());
@@ -88,7 +86,6 @@ public final class CaravanApplication implements ApplicationListener {
 				screen.application = null;
 				screen.dispose();
 				activeScreens.removeValue(screen, true);
-				input.removeProcessor(screen);
 			}
 		} finally {
 			activeScreens.end();
@@ -127,9 +124,7 @@ public final class CaravanApplication implements ApplicationListener {
 		}
 
 		activeScreens.add(screen);
-		input.addProcessor(screen);
 		activeScreens.sort(RENDER_SCREEN_COMPARATOR);
-		input.getProcessors().sort(INPUT_SCREEN_COMPARATOR);
 		return true;
 	}
 
@@ -138,7 +133,6 @@ public final class CaravanApplication implements ApplicationListener {
 		if (screen.application == this) {
 			screen.application = null;
 			activeScreens.removeValue(screen, true);
-			input.removeProcessor(screen);
 			if (dispose) {
 				screen.dispose();
 				screen.created = false;
@@ -163,7 +157,7 @@ public final class CaravanApplication implements ApplicationListener {
 		skin = assetManager.get("UISkin.json");
 		atlas = assetManager.get("World.atlas");
 
-		Gdx.input.setInputProcessor(input);
+		Gdx.input.setInputProcessor(this);
 		addScreen(new ApplicationDebugOverlay());
 
 
@@ -266,8 +260,113 @@ public final class CaravanApplication implements ApplicationListener {
 		atlas = null;
 	}
 
-	private static final Comparator<Screen> RENDER_SCREEN_COMPARATOR = (s1, s2) -> Integer.compare(s1.z, s2.z);
-	private static final Comparator<InputProcessor> INPUT_SCREEN_COMPARATOR = (s1, s2) -> Integer.compare(((Screen) s2).z, ((Screen) s1).z);
+	//region Input
+	public boolean keyDown (int keycode) {
+		final Screen[] screens = activeScreens.begin();
+		try {
+			for (int i = activeScreens.size - 1; i >= 0; i--) {
+				if (screens[i].keyDown(keycode)) return true;
+				if (screens[i].opaque) break;
+			}
+		} finally {
+			activeScreens.end();
+		}
+		return false;
+	}
+
+	public boolean keyUp (int keycode) {
+		final Screen[] screens = activeScreens.begin();
+		try {
+			for (int i = activeScreens.size - 1; i >= 0; i--) {
+				if (screens[i].keyUp(keycode)) return true;
+				if (screens[i].opaque) break;
+			}
+		} finally {
+			activeScreens.end();
+		}
+		return false;
+	}
+
+	public boolean keyTyped (char character) {
+		final Screen[] screens = activeScreens.begin();
+		try {
+			for (int i = activeScreens.size - 1; i >= 0; i--) {
+				if (screens[i].keyTyped(character)) return true;
+				if (screens[i].opaque) break;
+			}
+		} finally {
+			activeScreens.end();
+		}
+		return false;
+	}
+
+	public boolean touchDown (int screenX, int screenY, int pointer, int button) {
+		final Screen[] screens = activeScreens.begin();
+		try {
+			for (int i = activeScreens.size - 1; i >= 0; i--) {
+				if (screens[i].touchDown(screenX, screenY, pointer, button)) return true;
+				if (screens[i].opaque) break;
+			}
+		} finally {
+			activeScreens.end();
+		}
+		return false;
+	}
+
+	public boolean touchUp (int screenX, int screenY, int pointer, int button) {
+		final Screen[] screens = activeScreens.begin();
+		try {
+			for (int i = activeScreens.size - 1; i >= 0; i--) {
+				if (screens[i].touchUp(screenX, screenY, pointer, button)) return true;
+				if (screens[i].opaque) break;
+			}
+		} finally {
+			activeScreens.end();
+		}
+		return false;
+	}
+
+	public boolean touchDragged (int screenX, int screenY, int pointer) {
+		final Screen[] screens = activeScreens.begin();
+		try {
+			for (int i = activeScreens.size - 1; i >= 0; i--) {
+				if (screens[i].touchDragged(screenX, screenY, pointer)) return true;
+				if (screens[i].opaque) break;
+			}
+		} finally {
+			activeScreens.end();
+		}
+		return false;
+	}
+
+	public boolean mouseMoved (int screenX, int screenY) {
+		final Screen[] screens = activeScreens.begin();
+		try {
+			for (int i = activeScreens.size - 1; i >= 0; i--) {
+				if (screens[i].mouseMoved(screenX, screenY)) return true;
+				if (screens[i].opaque) break;
+			}
+		} finally {
+			activeScreens.end();
+		}
+		return false;
+	}
+
+	public boolean scrolled (float amountX, float amountY) {
+		final Screen[] screens = activeScreens.begin();
+		try {
+			for (int i = activeScreens.size - 1; i >= 0; i--) {
+				if (screens[i].scrolled(amountX, amountY)) return true;
+				if (screens[i].opaque) break;
+			}
+		} finally {
+			activeScreens.end();
+		}
+		return false;
+	}
+	//endregion
+
+	private static final Comparator<Screen> RENDER_SCREEN_COMPARATOR = Comparator.comparingInt(s -> s.z);
 
 	public static abstract class Screen extends InputMultiplexer {
 

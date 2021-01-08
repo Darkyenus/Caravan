@@ -640,7 +640,7 @@ public final class WorldGenerator {
 		for (int i = 1; i < length; i++) {
 			vowel = !vowel;
 			sb.append(random(vowel ? VOWELS : CONSONANTS));
-			if (MathUtils.random(30) == 0) {
+			if (i + 1 != length && MathUtils.random(40) == 0) {
 				sb.append('-');
 			}
 		}

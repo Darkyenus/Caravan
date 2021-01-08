@@ -6,7 +6,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.Writer;
 
-public class CSVWriter implements Closeable {
+public final class CSVWriter implements Closeable {
 
 	private final Writer out;
 	private final String separator;
