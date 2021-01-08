@@ -162,7 +162,7 @@ public final class WorldGenerator {
 			final int townCellIndex = maxIndex(townPlacementScore.values);
 			final int townX = townCellIndex % world.width;
 			final int townY = townCellIndex / world.width;
-			world.tiles.set(townX, townY, Tiles.Grass); // TODO(jp): Town base tile
+			world.tiles.set(townX, townY, Tiles.Town);
 
 			// Decrement score around this place, to have towns more far away from each other
 			townPlacementScore.dent(townX, townY, 15, 3f);

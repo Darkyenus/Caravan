@@ -100,11 +100,13 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
         }
 
         final PositionC position = positionMapper.get(entity);
+        final CaravanC caravan = caravanMapper.get(entity);
+
         final int originTileX = MathUtils.floor(position.x);
         final int originTileY = MathUtils.floor(position.y);
         final MoveC move = moveMapper.get(entity);
 
-        float speed = 2f;
+        float speed = caravan.speed;
 
         if (LEFT.isPressed() || RIGHT.isPressed() || UP.isPressed() || DOWN.isPressed()) {
             int deltaX = 0;
@@ -144,7 +146,7 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
             directionalMove = false;
         }
 
-        if (!directionalMove && MOVE.isPressed()) {
+        if (!directionalMove && MOVE.isJustPressed()) {
             // Move to clicked location
             final Vector3 clickedTarget = cameraFocusSystem.unproject(Gdx.input.getX(), Gdx.input.getY());
             final int targetTileX = MathUtils.floor(clickedTarget.x);
@@ -192,7 +194,7 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
 
             if (town != -1) {
                 if (application.addScreen(tradingScreen)) {
-                    tradingScreen.reset(townMapper.get(town), caravanMapper.get(entity));
+                    tradingScreen.reset(townMapper.get(town), caravan);
                     playerC.openTradeOnArrival = false;
                 }
             } else {

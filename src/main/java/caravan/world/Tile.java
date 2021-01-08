@@ -6,6 +6,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.RandomXS128;
 import com.badlogic.gdx.utils.Array;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -107,6 +108,16 @@ public final class Tile {
 
 	private static final Tile[] draw_collisionTiles = new Tile[8];
 
+	private static int murmurHash3(int x, int y) {
+		long h = ((long) x << 32L) | ((long) y & 0xFFFFFFFFL);
+		h ^= h >>> 33;
+		h *= 0xff51afd7ed558ccdL;
+		h ^= h >>> 33;
+		h *= 0xc4ceb9fe1a85ec53L;
+		h ^= h >>> 33;
+		return (int) (h & 0x7FFFFFFF /* Force into being positive */);
+	}
+
 	public static void drawTiles(@NotNull final WorldAttribute<Tile> t, @NotNull final Batch b, final int startX, final int startY, final int endX, final int endY) {
 		//Draw tiles & overlaps
 		final Tile[] tiles = draw_collisionTiles;
@@ -114,7 +125,7 @@ public final class Tile {
 			for (int x = startX; x <= endX; x++) {
 				final Tile tile = t.get(x, y);
 
-				final int tileHash = ((0x8c26b2de ^ x) * (0xbc671103 ^ y)) & 0x7FFFFFFF /* Force into being positive */;
+				final int tileHash = murmurHash3(x, y);
 
 				final TextureRegion base = tile.base[tileHash % tile.base.length];
 				if (base != null) {

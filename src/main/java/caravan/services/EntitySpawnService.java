@@ -44,6 +44,7 @@ public final class EntitySpawnService implements EngineService {
 			c.categories[cat.ordinal()] = true;
 		}
 		c.money = 100;
+		c.speed = 5f;
 		return entity;
 	}
 
