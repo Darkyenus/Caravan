@@ -1,5 +1,6 @@
 package caravan.input;
 
+import caravan.CaravanApplication;
 import com.badlogic.gdx.Gdx;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,17 +35,17 @@ public final class BoundInputFunction {
 	}
 
 	public boolean isJustPressed() {
-		return pressed && pressedFrameId == Gdx.graphics.getFrameId();
+		return pressed && pressedFrameId == CaravanApplication.frameId;
 	}
 
 	public boolean isJustReleased() {
-		return !pressed && pressedFrameId == Gdx.graphics.getFrameId();
+		return !pressed && pressedFrameId == CaravanApplication.frameId;
 	}
 
 	//region Internal logic
 	private boolean trigger(boolean pressed) {
 		if (this.pressed != pressed) {
-			this.pressedFrameId = Gdx.graphics.getFrameId();
+			this.pressedFrameId = CaravanApplication.frameId;
 		}
 		this.pressed = pressed;
 		return trigger != null && trigger.triggered(times, pressed);

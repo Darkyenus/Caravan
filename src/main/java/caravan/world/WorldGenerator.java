@@ -165,14 +165,15 @@ public final class WorldGenerator {
 			world.tiles.set(townX, townY, Tiles.Town);
 
 			// Decrement score around this place, to have towns more far away from each other
-			townPlacementScore.dent(townX, townY, 15, 3f);
+			townPlacementScore.dent(townX, townY, 35, 3f);
 
 			// Place the town and set it up
-			final int townEntity = engine.getService(EntitySpawnService.class).spawnTown(townX, townY);
+			final String townName = generateTownName();
+			final int townEntity = engine.getService(EntitySpawnService.class).spawnTown(townX, townY, townName);
 			townEntities.add(townEntity);
 
 			final TownC town = townMapper.get(townEntity);
-			town.name = generateTownName();
+			town.name = townName;
 
 			town.population = 10 + random.nextInt(90);
 			town.money = town.population * 10 + random.nextInt(50);
@@ -624,7 +625,7 @@ public final class WorldGenerator {
 	}
 
 	private static final String VOWELS = "euioay";
-	private static final String CONSONANTS = "qwrtzpsdfghjklxcvbnm";
+	private static final String CONSONANTS = "qwrtzpsdfghjklxcvbnmrtzpsdfghjklcvbnm";
 
 	private static char random(@NotNull String from) {
 		return from.charAt(MathUtils.random(from.length() - 1));

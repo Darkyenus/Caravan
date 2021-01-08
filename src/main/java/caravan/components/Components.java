@@ -14,6 +14,7 @@ public final class Components {
 			PlayerC.class,
 			CameraFocusC.class,
 			RenderC.class,
+			TitleC.class,
 			TownC.class,
 			CaravanC.class
 	);

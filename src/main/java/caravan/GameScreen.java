@@ -10,6 +10,7 @@ import caravan.services.PlayerControlSystem;
 import caravan.services.RenderSystem;
 import caravan.services.RenderingService;
 import caravan.services.SimulationService;
+import caravan.services.TitleRenderService;
 import caravan.services.UIService;
 import caravan.services.WorldService;
 import caravan.world.Tiles;
@@ -48,6 +49,7 @@ public final class GameScreen extends CaravanApplication.UIScreen {
 				cameraFocusSystem = new CameraFocusSystem(worldWidth, worldHeight, 5f, gameInput),
 				new WorldService(worldWidth, worldHeight, Tiles.Water),
 				new RenderSystem(),
+				new TitleRenderService(),
 				new WorldDebugService()
 		);
 		renderingServices = engine.getServices(RenderingService.class).toArray(new RenderingService[0]);

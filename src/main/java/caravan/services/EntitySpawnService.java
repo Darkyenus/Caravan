@@ -6,6 +6,7 @@ import caravan.components.MoveC;
 import caravan.components.PlayerC;
 import caravan.components.PositionC;
 import caravan.components.RenderC;
+import caravan.components.TitleC;
 import caravan.components.TownC;
 import caravan.world.Merchandise;
 import caravan.world.Sprites;
@@ -30,6 +31,7 @@ public final class EntitySpawnService implements EngineService {
 	@Wire private Mapper<RenderC> render;
 	@Wire private Mapper<TownC> town;
 	@Wire private Mapper<CaravanC> caravan;
+	@Wire private Mapper<TitleC> title;
 
 	/** Create player's caravan at given position. */
 	public int spawnPlayerCaravan(float x, float y, Merchandise.Category...categories) {
@@ -48,11 +50,14 @@ public final class EntitySpawnService implements EngineService {
 		return entity;
 	}
 
-	public int spawnTown(int x, int y) {
+	public int spawnTown(int x, int y, @NotNull String name) {
 		final int entity = engine.createEntity();
 		position.create(entity).set(x + 0.5f, y + 0.5f);
 		render.create(entity).set(Sprites.VILLAGE);
 		town.create(entity);
+		final TitleC title = this.title.create(entity);
+		title.title = name;
+		title.yOffset = 1f;
 		return entity;
 	}
 }

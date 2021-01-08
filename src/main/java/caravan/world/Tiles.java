@@ -7,12 +7,12 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class Tiles {
 
-	public static final Tile Town = overlapTile(0, "town", 1f);
 	public static final Tile Grass = overlapTile(1, "grass", 1f);
 	public static final Tile Desert = overlapTile(2, "desert", 0.8f);
 	public static final Tile Water = overlapTile(3, "water", 0.1f);
 	public static final Tile Rock = overlapTile(4, "rock", 0.4f);
 	public static final Tile Forest = overlapTile(5, "forest", 0.7f);
+	public static final Tile Town = overlapTile(6, "town", 0.99f);
 
 	@NotNull
 	private static Tile overlapTile(int height, @NotNull String baseName, float movSpeed) {

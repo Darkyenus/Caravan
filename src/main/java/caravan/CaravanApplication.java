@@ -43,6 +43,8 @@ public final class CaravanApplication implements ApplicationListener {
 	private static TextureAtlas atlas;
 	private final ScreenViewport uiViewport = new ScreenViewport();
 
+	public static long frameId = 0;
+
 	/** @return the shared batch */
 	public static @NotNull Batch batch() {
 		return batch;
@@ -212,6 +214,7 @@ public final class CaravanApplication implements ApplicationListener {
 			}
 		} finally {
 			activeScreens.end();
+			frameId++;
 		}
 	}
 
