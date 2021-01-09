@@ -1,5 +1,7 @@
 package caravan.world;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Types of merchandise.
  */
@@ -19,17 +21,17 @@ public enum Merchandise {
 	HONEY("Honey", true, Category.FOOD),
 	SUGAR("Sugar", true, Category.FOOD),
 	WATER_FRESH("Fresh water", true, Category.FOOD),
-	FRUIT_FRESH("Fresh fruit", false, Category.FOOD),
+	FRUIT_FRESH("Fresh fruit", "fruit", false, Category.FOOD),
 	FRUIT_DRIED("Dried fruit", true, Category.FOOD),
 	FRUIT_JAM("Fruit jam", true, Category.FOOD),
-	VEGETABLES_FRESH("Fresh vegetables", false, Category.FOOD),
+	VEGETABLES_FRESH("Fresh vegetables", "vegetables", false, Category.FOOD),
 	VEGETABLES_PICKLED("Pickled vegetables", true, Category.FOOD),
-	SALT("Salt", true, Category.FOOD),
+	SALT("Salt", "brine", true, Category.FOOD),
 
 	BAKED_GOODS_LUXURY("Luxury baked goods", true, Category.LUXURIES),
 	MEAT_LUXURY("Luxury meat", true, Category.LUXURIES), // preserved luxury meats (dried meat, sausages, pates...)
 	BEER("Beer", true, Category.LUXURIES),
-	WINE("Wine", true, Category.LUXURIES),
+	WINE("Wine", "vinegar", true, Category.LUXURIES),
 	LIQUOR("Liquor", true, Category.LUXURIES),
 	MEAD("Mead", true, Category.LUXURIES),
 	SPICES("Spices", true, Category.LUXURIES),
@@ -46,7 +48,7 @@ public enum Merchandise {
 	ARMOR_AND_WEAPONS("Armor and weapons", true, Category.TRADE_GOODS),
 	TOOLS("Tools", true, Category.TRADE_GOODS),
 	WOOD_LOG("Wood logs", true, Category.TRADE_GOODS),
-	WOOD_FUEL("Fuel wood", true, Category.TRADE_GOODS),
+	WOOD_FUEL("Fuel wood", "wood", true, Category.TRADE_GOODS),
 	WOOD_LUMBER("Lumber", true, Category.TRADE_GOODS),
 
 	// Cut stuff (for now)
@@ -59,14 +61,28 @@ public enum Merchandise {
 	//FOOD_OIL_FAT("Cooking oil"),
 	;
 
+	/** Base name shown in the UI */
+	@NotNull
 	public final String name;
+
+	/** Name that is used when this item is a part of production recipe */
+	@NotNull
+	public final String materialName;
+
 	public final boolean tradeable;
+
+	@NotNull
 	public final Category category;
 
 	public static final Merchandise[] VALUES = values();
 
-	Merchandise(String name, boolean tradeable, Category category) {
+	Merchandise(String name, boolean tradeable, @NotNull Category category) {
+		this(name, name.toLowerCase(), tradeable, category);
+	}
+
+	Merchandise(@NotNull String name, @NotNull String materialName, boolean tradeable, @NotNull Category category) {
 		this.name = name;
+		this.materialName = materialName;
 		this.tradeable = tradeable;
 		this.category = category;
 	}

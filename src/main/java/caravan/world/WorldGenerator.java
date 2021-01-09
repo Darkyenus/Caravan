@@ -48,32 +48,6 @@ public final class WorldGenerator {
 		final WorldAttributeFloat forestMap = generateForests(altitude, temperature, precipitation, random);
 		final WorldAttributeFloat pastureMap = generatePastures(temperature, precipitation, random);
 
-		final WorldAttribute<WorldProperty.Temperature> temperatureClass = new WorldAttribute<>(width, height, WorldProperty.Temperature.TEMPERATE);
-		temperatureClass.fill((x, y, currentValue) -> {
-			float temp = temperature.get(x, y);
-			if (temp < 10f) {
-				return WorldProperty.Temperature.COLD;
-			} else if (temp < 25f) {
-				return WorldProperty.Temperature.TEMPERATE;
-			} else {
-				return WorldProperty.Temperature.HOT;
-			}
-		});
-
-		final WorldAttribute<WorldProperty.Precipitation> precipitationClass = new WorldAttribute<>(width, height, WorldProperty.Precipitation.HUMID);
-		precipitationClass.fill((x, y, currentValue) -> {
-			float prec = precipitation.get(x, y);
-			if (prec < 0.1f) {
-				return WorldProperty.Precipitation.SUPER_ARID;
-			} else if (prec < 0.4f) {
-				return WorldProperty.Precipitation.ARID;
-			} else if (prec < 0.85f) {
-				return WorldProperty.Precipitation.HUMID;
-			} else {
-				return WorldProperty.Precipitation.SUPER_HUMID;
-			}
-		});
-
 		// Generate rivers
 		//TODO
 
@@ -186,8 +160,8 @@ public final class WorldGenerator {
 			town.fieldSpace = pastureMap.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE);
 			town.fishAbundance = fishMap.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE);
 
-			town.temperature = temperatureClass.get(townX, townY);
-			town.precipitation = precipitationClass.get(townX, townY);
+			town.temperature = temperature.get(townX, townY);
+			town.precipitation = precipitation.get(townX, townY);
 
 			town.rareMetalOccurrence = rareMetal[townIndex];
 			town.metalOccurrence = metal[townIndex];
@@ -576,7 +550,7 @@ public final class WorldGenerator {
 				w.item("demand_"+value.name());
 				w.item("price_"+value.name());
 			}
-			for (Production production : Production.PRODUCTION) {
+			for (Production production : Production.REGISTRY) {
 				w.item(production.name);
 			}
 			w.row();
@@ -615,7 +589,7 @@ public final class WorldGenerator {
 					w.item(""+t.prices.demand(m));
 					w.item(""+t.prices.basePrice(m));
 				}
-				for (Production production : Production.PRODUCTION) {
+				for (Production production : Production.REGISTRY) {
 					w.item(""+t.production.get(production, 0));
 				}
 

@@ -3,7 +3,6 @@ package caravan.components;
 import caravan.util.CaravanComponent;
 import caravan.world.PriceList;
 import caravan.world.Production;
-import caravan.world.WorldProperty;
 import com.badlogic.gdx.utils.ObjectIntMap;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
@@ -47,13 +46,11 @@ public final class TownC extends CaravanComponent {
 	/** [0, 1] how much fish for fishing is there around this town */
 	public float fishAbundance;
 
-	/** Average temperature at the town's location. */
-	@NotNull
-	public WorldProperty.Temperature temperature = WorldProperty.Temperature.TEMPERATE;
+	/** Average temperature at the town's location in degrees celsius. */
+	public float temperature;
 
-	/** How much rain falls down here. */
-	@NotNull
-	public WorldProperty.Precipitation precipitation = WorldProperty.Precipitation.HUMID;
+	/** How much rain falls down here in [0, 1] range. */
+	public float precipitation;
 
 	/** [0, 1] how easy is it to mine each material here, 0 = impossible, 1 = very easy */
 	public float rareMetalOccurrence;
@@ -93,8 +90,8 @@ public final class TownC extends CaravanComponent {
 		woodAbundance = 0;
 		fieldSpace = 0;
 		fishAbundance = 0;
-		temperature = WorldProperty.Temperature.TEMPERATE;
-		precipitation = WorldProperty.Precipitation.HUMID;
+		temperature = 0;
+		precipitation = 0;
 
 		rareMetalOccurrence = 0;
 		metalOccurrence = 0;
@@ -119,8 +116,8 @@ public final class TownC extends CaravanComponent {
 
 		output.writeInt(production.size);
 		for (ObjectIntMap.Entry<Production> entry : production) {
-			output.writeInt(entry.key.productionIndex);
-			output.writeInt(entry.value);
+			output.writeShort(entry.key.id);
+			output.writeShort(entry.value);
 		}
 
 		output.writeBoolean(hasFreshWater);
@@ -128,10 +125,8 @@ public final class TownC extends CaravanComponent {
 		output.writeFloat(woodAbundance);
 		output.writeFloat(fieldSpace);
 		output.writeFloat(fishAbundance);
-
-		output.writeInt(temperature.ordinal());
-		output.writeInt(precipitation.ordinal());
-
+		output.writeFloat(temperature);
+		output.writeFloat(precipitation);
 		output.writeFloat(rareMetalOccurrence);
 		output.writeFloat(metalOccurrence);
 		output.writeFloat(coalOccurrence);
@@ -158,13 +153,13 @@ public final class TownC extends CaravanComponent {
 		final int productionCount = input.readInt();
 		production.ensureCapacity(productionCount);
 		for (int i = 0; i < productionCount; i++) {
-			final int productionIndex = input.readInt();
-			final int value = input.readInt();
+			final short productionId = input.readShort();
+			final short value = input.readShort();
 
-			if (productionIndex < 0 || productionIndex >= Production.PRODUCTION.size) {
-				continue;
+			final Production production = Production.REGISTRY.get(productionId);
+			if (production != null) {
+				this.production.put(production, value);
 			}
-			production.put(Production.PRODUCTION.get(productionIndex), value);
 		}
 
 		hasFreshWater = input.readBoolean();
@@ -172,10 +167,8 @@ public final class TownC extends CaravanComponent {
 		woodAbundance = input.readFloat();
 		fieldSpace = input.readFloat();
 		fishAbundance = input.readFloat();
-
-		temperature = WorldProperty.Temperature.get(input.readInt());
-		precipitation = WorldProperty.Precipitation.get(input.readInt());
-
+		temperature = input.readFloat();
+		precipitation = input.readFloat();
 		rareMetalOccurrence = input.readFloat();
 		metalOccurrence = input.readFloat();
 		coalOccurrence = input.readFloat();

@@ -167,9 +167,10 @@ public final class TownSystem extends EntityProcessorSystem implements StatefulS
 	private static void updateProduction(@NotNull TownC town) {
 		final RandomXS128 random = new RandomXS128();
 
-		float[] profitByProduction = new float[Production.PRODUCTION.size];
-		for (int i = 0; i < Production.PRODUCTION.size; i++) {
-			profitByProduction[i] = productionProfit(town, Production.PRODUCTION.get(i));
+		final int productionCount = Production.REGISTRY.count();
+		float[] profitByProduction = new float[productionCount];
+		for (int i = 0; i < productionCount; i++) {
+			profitByProduction[i] = productionProfit(town, Production.REGISTRY.getDense(i));
 		}
 		final float maxProfitableProduction = max(profitByProduction);
 		final float veryLowProfitThreshold = maxProfitableProduction / 10f;
@@ -219,7 +220,7 @@ public final class TownSystem extends EntityProcessorSystem implements StatefulS
 			float portionToGiveToMostProfitable = MathUtils.clamp(mostProfitableProfit / (nextMostProfitableProfit + mostProfitableProfit), 0, 1);
 			final int giveToMostProfitable = MathUtils.clamp(rRound(unemployed * portionToGiveToMostProfitable), 1, unemployed);
 			unemployed -= giveToMostProfitable;
-			town.production.getAndIncrement(Production.PRODUCTION.items[mostProfitable], 0, giveToMostProfitable);
+			town.production.getAndIncrement(Production.REGISTRY.getDense(mostProfitable), 0, giveToMostProfitable);
 		}
 	}
 
