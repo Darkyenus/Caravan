@@ -1,5 +1,7 @@
 package caravan.world;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Various world properties and ways to generate them.
  */
@@ -18,6 +20,15 @@ public final class WorldProperty {
 
 		Temperature(float value) {
 			this.value = value;
+		}
+
+		public static final Temperature[] VALUES = values();
+
+		public static @NotNull Temperature get(int ordinal) {
+			if (ordinal < 0 || ordinal >= VALUES.length) {
+				return Temperature.TEMPERATE;
+			}
+			return VALUES[ordinal];
 		}
 	}
 
@@ -38,10 +49,17 @@ public final class WorldProperty {
 
 		public final float value;
 
-		public static final Precipitation[] VALUES = values();
-
 		Precipitation(float value) {
 			this.value = value;
+		}
+
+		public static final Precipitation[] VALUES = values();
+
+		public static @NotNull Precipitation get(int ordinal) {
+			if (ordinal < 0 || ordinal >= VALUES.length) {
+				return Precipitation.HUMID;
+			}
+			return VALUES[ordinal];
 		}
 	}
 

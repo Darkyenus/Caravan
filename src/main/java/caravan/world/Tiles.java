@@ -2,21 +2,19 @@ package caravan.world;
 
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Tile definitions.
- */
+/** Tile definitions. */
 public final class Tiles {
 
-	public static final Tile Grass = overlapTile(1, "grass", 1f);
-	public static final Tile Desert = overlapTile(2, "desert", 0.8f);
-	public static final Tile Water = overlapTile(3, "water", 0.1f);
-	public static final Tile Rock = overlapTile(4, "rock", 0.4f);
-	public static final Tile Forest = overlapTile(5, "forest", 0.7f);
-	public static final Tile Town = overlapTile(6, "town", 0.99f);
+	public static final Tile Grass = overlapTile(0, 1, "grass", 1f);
+	public static final Tile Desert = overlapTile(1, 2, "desert", 0.8f);
+	public static final Tile Water = overlapTile(2, 3, "water", 0.1f);
+	public static final Tile Rock = overlapTile(3, 4, "rock", 0.4f);
+	public static final Tile Forest = overlapTile(4, 5, "forest", 0.7f);
+	public static final Tile Town = overlapTile(5, 6, "town", 0.99f);
 
 	@NotNull
-	private static Tile overlapTile(int height, @NotNull String baseName, float movSpeed) {
-		return new Tile(height, new String[] {
+	private static Tile overlapTile(int id, int height, @NotNull String baseName, float movSpeed) {
+		return new Tile(id, height, new String[] {
 				baseName + 1,
 				baseName + 19,
 				baseName + 20,
@@ -30,5 +28,7 @@ public final class Tiles {
 				baseName + 17, baseName + 15, baseName + 16, baseName + 18,
 				baseName + 14 }, movSpeed);
 	}
-	
+
+	/** Does nothing, but calling this makes sure that all variables are loaded and registered. */
+	public static void loadClass() {}
 }

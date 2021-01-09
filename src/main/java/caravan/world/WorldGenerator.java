@@ -30,23 +30,25 @@ import static caravan.util.Util.rRound;
  */
 public final class WorldGenerator {
 
-	public static void generateWorld(@NotNull Engine engine, long seed) {
+	public static void generateWorld(@NotNull Engine engine, long seed, final int width, final int height) {
 		final WorldService world = engine.getService(WorldService.class);
+
+		final WorldAttribute<Tile> tiles = world.tiles;
 		final RandomXS128 random = new RandomXS128(seed);
 
-		final WorldAttributeFloat altitude = generateHeight(world.width, world.height, random);
+		final WorldAttributeFloat altitude = generateHeight(width, height, random);
 		final WorldAttributeFloat slope = altitude.slope();
 
-		final WorldAttributeFloat windX = new WorldAttributeFloat(world.width, world.height, 0f);
-		final WorldAttributeFloat windY = new WorldAttributeFloat(world.width, world.height, 0f);
+		final WorldAttributeFloat windX = new WorldAttributeFloat(width, height, 0f);
+		final WorldAttributeFloat windY = new WorldAttributeFloat(width, height, 0f);
 		generateWind(windX, windY, altitude, random);
 
-		final WorldAttributeFloat temperature = generateTemperature(world, random, altitude);
+		final WorldAttributeFloat temperature = generateTemperature(altitude, random);
 		final WorldAttributeFloat precipitation = generatePrecipitation(temperature, altitude, windX, windY, random);
 		final WorldAttributeFloat forestMap = generateForests(altitude, temperature, precipitation, random);
 		final WorldAttributeFloat pastureMap = generatePastures(temperature, precipitation, random);
 
-		final WorldAttribute<WorldProperty.Temperature> temperatureClass = new WorldAttribute<>(world.width, world.height, WorldProperty.Temperature.TEMPERATE);
+		final WorldAttribute<WorldProperty.Temperature> temperatureClass = new WorldAttribute<>(width, height, WorldProperty.Temperature.TEMPERATE);
 		temperatureClass.fill((x, y, currentValue) -> {
 			float temp = temperature.get(x, y);
 			if (temp < 10f) {
@@ -58,7 +60,7 @@ public final class WorldGenerator {
 			}
 		});
 
-		final WorldAttribute<WorldProperty.Precipitation> precipitationClass = new WorldAttribute<>(world.width, world.height, WorldProperty.Precipitation.HUMID);
+		final WorldAttribute<WorldProperty.Precipitation> precipitationClass = new WorldAttribute<>(width, height, WorldProperty.Precipitation.HUMID);
 		precipitationClass.fill((x, y, currentValue) -> {
 			float prec = precipitation.get(x, y);
 			if (prec < 0.1f) {
@@ -75,7 +77,7 @@ public final class WorldGenerator {
 		// Generate rivers
 		//TODO
 
-		final WorldAttributeFloat fishMap = new WorldAttributeFloat(world.width, world.height, 0f, (x, y, v) -> {
+		final WorldAttributeFloat fishMap = new WorldAttributeFloat(width, height, 0f, (x, y, v) -> {
 			if (altitude.get(x, y) <= 0f) {
 				return 1f;
 			}
@@ -84,37 +86,37 @@ public final class WorldGenerator {
 		});
 
 		// Place tiles
-		for (int y = 0; y < world.height; y++) {
-			for (int x = 0; x < world.width; x++) {
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
 				final float h = altitude.get(x, y);
 				if (h <= 0f){
-					world.tiles.set(x, y, Tiles.Water);
+					tiles.set(x, y, Tiles.Water);
 					continue;
 				}
 
 				if (slope.get(x, y) > 0.03f || h > 5f) {
-					world.tiles.set(x, y, Tiles.Rock);
+					tiles.set(x, y, Tiles.Rock);
 					continue;
 				}
 
 				final float frs = forestMap.get(x, y);
 				if (frs > 0.5f) {
-					world.tiles.set(x, y, Tiles.Forest);
+					tiles.set(x, y, Tiles.Forest);
 					continue;
 				}
 
 				final float pst = pastureMap.get(x, y);
 				if (pst > 0.5f) {
-					world.tiles.set(x, y, Tiles.Grass);
+					tiles.set(x, y, Tiles.Grass);
 					continue;
 				}
 
-				world.tiles.set(x, y, Tiles.Desert);
+				tiles.set(x, y, Tiles.Desert);
 			}
 		}
 
 		// Generate cities
-		final WorldAttributeFloat townPlacementScore = new WorldAttributeFloat(world.width, world.height, 0f);
+		final WorldAttributeFloat townPlacementScore = new WorldAttributeFloat(width, height, 0f);
 		townPlacementScore.fill((x, y, v) -> {
 			final float alt = altitude.get(x, y);
 			if (alt <= 0f) {
@@ -160,9 +162,9 @@ public final class WorldGenerator {
 
 		for (int townIndex = 0; townIndex < townCount; townIndex++) {
 			final int townCellIndex = maxIndex(townPlacementScore.values);
-			final int townX = townCellIndex % world.width;
-			final int townY = townCellIndex / world.width;
-			world.tiles.set(townX, townY, Tiles.Town);
+			final int townX = townCellIndex % width;
+			final int townY = townCellIndex / width;
+			tiles.set(townX, townY, Tiles.Town);
 
 			// Decrement score around this place, to have towns more far away from each other
 			townPlacementScore.dent(townX, townY, 35, 3f);
@@ -426,21 +428,21 @@ public final class WorldGenerator {
 	}
 
 	/** Temperature in degrees Celsius */
-	private static WorldAttributeFloat generateTemperature(WorldService world, RandomXS128 random, WorldAttributeFloat altitude) {
-		final WorldAttributeFloat temperature = new WorldAttributeFloat(world.width, world.height, 0f);
+	private static WorldAttributeFloat generateTemperature(WorldAttributeFloat altitude, RandomXS128 random) {
+		final WorldAttributeFloat temperature = new WorldAttributeFloat(altitude.width, altitude.height, 0f);
 		// Temperature is primarily determined by latitude, with south part of the map being very hot,
 		// while north being freezing, just because.
 		final float northTemperature = -10f + random.nextFloat() * 15f;
 		final float southTemperature = 23f + random.nextFloat() * 12f;
-		for (int y = 0; y < world.height; y++) {
-			final float temp = MathUtils.map(0, world.height - 1, northTemperature, southTemperature, y);
-			for (int x = 0; x < world.width; x++) {
+		for (int y = 0; y < altitude.height; y++) {
+			final float temp = MathUtils.map(0, altitude.height - 1, northTemperature, southTemperature, y);
+			for (int x = 0; x < altitude.width; x++) {
 				temperature.set(x, y, temp);
 			}
 		}
 		// Another contributor is height - most sources give drop of 6C per 1km of height
-		for (int y = 0; y < world.height; y++) {
-			for (int x = 0; x < world.width; x++) {
+		for (int y = 0; y < altitude.height; y++) {
+			for (int x = 0; x < altitude.width; x++) {
 				temperature.set(x, y, temperature.get(x, y) + altitude.get(x, y) * -6f);
 			}
 		}

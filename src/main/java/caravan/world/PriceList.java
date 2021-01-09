@@ -1,6 +1,8 @@
 package caravan.world;
 
 import com.badlogic.gdx.math.MathUtils;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -71,5 +73,20 @@ public final class PriceList {
 			sb.append(m.name).append("\tp:").append(basePrice(m)).append("\ts:").append(supply[m.ordinal()]).append("\td:").append(demand[m.ordinal()]).append('\n');
 		}
 		return sb.toString();
+	}
+
+	public void save(@NotNull Output output) {
+		assert supply.length == demand.length;
+		output.writeInt(supply.length);
+		output.writeShorts(supply, 0, supply.length);
+		output.writeShorts(demand, 0, supply.length);
+	}
+
+	public void load(@NotNull Input input) {
+		final int length = input.readInt();
+		final short[] supply = input.readShorts(length);
+		final short[] demand = input.readShorts(length);
+		System.arraycopy(supply, 0, this.supply, 0, Math.min(supply.length, this.supply.length));
+		System.arraycopy(demand, 0, this.demand, 0, Math.min(demand.length, this.demand.length));
 	}
 }

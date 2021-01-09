@@ -17,12 +17,14 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.darkyen.retinazer.Mapper;
 import com.darkyen.retinazer.Wire;
 import com.darkyen.retinazer.systems.EntityProcessorSystem;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Manages camera focusing, camera control and viewport management.
  */
-public final class CameraFocusSystem extends EntityProcessorSystem implements RenderingService {
+public final class CameraFocusSystem extends EntityProcessorSystem implements RenderingService, StatefulService {
 
     /** Internal result: what should be focused this frame. */
     private final Rectangle thisFrameFraming = new Rectangle();
@@ -52,8 +54,6 @@ public final class CameraFocusSystem extends EntityProcessorSystem implements Re
 
     /** The screen dimensions, used to setup the viewport. */
     public int screenWidth = 800, screenHeight = 800;
-    /** World size in game units. */
-    public final float worldWidth, worldHeight;
 
     private float zoomExponent = 0f;
     private static final float MIN_ZOOM_EXPONENT = -1f;
@@ -66,14 +66,15 @@ public final class CameraFocusSystem extends EntityProcessorSystem implements Re
     private Mapper<PositionC> positionMapper;
     @Wire
     private Mapper<CameraFocusC> cameraTrackerMapper;
+    @Wire
+    private WorldService worldService;
 
     /**
      * @param minVisibleUnits Defines the maximum zoom level in terms of units in smaller dimension.
      */
-    public CameraFocusSystem(float worldWidth, float worldHeight, float minVisibleUnits, @NotNull GameInput gameInput) {
+    public CameraFocusSystem(float minVisibleUnits, @NotNull GameInput gameInput) {
         super(Components.DOMAIN.familyWith(PositionC.class, CameraFocusC.class));
-        this.worldWidth = worldWidth;
-        this.worldHeight = worldHeight;
+
         this.minVisibleUnits = minVisibleUnits;
         viewport = new Viewport() {
             {
@@ -158,9 +159,9 @@ public final class CameraFocusSystem extends EntityProcessorSystem implements Re
             float maxX = minX + currentFraming.width;
             float maxY = minY + currentFraming.height;
             final float minWorldX = 0 - currentFraming.width * 0.5f;
-            final float maxWorldX = worldWidth + currentFraming.width * 0.5f;
+            final float maxWorldX = worldService.width + currentFraming.width * 0.5f;
             final float minWorldY = 0 - currentFraming.height * 0.5f;
-            final float maxWorldY = worldHeight + currentFraming.height * 0.5f;
+            final float maxWorldY = worldService.height + currentFraming.height * 0.5f;
             minX = Math.max(minX, minWorldX);
             minY = Math.max(minY, minWorldY);
             maxX = Math.min(maxX, maxWorldX);
@@ -259,6 +260,38 @@ public final class CameraFocusSystem extends EntityProcessorSystem implements Re
             firstEntity = false;
         } else {
             thisFrameFraming.merge(thisEntityView);
+        }
+    }
+
+    @Override
+    public int stateVersion() {
+        return 1;
+    }
+
+    @Override
+    public void save(Output output) {
+        output.writeFloat(zoomExponent);
+        final boolean detached = currentFramingDetached && !currentFramingCatchUp;
+        output.writeBoolean(detached);
+        if (detached) {
+            output.writeFloat(currentFraming.x);
+            output.writeFloat(currentFraming.y);
+            output.writeFloat(currentFraming.width);
+            output.writeFloat(currentFraming.height);
+        }
+    }
+
+    @Override
+    public void load(Input input) {
+        zoomExponent = input.readFloat();
+        final boolean detached = input.readBoolean();
+        currentFramingDetached = detached;
+        currentFramingCatchUp = false;
+        if (detached) {
+            currentFraming.x = input.readFloat();
+            currentFraming.y = input.readFloat();
+            currentFraming.width = input.readFloat();
+            currentFraming.height = input.readFloat();
         }
     }
 }

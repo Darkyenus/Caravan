@@ -1,13 +1,14 @@
 package caravan.components;
 
+import caravan.util.CaravanComponent;
 import com.badlogic.gdx.utils.FloatArray;
-import com.badlogic.gdx.utils.Pool;
-import com.darkyen.retinazer.Component;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * A component for entities with {@link PositionC} that can move around.
- */
-public final class MoveC implements Component, Pool.Poolable {
+/** A component for entities with {@link PositionC} that can move around. */
+@CaravanComponent.Serialized(name = "Move", version = 1)
+public final class MoveC extends CaravanComponent {
 
 	/**
 	 * Contains packed target info, in format:
@@ -25,5 +26,22 @@ public final class MoveC implements Component, Pool.Poolable {
 	@Override
 	public void reset() {
 		waypoints.clear();
+	}
+
+	@Override
+	public void save(@NotNull Output output) {
+		output.writeInt(waypoints.size);
+		output.writeFloats(waypoints.items, 0, waypoints.size);
+	}
+
+	@Override
+	public void load(@NotNull Input input, int version) {
+		final int waypointCount = input.readInt();
+		waypoints.clear();
+		final float[] waypointItems = waypoints.ensureCapacity(waypointCount);
+		waypoints.size = waypointCount;
+		for (int i = 0; i < waypointCount; i++) {
+			waypointItems[i] = input.readFloat();
+		}
 	}
 }

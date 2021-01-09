@@ -1,6 +1,8 @@
 package caravan.world;
 
 import com.badlogic.gdx.math.MathUtils;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -57,5 +59,15 @@ public final class Inventory {
 
 	public void clear() {
 		Arrays.fill(this.amount, (short) 0);
+	}
+
+	public void save(@NotNull Output output) {
+		output.writeInt(amount.length);
+		output.writeShorts(amount, 0, amount.length);
+	}
+
+	public void load(@NotNull Input input) {
+		final short[] amount = input.readShorts(input.readInt());
+		System.arraycopy(amount, 0, this.amount, 0, Math.min(amount.length, this.amount.length));
 	}
 }

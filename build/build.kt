@@ -41,6 +41,9 @@ val caravan:Project by project(Archetypes.JavaProject) {
 	// Entity Component System
 	libraryDependencies add { dependency("com.darkyen", "retinazer", "0.3.0") }
 
+	// Serialization library
+	libraryDependencies add { dependency("com.esotericsoftware", "kryo", "5.0.3") }
+
 	packedResourcesDir set { path("assets") }
 	packResources set {
 		System.setProperty("java.awt.headless", "true")

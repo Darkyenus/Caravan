@@ -1,8 +1,10 @@
 package caravan.components;
 
+import caravan.util.CaravanComponent;
 import caravan.util.SpriteAnimation;
-import com.badlogic.gdx.utils.Pool;
-import com.darkyen.retinazer.Component;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -10,7 +12,8 @@ import org.jetbrains.annotations.Nullable;
  * The sprite is positioned so that the middle of the bottom edge of the sprite corresponds
  * to the entity's {@link PositionC}.
  */
-public final class RenderC implements Component, Pool.Poolable {
+@CaravanComponent.Serialized(name = "Render", version = 1)
+public final class RenderC extends CaravanComponent {
 
 	/** The sprite (animation) to render. */
 	@Nullable
@@ -25,16 +28,16 @@ public final class RenderC implements Component, Pool.Poolable {
 	/** The X and Y scale multiplier of the drawn sprite. Can be negative to flip the sprite. */
 	public float scaleX, scaleY;
 
+	{
+		reset();
+	}
+
 	public void set(@Nullable SpriteAnimation sprite) {
 		if (this.sprite != sprite) {
 			this.sprite = sprite;
 			this.timeOnThisFrame = 0;
 			this.currentFrame = 0;
 		}
-	}
-
-	{// Called after the component is constructed
-		reset();
 	}
 
 	@Override
@@ -45,5 +48,31 @@ public final class RenderC implements Component, Pool.Poolable {
 		currentFrame = 0;
 		scaleX = 1f;
 		scaleY = 1f;
+	}
+
+	@Override
+	public void save(@NotNull Output output) {
+		output.writeShort(sprite == null ? -1 : sprite.id);
+		output.writeFloat(timeOnThisFrame);
+		output.writeFloat(animationSpeed);
+		output.writeInt(currentFrame);
+		output.writeFloat(scaleX);
+		output.writeFloat(scaleY);
+	}
+
+	@Override
+	public void load(@NotNull Input input, int version) {
+		final short id = input.readShort();
+		if (id == -1) {
+			sprite = null;
+		} else {
+			sprite = SpriteAnimation.REGISTRY.getOrDefault(id);
+		}
+
+		timeOnThisFrame = input.readFloat();
+		animationSpeed = input.readFloat();
+		currentFrame = input.readInt();
+		scaleX = input.readFloat();
+		scaleY = input.readFloat();
 	}
 }

@@ -20,8 +20,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.darkyen.retinazer.EntitySystem;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Iterator;
-
 /** World debug rendering. */
 public class WorldDebugService extends EntitySystem implements RenderingService, UIService {
 
@@ -47,20 +45,7 @@ public class WorldDebugService extends EntitySystem implements RenderingService,
 						batch.draw(tex, x, y, size, size);
 					}
 				},
-				new Iterator<Tile>() {
-
-					int i = 0;
-
-					@Override
-					public boolean hasNext() {
-						return i < Tile.TILES.size;
-					}
-
-					@Override
-					public Tile next() {
-						return Tile.TILES.get(i++);
-					}
-				});
+				Tile.REGISTRY.iterator());
 
 		entityEditor = new EntityEditorWindow(CaravanApplication.uiSkin(), engine, worldSpaceCursor);
 

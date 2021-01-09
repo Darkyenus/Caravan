@@ -1,4 +1,3 @@
-- Save/load
 - Last price at which stuff was bought
 - Inventory limits
 - Other caravans

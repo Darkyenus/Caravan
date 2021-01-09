@@ -1,15 +1,17 @@
 package caravan.components;
 
+import caravan.util.CaravanComponent;
 import caravan.world.PriceList;
 import caravan.world.Production;
 import caravan.world.WorldProperty;
 import com.badlogic.gdx.utils.ObjectIntMap;
-import com.badlogic.gdx.utils.Pool;
-import com.darkyen.retinazer.Component;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import org.jetbrains.annotations.NotNull;
 
 /** Entity represents a town. */
-public final class TownC implements Component, Pool.Poolable {
+@CaravanComponent.Serialized(name = "Town", version = 1)
+public final class TownC extends CaravanComponent {
 
 	@NotNull
 	public String name = "<no name>";
@@ -73,6 +75,10 @@ public final class TownC implements Component, Pool.Poolable {
 	public int tradeBuyCounter;
 	//endregion
 
+	{
+		reset();
+	}
+
 	@Override
 	public void reset() {
 		name = "<no name>";
@@ -98,5 +104,88 @@ public final class TownC implements Component, Pool.Poolable {
 		limestoneOccurrence = 0;
 
 		closestNeighbors = NO_NEIGHBORS;
+
+		tradeSellCounter = 0;
+		tradeBuyCounter = 0;
+	}
+
+	@Override
+	public void save(@NotNull Output output) {
+		output.writeString(name);
+		output.writeInt(population);
+		output.writeInt(money);
+		output.writeFloat(wealth);
+		prices.save(output);
+
+		output.writeInt(production.size);
+		for (ObjectIntMap.Entry<Production> entry : production) {
+			output.writeInt(entry.key.productionIndex);
+			output.writeInt(entry.value);
+		}
+
+		output.writeBoolean(hasFreshWater);
+		output.writeBoolean(hasSaltWater);
+		output.writeFloat(woodAbundance);
+		output.writeFloat(fieldSpace);
+		output.writeFloat(fishAbundance);
+
+		output.writeInt(temperature.ordinal());
+		output.writeInt(precipitation.ordinal());
+
+		output.writeFloat(rareMetalOccurrence);
+		output.writeFloat(metalOccurrence);
+		output.writeFloat(coalOccurrence);
+		output.writeFloat(jewelOccurrence);
+		output.writeFloat(stoneOccurrence);
+		output.writeFloat(limestoneOccurrence);
+
+		output.writeInt(closestNeighbors.length);
+		output.writeInts(closestNeighbors, 0, closestNeighbors.length);
+
+		output.writeInt(tradeSellCounter);
+		output.writeInt(tradeBuyCounter);
+	}
+
+	@Override
+	public void load(@NotNull Input input, int version) {
+		name = input.readString();
+		population = input.readInt();
+		money = input.readInt();
+		wealth = input.readFloat();
+		prices.load(input);
+
+		production.clear();
+		final int productionCount = input.readInt();
+		production.ensureCapacity(productionCount);
+		for (int i = 0; i < productionCount; i++) {
+			final int productionIndex = input.readInt();
+			final int value = input.readInt();
+
+			if (productionIndex < 0 || productionIndex >= Production.PRODUCTION.size) {
+				continue;
+			}
+			production.put(Production.PRODUCTION.get(productionIndex), value);
+		}
+
+		hasFreshWater = input.readBoolean();
+		hasSaltWater = input.readBoolean();
+		woodAbundance = input.readFloat();
+		fieldSpace = input.readFloat();
+		fishAbundance = input.readFloat();
+
+		temperature = WorldProperty.Temperature.get(input.readInt());
+		precipitation = WorldProperty.Precipitation.get(input.readInt());
+
+		rareMetalOccurrence = input.readFloat();
+		metalOccurrence = input.readFloat();
+		coalOccurrence = input.readFloat();
+		jewelOccurrence = input.readFloat();
+		stoneOccurrence = input.readFloat();
+		limestoneOccurrence = input.readFloat();
+
+		closestNeighbors = input.readInts(input.readInt());
+
+		tradeSellCounter = input.readInt();
+		tradeBuyCounter = input.readInt();
 	}
 }

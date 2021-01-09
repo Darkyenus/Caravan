@@ -1,13 +1,12 @@
 package caravan.world;
 
 import caravan.CaravanApplication;
+import caravan.services.Id;
 import caravan.util.RenderUtil;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.RandomXS128;
-import com.badlogic.gdx.utils.Array;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,15 +15,9 @@ import static caravan.util.RenderUtil.drawTile;
 /**
  * Tiles are singletons, that cover whole map, as its first layer.
  */
-public final class Tile {
+public final class Tile extends Id<Tile> {
 
-	/**
-	 * Use this as your height, when you don't want to overlap onto anything and don't want anything overlapping onto you
-	 */
-	public static final byte MAX_HEIGHT = 101;
-
-	/** All created tiles. DO NOT MODIFY. */
-	public static final Array<Tile> TILES = new Array<>(true, 16, Tile.class);
+	public static final Id.Registry<Tile> REGISTRY = new Id.Registry<>();
 
 	/**
 	 * Determines how "high" this tile is.
@@ -34,12 +27,6 @@ public final class Tile {
 	 */
 	public final byte height;
 
-	/** Static tile ID. */
-	public final short tileID = (short) TILES.size;
-	{
-		TILES.add(this);
-	}
-
 	private @Nullable TextureRegion[] base = null;
 	private @Nullable TextureAtlas.AtlasRegion[] overlaps = null;
 
@@ -48,7 +35,8 @@ public final class Tile {
 
 	public final float movementSpeedMultiplier;
 
-	public Tile(int height, @NotNull String @NotNull [] bases, @NotNull String @NotNull [] overlaps, float movSpeed) {
+	public Tile(int id, int height, @NotNull String @NotNull [] bases, @NotNull String @NotNull [] overlaps, float movSpeed) {
+		super(id, REGISTRY);
 		this.movementSpeedMultiplier = movSpeed;
 		assert bases.length >= 1;
 		assert overlaps.length % OVERLAP_IMAGE_COUNT == 0;

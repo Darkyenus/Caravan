@@ -12,6 +12,8 @@ import com.badlogic.gdx.utils.ObjectIntMap;
 import com.darkyen.retinazer.Mapper;
 import com.darkyen.retinazer.Wire;
 import com.darkyen.retinazer.systems.EntityProcessorSystem;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import org.jetbrains.annotations.NotNull;
 
 import static caravan.util.Util.max;
@@ -22,7 +24,7 @@ import static caravan.util.Util.rRound;
 /**
  * Simulates town economics, internal supply and demand.
  */
-public final class TownSystem extends EntityProcessorSystem {
+public final class TownSystem extends EntityProcessorSystem implements StatefulService {
 
 	private static final float DAY_DURATION = 60f;
 
@@ -232,5 +234,20 @@ public final class TownSystem extends EntityProcessorSystem {
 		}
 
 		return gained - lost;
+	}
+
+	@Override
+	public int stateVersion() {
+		return 1;
+	}
+
+	@Override
+	public void save(Output output) {
+		output.writeFloat(dayCountdown);
+	}
+
+	@Override
+	public void load(Input input) {
+		dayCountdown = input.readFloat();
 	}
 }
