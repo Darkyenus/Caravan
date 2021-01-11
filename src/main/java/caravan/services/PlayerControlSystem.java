@@ -3,12 +3,7 @@ package caravan.services;
 import caravan.CaravanApplication;
 import caravan.Inputs;
 import caravan.TradingScreen;
-import caravan.components.CaravanC;
-import caravan.components.Components;
-import caravan.components.MoveC;
-import caravan.components.PlayerC;
-import caravan.components.PositionC;
-import caravan.components.TownC;
+import caravan.components.*;
 import caravan.input.BoundInputFunction;
 import caravan.input.GameInput;
 import caravan.util.PathFinding;
@@ -22,6 +17,8 @@ import com.darkyen.retinazer.EntitySetView;
 import com.darkyen.retinazer.Mapper;
 import com.darkyen.retinazer.Wire;
 import com.darkyen.retinazer.systems.EntityProcessorSystem;
+
+import static caravan.world.Sprites.*;
 
 /**
  * A system for controlling the player movement on the map.
@@ -38,6 +35,8 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
 	private Mapper<CaravanC> caravanMapper;
 	@Wire
 	private Mapper<TownC> townMapper;
+	@Wire
+    private Mapper<RenderC> rendererMapper;
 
     @Wire
     private SimulationService simulation;
@@ -105,6 +104,7 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
         final int originTileX = MathUtils.floor(position.x);
         final int originTileY = MathUtils.floor(position.y);
         final MoveC move = moveMapper.get(entity);
+        final RenderC render = rendererMapper.get(entity);
 
         float speed = caravan.speed;
 
@@ -114,14 +114,21 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
 
             if (LEFT.isPressed()) {
                 deltaX = -1;
+                render.set(CARAVAN_RIGHT);
+                render.scaleX = -1;
             } else if (RIGHT.isPressed()) {
                 deltaX = +1;
+                render.set(CARAVAN_RIGHT);
+                render.scaleX = 1;
             }
 
             if (UP.isPressed()) {
                 deltaY = +1;
+                render.set(CARAVAN_UP);
             } else if (DOWN.isPressed()) {
                 deltaY = -1;
+                render.set(CARAVAN_DOWN);
+
             }
 
             if (deltaX != 0 && deltaY != 0) {
