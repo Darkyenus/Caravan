@@ -4,6 +4,7 @@ import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
@@ -16,15 +17,23 @@ import org.jetbrains.annotations.NotNull;
 public final class MainMenuScreen extends CaravanApplication.UIScreen {
 
 	@Override
-	protected void initializeUI(@NotNull CaravanApplication application, @NotNull Table root) {
-		root.align(Align.center);
+	protected void initializeUI(@NotNull CaravanApplication application, @NotNull Table bgRoot) {
+		final Skin skin = CaravanApplication.uiSkin();
+		backgroundColor.set(skin.getColor("p-beige"));
 
-		root.add(new Label("Caravan", CaravanApplication.uiSkin(), "title-large"))
+		final Table root = new Table(skin);
+		bgRoot.add(root).align(Align.center);
+
+		root.align(Align.center);
+		root.background("ui9");
+		root.pad(30, 50, 30, 50);
+
+		root.add(new Label("Caravan", skin, "title-large"))
 				.align(Align.center)
-				.pad(30f)
+				.padBottom(30f)
 				.row();
 
-		final TextButton playButton = new TextButton("Play", CaravanApplication.uiSkin());
+		final TextButton playButton = new TextButton("Play", skin);
 		playButton.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
@@ -33,10 +42,12 @@ public final class MainMenuScreen extends CaravanApplication.UIScreen {
 		});
 		root.add(playButton)
 				.align(Align.center)
+				.minWidth(90f)
+				.fillX()
 				.pad(10f)
 				.row();
 
-		final TextButton optionsButton = new TextButton("Options", CaravanApplication.uiSkin());
+		final TextButton optionsButton = new TextButton("Options", skin);
 		optionsButton.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
@@ -45,11 +56,13 @@ public final class MainMenuScreen extends CaravanApplication.UIScreen {
 		});
 		root.add(optionsButton)
 				.align(Align.center)
+				.minWidth(90f)
+				.fillX()
 				.pad(10f)
 				.row();
 
 		if (Gdx.app.getType() == Application.ApplicationType.Desktop) {
-			final TextButton quitButton = new TextButton("Quit", CaravanApplication.uiSkin());
+			final TextButton quitButton = new TextButton("Quit", skin);
 			quitButton.addListener(new ChangeListener() {
 				@Override
 				public void changed(ChangeEvent event, Actor actor) {
@@ -58,6 +71,8 @@ public final class MainMenuScreen extends CaravanApplication.UIScreen {
 			});
 			root.add(quitButton)
 					.align(Align.center)
+					.minWidth(90f)
+					.fillX()
 					.pad(10f)
 					.row();
 		}

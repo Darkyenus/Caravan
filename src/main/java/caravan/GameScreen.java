@@ -70,7 +70,7 @@ public final class GameScreen extends CaravanApplication.UIScreen {
 		);
 		renderingServices = engine.getServices(RenderingService.class).toArray(new RenderingService[0]);
 
-		saveFile = Gdx.files.local("caravan_save.bin");
+		saveFile = application.saveDir().child("caravan_save.bin");
 
 		if (!load(saveFile)) {
 			Gdx.app.log("GameScreen", "Generating a new world");
@@ -78,7 +78,7 @@ public final class GameScreen extends CaravanApplication.UIScreen {
 			// Spawn player caravan
 			WorldGenerator.generatePlayerCaravan(engine);
 			// Simulate the game world a bit to initialize
-			WorldGenerator.simulateInitialWorldPrices(engine, 100, false);
+			WorldGenerator.simulateInitialWorldPrices(engine, 200, false);
 		} else {
 			Gdx.app.log("GameScreen", "Loaded successfully");
 		}

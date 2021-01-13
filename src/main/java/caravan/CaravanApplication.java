@@ -9,16 +9,15 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.SkinLoader;
 import com.badlogic.gdx.assets.loaders.resolvers.LocalFileHandleResolver;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.SnapshotArray;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -210,6 +209,8 @@ public final class CaravanApplication implements ApplicationListener, InputProce
 				firstScreen--;
 			}
 
+			final Color clearColor = firstScreen < screenCount ? screens[firstScreen].backgroundColor : Color.BLACK;
+			Gdx.gl.glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
 			Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 			for (int i = firstScreen; i < screenCount; i++) {
 				screens[i].render(this);
@@ -383,6 +384,9 @@ public final class CaravanApplication implements ApplicationListener, InputProce
 		private final boolean sticky;
 		private final boolean opaque;
 		private boolean created = false;
+
+		/** The color to be used as a background when this screen is the first one to be rendered on a frame. */
+		public final Color backgroundColor = new Color(Color.BLACK);
 
 		/**
 		 * @param z sorting priority. Lower Z is drawn earlier, but receives inputs later.

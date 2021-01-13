@@ -132,6 +132,8 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 	@Override
 	protected void initializeUI(@NotNull CaravanApplication application, @NotNull Table root) {
 		final Skin skin = CaravanApplication.uiSkin();
+		backgroundColor.set(skin.getColor("p-beige"));
+
 		labelStyleDefault = skin.get("default", Label.LabelStyle.class);
 		labelStyleDefaultDisabled = skin.get("default-disabled", Label.LabelStyle.class);
 		textButtonStyleDefault = skin.get("default", TextButton.TextButtonStyle.class);
@@ -139,21 +141,30 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 
 		root.pad(20f);
 
-		final Table topBar = new Table(skin);
-		townNameLabel = new Label("TOWN NAME", skin, "title-medium");
-		topBar.add(townNameLabel).growX();
-		final TextButton leaveButton = new TextButton("Leave", skin);
-		leaveButton.addListener(new ChangeListener() {
-			@Override
-			public void changed(ChangeEvent event, Actor actor) {
-				town = null;
-				caravan = null;
-				TradingScreen.this.removeScreen(false);
-			}
-		});
-		topBar.add(leaveButton).align(Align.right);
+		{
+			final Table topBar = new Table(skin);
+			townNameLabel = new Label("TOWN NAME", skin, "title-medium");
+			topBar.add(townNameLabel).expandX().align(Align.left);
 
-		root.add(topBar).growX().colspan(2).padBottom(10f).row();
+			playerMoneyLabel = new Label("???", labelStyleDefault);
+			topBar.add("Caravan gold:").padRight(10f).align(Align.right);
+			topBar.add(playerMoneyLabel).align(Align.left);
+
+			final TextButton leaveButton = new TextButton("Leave", skin);
+			leaveButton.pad(0, 10f, 0, 10f);
+			leaveButton.addListener(new ChangeListener() {
+				@Override
+				public void changed(ChangeEvent event, Actor actor) {
+					town = null;
+					caravan = null;
+					TradingScreen.this.removeScreen(false);
+				}
+			});
+			topBar.add(leaveButton).align(Align.right).expandX();
+
+			root.add(topBar).growX().colspan(2).padBottom(10f).row();
+		}
+
 
 		final Table merchTable = new Table(skin);
 		merchTable.defaults().pad(2f);
@@ -271,14 +282,6 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 		rumors.pad(5f).align(Align.top);
 		rumors.defaults().pad(5f).align(Align.left);
 		rightPanel.add(scrollPane(rumors)).grow().row();
-
-		final Table playerMoney = new Table(skin);
-		playerMoney.align(Align.center);
-		playerMoneyLabel = new Label("???", labelStyleDefault);
-		playerMoney.add("Caravan gold:").padRight(10f).align(Align.right);
-		playerMoney.add(playerMoneyLabel).align(Align.left);
-
-		rightPanel.add(playerMoney).expandX().align(Align.center).padTop(20f).row();
 
 		// Initial layout is kinda weird
 		root.validate();

@@ -44,12 +44,12 @@
 
   "com.badlogic.gdx.scenes.scene2d.ui.TextButton$TextButtonStyle": {
     "default": { "up": "ui0", "down": "ui1", "over": "ui2", "focused": "ui4", "disabled": "ui3",
-      "font": "regular-medium", "fontColor": "p-dark", "disabledFontColor": "p-blue", "downFontColor": "p-red" },
+      "font": "regular-medium", "fontColor": "p-dark", "disabledFontColor": "p-blue", "downFontColor": "p-dark" },
     "default-dangerous": { "up": "ui0", "down": "ui1", "over": "ui2", "focused": "ui4", "disabled": "ui3",
-      "font": "regular-medium", "fontColor": "p-red", "disabledFontColor": "p-red", "downFontColor": "p-orange" },
+      "font": "regular-medium", "fontColor": "p-red", "disabledFontColor": "p-red", "downFontColor": "p-red" },
     "toggle": { "up": "ui0", "down": "ui1", "over": "ui2", "focused": "ui4", "disabled": "ui3",
       "checked": "ui5", "checkedOver": "ui7", "checkedDown": "ui6", "checkedFocused": "ui8",
-      "font": "regular-medium", "fontColor": "p-dark", "disabledFontColor": "p-blue", "downFontColor": "p-red", "checkedDownFontColor": "p-dark-green" }
+      "font": "regular-medium", "fontColor": "p-dark", "disabledFontColor": "p-blue", "downFontColor": "p-dark", "checkedDownFontColor": "p-dark-green" }
   },
   "com.badlogic.gdx.scenes.scene2d.ui.Button$ButtonStyle": {
     "default": { "up": "ui0", "down": "ui1", "over": "ui2", "focused": "ui4", "disabled": "ui3" },

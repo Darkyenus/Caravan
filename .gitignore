@@ -4,4 +4,4 @@
 /build/logs/
 /build/*.jar
 /assets/
-caravan_save.bin
+/*/save/

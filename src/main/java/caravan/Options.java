@@ -21,7 +21,10 @@ public final class Options {
 	}
 
 	public static void load(FileHandle saveDir) {
-		InputFunction.load(bindingsFile(saveDir), Inputs.ALL_INPUTS);
+		final FileHandle file = bindingsFile(saveDir);
+		if (!InputFunction.load(file, Inputs.ALL_INPUTS)) {
+			InputFunction.save(file, Inputs.ALL_INPUTS);
+		}
 	}
 
 	public static void save(FileHandle saveDir) {

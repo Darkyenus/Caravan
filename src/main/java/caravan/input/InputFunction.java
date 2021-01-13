@@ -1,5 +1,6 @@
 package caravan.input;
 
+import caravan.Options;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.GdxRuntimeException;
@@ -90,7 +91,8 @@ public final class InputFunction {
 		return key+" "+humanReadableName;
 	}
 
-	public static void load(@NotNull FileHandle from, @NotNull InputFunction[] inputFunctions) {
+	public static boolean load(@NotNull FileHandle from, @NotNull InputFunction[] inputFunctions) {
+		boolean loaded = false;
 		for (InputFunction function : inputFunctions) {
 			function.loadedToggle = function.toggle;
 			function.loadedRepeatTimeout = function.repeatTimeout;
@@ -110,6 +112,7 @@ public final class InputFunction {
         timeout - int
          */
 		if (from.exists() && !from.isDirectory()) {
+			loaded = true;
 			try (BufferedReader r = from.reader(4096, "UTF-8")) {
 				int lineNumber = 1;
 				String line;
@@ -176,6 +179,7 @@ public final class InputFunction {
 			function.repeatTimeout = function.loadedRepeatTimeout;
 			function.realBinding = function.loadedRealBinding == null ? function.defaultBinding : function.loadedRealBinding;
 		}
+		return loaded;
 	}
 
 	public static void save(@NotNull FileHandle to, @NotNull InputFunction[] inputFunctions) {
@@ -195,36 +199,40 @@ public final class InputFunction {
 		}
 
 		final FileHandle saveTmp = to.sibling(to.name() + "~");
-		try (Writer writer = new BufferedWriter(saveTmp.writer(false, "UTF-8"))) {
-			for (InputFunction function : inputFunctions) {
-				writer.append("# ");
-				writer.append(function.humanReadableName);
-				for (Binding binding : function.realBinding) {
-					writer.append(' ');
-					writer.append(binding.toMenuString());
-				}
-				writer.append('\n');
-
-				boolean first = true;
-				for (Binding binding : function.realBinding) {
-					writer.append(function.key);
-					writer.append(' ');
-					writer.append(binding.type.name());
-					writer.append(' ');
-					writer.append(Integer.toString(binding.value));
-					if (first && (function.repeatTimeout != DEFAULT_REPEAT_TIMEOUT || function.toggle != DEFAULT_TOGGLE)) {
+		try {
+			try (Writer writer = new BufferedWriter(saveTmp.writer(false, "UTF-8"))) {
+				for (InputFunction function : inputFunctions) {
+					writer.append("# ");
+					writer.append(function.humanReadableName);
+					writer.append(": ");
+					for (Binding binding : function.realBinding) {
 						writer.append(' ');
-						writer.append(function.toggle ? "true" : "false");
-						writer.append(' ');
-						writer.append(Integer.toString(function.repeatTimeout));
+						writer.append(binding.toMenuString());
 					}
 					writer.append('\n');
-					first = false;
-				}
 
-				function.loadedRealBinding = function.realBinding;
-				function.loadedToggle = function.toggle;
-				function.loadedRepeatTimeout = function.repeatTimeout;
+					boolean first = true;
+					for (Binding binding : function.realBinding) {
+						writer.append(function.key);
+						writer.append(' ');
+						writer.append(binding.type.name());
+						writer.append(' ');
+						writer.append(Integer.toString(binding.value));
+						if (first && (function.repeatTimeout != DEFAULT_REPEAT_TIMEOUT || function.toggle != DEFAULT_TOGGLE)) {
+							writer.append(' ');
+							writer.append(function.toggle ? "true" : "false");
+							writer.append(' ');
+							writer.append(Integer.toString(function.repeatTimeout));
+						}
+						writer.append('\n');
+						first = false;
+					}
+					writer.append('\n');
+
+					function.loadedRealBinding = function.realBinding;
+					function.loadedToggle = function.toggle;
+					function.loadedRepeatTimeout = function.repeatTimeout;
+				}
 			}
 			saveTmp.moveTo(to);
 		} catch (GdxRuntimeException | IOException exception) {
