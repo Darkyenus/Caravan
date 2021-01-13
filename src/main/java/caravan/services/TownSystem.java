@@ -26,7 +26,7 @@ import static caravan.util.Util.rRound;
  */
 public final class TownSystem extends EntityProcessorSystem implements StatefulService {
 
-	private static final float DAY_DURATION = 60f;
+	private static final float DAY_DURATION = 30f;
 
 	private float dayCountdown;
 

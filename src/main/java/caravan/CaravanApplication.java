@@ -6,16 +6,19 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.assets.loaders.SkinLoader;
 import com.badlogic.gdx.assets.loaders.resolvers.LocalFileHandleResolver;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.SnapshotArray;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -36,6 +39,16 @@ public final class CaravanApplication implements ApplicationListener, InputProce
 
 	private FileHandle saveDir;
 	private final AssetManager assetManager = new AssetManager(new LocalFileHandleResolver());
+	{
+		assetManager.setLoader(Skin.class, new SkinLoader(assetManager.getFileHandleResolver()) {
+			@Override
+			protected Skin newSkin(TextureAtlas atlas) {
+				final Skin skin = super.newSkin(atlas);
+				skin.setScale(2f);
+				return skin;
+			}
+		});
+	}
 	private static Batch batch;
 	private static Skin skin;
 	private static TextureAtlas atlas;
@@ -56,11 +69,6 @@ public final class CaravanApplication implements ApplicationListener, InputProce
 	/** @return the shared game texture atlas */
 	public static @NotNull TextureAtlas textureAtlas() {
 		return atlas;
-	}
-
-	/** @return the core asset manager */
-	public @NotNull AssetManager assetManager() {
-		return assetManager;
 	}
 
 	/** @return all active screens */

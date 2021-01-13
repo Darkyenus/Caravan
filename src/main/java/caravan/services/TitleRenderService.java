@@ -35,7 +35,7 @@ public final class TitleRenderService extends EntityProcessorSystem implements R
 	@Override
 	public void initialize() {
 		super.initialize();
-		titleFont = CaravanApplication.uiSkin().getFont("font-ui-small");
+		titleFont = CaravanApplication.uiSkin().getFont("title-world");
 	}
 
 	@Override

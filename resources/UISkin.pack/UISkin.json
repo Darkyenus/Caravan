@@ -1,78 +1,117 @@
 {
-com.badlogic.gdx.graphics.g2d.BitmapFont: {
-	font-ui-big: { file: font-ui-big.fnt },
-	font-ui-small: { file: font-ui-small.fnt },
-	font-ui-small-m: { file: font-ui-small.fnt, markupEnabled: true }
-},
-com.badlogic.gdx.graphics.Color: {
-	green: { a: 1, b: 0, g: 1, r: 0 },
-	white: { a: 1, b: 1, g: 1, r: 1 },
-	red: { a: 1, b: 0, g: 0, r: 1 },
-	black: { a: 1, b: 0, g: 0, r: 0 },
-	pressedTint: { r: 0.8, g: 0.8, b: 0.8, a: 1},
-	themeBackground: {r: 0.85, g: 0.875, b: 0.9, a: 1.0},
-	themeOutline: {r: 0.19, g: 0.10, b: 0.21, a: 1.0}
-},
-com.badlogic.gdx.scenes.scene2d.ui.Skin$TintedDrawable: {
-	dialogDim: { name: white, color: { r: 0, g: 0, b: 0, a: 0.45 } },
-	black: { name: white, color: black },
-	default-pane-transparent: { name: default-pane, color: {r: 1, g: 1, b: 1, a: 0.5 } },
-  	default-round-red: { name: default-round, color: red }
-},
-com.badlogic.gdx.scenes.scene2d.ui.Button$ButtonStyle: {
-	default: { down: default-round-red, up: default-round },
-	toggle: { down: default-round-red, checked: default-round-down, up: default-round }
-},
-com.badlogic.gdx.scenes.scene2d.ui.TextButton$TextButtonStyle: {
-	default: { down: default-round-red, up: default-round, font: font-ui-small, fontColor: white },
-	toggle: { down: default-round-red, up: default-round, checked: default-round-red, font: font-ui-small, fontColor: white, downFontColor: red }
-},
-com.badlogic.gdx.scenes.scene2d.ui.ScrollPane$ScrollPaneStyle: {
-	default: { vScroll: default-scroll, hScrollKnob: default-round-large, background: default-rect, hScroll: default-scroll, vScrollKnob: default-round-large },
-	light: { vScroll: null, hScrollKnob: default-round-large, background: null, hScroll: null, vScrollKnob: default-round-large }
-},
-com.badlogic.gdx.scenes.scene2d.ui.SelectBox$SelectBoxStyle: {
-	default: {
-		font: font-ui-small, fontColor: white, background: default-select,
-		scrollStyle: default,
-		listStyle: { font: font-ui-small, selection: default-select-selection }
-	}
-},
-com.badlogic.gdx.scenes.scene2d.ui.SplitPane$SplitPaneStyle: {
-	default-vertical: { handle: default-splitpane-vertical },
-	default-horizontal: { handle: default-splitpane }
-},
-com.badlogic.gdx.scenes.scene2d.ui.Window$WindowStyle: {
-	default: { titleFont: font-ui-small, background: default-window, titleFontColor: white },
-	dialog: { titleFont: font-ui-small, background: default-window, titleFontColor: white, stageBackground: dialogDim }
-},
-com.badlogic.gdx.scenes.scene2d.ui.ProgressBar$ProgressBarStyle: {
-	default-horizontal: { background: default-slider, knob: default-slider-knob },
-	default-vertical: { background: default-slider, knob: default-round-large }
-},
-com.badlogic.gdx.scenes.scene2d.ui.Slider$SliderStyle: {
-	default-horizontal: { background: default-slider, knob: default-slider-knob },
-	default-vertical: { background: default-slider, knob: default-round-large }
-},
-com.badlogic.gdx.scenes.scene2d.ui.Label$LabelStyle: {
-	default: { font: font-ui-small, fontColor: white },
-	buttonlike: { font: font-ui-small, fontColor: white, background: default-rect },
-	chatLog: { font: font-ui-small-m, fontColor: white }
-},
-com.badlogic.gdx.scenes.scene2d.ui.TextField$TextFieldStyle: {
-	default: { selection: selection, background: textfield, font: font-ui-small, fontColor: white, cursor: cursor },
-	chat: { background: default-pane-transparent, selection: selection, font: font-ui-small, fontColor: white, cursor: cursor }
-},
-com.badlogic.gdx.scenes.scene2d.ui.CheckBox$CheckBoxStyle: {
-	default: { checkboxOn: check-on, checkboxOff: check-off, font: font-ui-small, fontColor: white }
-},
-com.badlogic.gdx.scenes.scene2d.ui.List$ListStyle: {
-	default: { fontColorUnselected: white, selection: selection, fontColorSelected: white, font: font-ui-small }
-},
-com.badlogic.gdx.scenes.scene2d.ui.Touchpad$TouchpadStyle: {
-	default: { background: default-pane, knob: default-round-large }
-},
-com.badlogic.gdx.scenes.scene2d.ui.Tree$TreeStyle: {
-	default: { minus: tree-minus, plus: tree-plus, selection: default-select-selection }
-}
+  "com.badlogic.gdx.graphics.g2d.BitmapFont": {
+    "regular-small": { "file": "regular-small.fnt" },
+    "regular-medium": { "file": "regular-medium.fnt" },
+    "regular-large": { "file": "regular-large.fnt" },
+    "title-small": { "file": "title-small.fnt" },
+    "title-medium": { "file": "title-medium.fnt" },
+    "title-large": { "file": "title-large.fnt" },
+    "title-world": { "file": "title-world.fnt" }
+  },
+
+  "com.badlogic.gdx.graphics.Color": {
+    "p-red": { "a": 1, "r": 0.831, "g": 0.459, "b": 0.392 },
+    "p-orange": { "a": 1, "r": 0.9098, "g": 0.7686, "b": 0.596 },
+    "p-beige": { "a": 1, "r": 0.925, "g": 0.925, "b": 0.878 },
+    "p-dark-green": { "a": 1, "r": 0.3098, "g": 0.643, "b": 0.647 },
+    "p-light-green": { "a": 1, "r": 0.666, "g": 0.827, "b": 0.584 },
+    "p-dark": { "a": 1, "r": 0.231, "g": 0.196, "b": 0.290 },
+    "p-blue": { "a": 1, "r": 0.360, "g": 0.380, "b": 0.5098 },
+    "faded": { "a": 0.5, "r": 1, "g": 1, "b": 1 }
+  },
+  "com.badlogic.gdx.scenes.scene2d.ui.Skin$TintedDrawable": {
+    "d-red": { "name": "white", "color": "p-red" },
+    "d-orange": { "name": "white", "color": "p-orange" },
+    "d-beige": { "name": "white", "color": "p-beige" },
+    "d-dark-green": { "name": "white", "color": "p-dark-green" },
+    "d-light-green": { "name": "white", "color": "p-light-green" },
+    "d-dark": { "name": "white", "color": "p-dark" },
+    "d-blue": { "name": "white", "color": "p-blue" },
+    "ui14-faded": { "name": "ui14", "color": "faded" },
+    "ui15-faded": { "name": "ui15", "color": "faded" },
+    "ui16-faded": { "name": "ui16", "color": "faded" },
+    "dialogDim": { "name": "white", "color": { "r": 0, "g": 0, "b": 0, "a": 0.45 } }
+  },
+
+  "com.badlogic.gdx.scenes.scene2d.ui.Label$LabelStyle": {
+    "default": { "font": "regular-medium", "fontColor": "p-dark" },
+    "default-disabled": { "font": "regular-medium", "fontColor": "p-blue" },
+    "title-large": { "font": "title-large", "fontColor": "p-dark" },
+    "title-medium": { "font": "title-medium", "fontColor": "p-dark" },
+    "title-small": { "font": "title-small", "fontColor": "p-dark" },
+    "log": { "font": "regular-small", "fontColor": "p-dark", "background": "ui15-faded" }
+  },
+
+  "com.badlogic.gdx.scenes.scene2d.ui.TextButton$TextButtonStyle": {
+    "default": { "up": "ui0", "down": "ui1", "over": "ui2", "focused": "ui4", "disabled": "ui3",
+      "font": "regular-medium", "fontColor": "p-dark", "disabledFontColor": "p-blue", "downFontColor": "p-red" },
+    "default-dangerous": { "up": "ui0", "down": "ui1", "over": "ui2", "focused": "ui4", "disabled": "ui3",
+      "font": "regular-medium", "fontColor": "p-red", "disabledFontColor": "p-red", "downFontColor": "p-orange" },
+    "toggle": { "up": "ui0", "down": "ui1", "over": "ui2", "focused": "ui4", "disabled": "ui3",
+      "checked": "ui5", "checkedOver": "ui7", "checkedDown": "ui6", "checkedFocused": "ui8",
+      "font": "regular-medium", "fontColor": "p-dark", "disabledFontColor": "p-blue", "downFontColor": "p-red", "checkedDownFontColor": "p-dark-green" }
+  },
+  "com.badlogic.gdx.scenes.scene2d.ui.Button$ButtonStyle": {
+    "default": { "up": "ui0", "down": "ui1", "over": "ui2", "focused": "ui4", "disabled": "ui3" },
+    "toggle": { "up": "ui0", "down": "ui1", "over": "ui2", "focused": "ui4", "disabled": "ui3",
+      "checked": "ui5", "checkedOver": "ui7", "checkedDown": "ui6", "checkedFocused": "ui8" }
+  },
+
+  "com.badlogic.gdx.scenes.scene2d.ui.ScrollPane$ScrollPaneStyle": {
+    "default": { "background": "ui9", "vScroll": "ui10", "vScrollKnob": "ui12", "hScroll": "ui11", "hScrollKnob": "ui13" },
+    "light": { "background": null, "vScroll": "ui10", "vScrollKnob": "ui12", "hScroll": "ui11", "hScrollKnob": "ui13" }
+  },
+
+  "com.badlogic.gdx.scenes.scene2d.ui.TextField$TextFieldStyle": {
+    "default": { "font": "regular-medium", "fontColor": "p-dark", "disabledFontColor": "p-blue",
+      "background": "ui15", "focusedBackground": "ui14", "disabledBackground": "ui16",
+      "selection": "d-light-green", "cursor": "ui17",
+      "messageFont": "regular-medium", "messageFontColor": "p-blue"
+    },
+    "faded": { "font": "regular-medium", "fontColor": "p-dark", "disabledFontColor": "p-blue",
+      "background": "ui15-faded", "focusedBackground": "ui14-faded", "disabledBackground": "ui16-faded",
+      "selection": "d-light-green", "cursor": "ui17",
+      "messageFont": "regular-medium", "messageFontColor": "p-blue"
+    }
+  },
+
+  "com.badlogic.gdx.scenes.scene2d.ui.Window$WindowStyle": {
+    "default": { "titleFont": "title-medium", "background": "ui18", "titleFontColor": "p-beige" },
+    "dialog": { "titleFont": "title-small", "background": "ui18", "titleFontColor": "p-beige", "stageBackground": "dialogDim" }
+  },
+
+  "com.badlogic.gdx.scenes.scene2d.ui.CheckBox$CheckBoxStyle": {
+    "default": { "checkboxOn": "ui20", "checkboxOff": "ui19", "font": "regular-medium", "fontColor": "p-dark", "disabledFontColor": "p-blue" }
+  },
+
+  "com.badlogic.gdx.scenes.scene2d.ui.Tree$TreeStyle": {
+    "default": { "plus": "ui21", "plusOver": "ui23", "minus": "ui22", "minusOver": "ui24", "selection": "d-light-green" }
+  },
+
+  "com.badlogic.gdx.scenes.scene2d.ui.SelectBox$SelectBoxStyle": {
+    "default": {
+      "font": "regular-medium", "fontColor": "p-dark", "background": "ui25", "scrollStyle": "default",
+      "listStyle": { "font": "regular-medium", "selection": "d-light-green" }
+    }
+  },
+
+  "com.badlogic.gdx.scenes.scene2d.ui.List$ListStyle": {
+    "default": { "font": "regular-medium", "fontColorSelected": "p-dark", "fontColorUnselected": "p-dark",
+      "selection": "d-light-green", "down": "d-red", "over": "d-orange" }
+  },
+
+  "com.badlogic.gdx.scenes.scene2d.ui.SplitPane$SplitPaneStyle": {
+    "default-vertical": { "handle": "ui26" },
+    "default-horizontal": { "handle": "ui27" }
+  },
+
+  "com.badlogic.gdx.scenes.scene2d.ui.Slider$SliderStyle": {
+    "default-horizontal": { "background": "ui28", "knob": "ui31" },
+    "default-vertical": { "background": "ui29", "knob": "ui30" }
+  },
+
+  "com.badlogic.gdx.scenes.scene2d.ui.ProgressBar$ProgressBarStyle": {
+    "default-horizontal": { "background": "ui28", "knob": "ui32" },
+    "default-vertical": { "background": "ui29", "knob": "ui32" }
+  }
 }

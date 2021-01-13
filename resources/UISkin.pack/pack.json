@@ -1,7 +1,9 @@
 {
-duplicatePadding: false,
-paddingX: 1,
-paddingY: 1,
-filterMin: Nearest,
-filterMag: Nearest
+  "duplicatePadding": false,
+  "paddingX": 1,
+  "paddingY": 1,
+  "filterMin": "Nearest",
+  "filterMag": "Nearest",
+  "stripWhitespaceX": false,
+  "stripWhitespaceY": false
 }

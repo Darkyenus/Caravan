@@ -18,7 +18,7 @@ public final class GraphPane extends Widget {
 
     public final Array<GraphData> graphs = new Array<>(false, 8, GraphData.class);
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
-    private final BitmapFont font = CaravanApplication.uiSkin().getFont("font-ui-small");
+    private final BitmapFont font = CaravanApplication.uiSkin().getFont("regular-small");
     private final StringBuilder tmp = new StringBuilder();
 
     @Override

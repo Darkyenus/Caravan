@@ -6,13 +6,13 @@ import caravan.util.PooledArray;
 import caravan.world.Merchandise;
 import caravan.world.Production;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Value;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.ObjectIntMap;
@@ -36,6 +36,11 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 	private final Label[] inventoryLabels = new Label[Merchandise.VALUES.length];
 	private Table production;
 	private Table rumors;
+
+	private Label.LabelStyle labelStyleDefault;
+	private Label.LabelStyle labelStyleDefaultDisabled;
+	private TextButton.TextButtonStyle textButtonStyleDefault;
+	private TextButton.TextButtonStyle textButtonStyleDefaultDangerous;
 
 	public TradingScreen() {
 		super(500, false, true);
@@ -80,18 +85,19 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 			final boolean visible = caravan.categories[merch.category.ordinal()];
 
 			final int buyPrice = town.prices.buyPrice(merch);
-			buyButton.setText("Buy for "+ buyPrice);
+			buyButton.getLabel().setText(buyPrice);
 			buyButton.setDisabled(buyPrice > caravan.money || !visible);
 
 			final int amountInInventory = caravan.inventory.get(merch);
 			final int sellPrice = town.prices.sellPrice(merch);
 			final int realSellPrice = Math.min(sellPrice, town.money);
-			sellButton.setText("Sell for "+ realSellPrice);
+			sellButton.getLabel().setText(realSellPrice);
 			sellButton.setDisabled(amountInInventory < 1 || !visible);
-			sellButton.getLabel().setColor(sellPrice == realSellPrice ? sellButton.getStyle().fontColor : Color.RED);
+			sellButton.setStyle(sellPrice == realSellPrice ? textButtonStyleDefault : textButtonStyleDefaultDangerous);
 
 			inventoryLabel.setVisible(visible);
 			inventoryLabel.setText(amountInInventory);
+			inventoryLabel.setStyle(amountInInventory == 0 ? labelStyleDefaultDisabled : labelStyleDefault);
 		}
 
 		final PooledArray<ProductionAmountPair> productionEntries = this.productionTmp;
@@ -126,10 +132,15 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 	@Override
 	protected void initializeUI(@NotNull CaravanApplication application, @NotNull Table root) {
 		final Skin skin = CaravanApplication.uiSkin();
+		labelStyleDefault = skin.get("default", Label.LabelStyle.class);
+		labelStyleDefaultDisabled = skin.get("default-disabled", Label.LabelStyle.class);
+		textButtonStyleDefault = skin.get("default", TextButton.TextButtonStyle.class);
+		textButtonStyleDefaultDangerous = skin.get("default-dangerous", TextButton.TextButtonStyle.class);
+
 		root.pad(20f);
 
 		final Table topBar = new Table(skin);
-		townNameLabel = new Label("TOWN NAME", skin);
+		townNameLabel = new Label("TOWN NAME", skin, "title-medium");
 		topBar.add(townNameLabel).growX();
 		final TextButton leaveButton = new TextButton("Leave", skin);
 		leaveButton.addListener(new ChangeListener() {
@@ -147,10 +158,10 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 		final Table merchTable = new Table(skin);
 		merchTable.defaults().pad(2f);
 		merchTable.pad(5f);
-		merchTable.columnDefaults(0).align(Align.right).grow();// nameLabel
-		merchTable.columnDefaults(1).fill().padLeft(10f);// buyButton
-		merchTable.columnDefaults(2).fill().padLeft(10f);// sellButton
-		merchTable.columnDefaults(3).fill().minWidth(15f).padLeft(10f);// inventoryLabel
+		merchTable.columnDefaults(0).expand(4, 0).align(Align.right).grow();// nameLabel
+		merchTable.columnDefaults(1).expand(1, 0).align(Align.center).fill().padLeft(10f);// buyButton
+		merchTable.columnDefaults(2).expand(1, 0).align(Align.center).fill().padLeft(10f);// sellButton
+		merchTable.columnDefaults(3).expand(1, 0).align(Align.center).fill().minWidth(15f).padLeft(10f);// inventoryLabel
 		final ScrollPane pane = scrollPane(merchTable);
 		root.add(pane).grow().padRight(10f);
 
@@ -189,6 +200,8 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 			}
 		};
 
+		final Value.Fixed categoryRowPad = Value.Fixed.valueOf(8f);
+
 		Merchandise.Category prevCategory = null;
 		for (Merchandise merchandise : Merchandise.VALUES) {
 			if (!merchandise.tradeable) {
@@ -198,17 +211,29 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 			if (prevCategory != merchandise.category) {
 				prevCategory = merchandise.category;
 
-				final Label categoryLabel = new Label(merchandise.category.name, skin);
-				merchTable.add(categoryLabel).colspan(4).align(Align.center).fillX().padTop(5f).row();
+				final Label categoryLabel = new Label(merchandise.category.name, skin, "title-small");
+				merchTable.add(categoryLabel).align(Align.center).fillX().padTop(categoryRowPad);
+				final Label buyLabel = new Label("Buy", skin, "title-small");
+				final Label sellLabel = new Label("Sell", skin, "title-small");
+				final Label ownedLabel = new Label("Owned", skin, "title-small");
+				buyLabel.setAlignment(Align.center);
+				sellLabel.setAlignment(Align.center);
+				ownedLabel.setAlignment(Align.center);
+				merchTable.add(buyLabel).padTop(categoryRowPad);
+				merchTable.add(sellLabel).padTop(categoryRowPad);
+				merchTable.add(ownedLabel).padTop(categoryRowPad);
+
+				merchTable.row();
 				categoryLabel.setAlignment(Align.center);
 			}
 
-			final Label nameLabel = new Label(merchandise.name, skin);
-			final TextButton buyButton = new TextButton("Buy 000", skin);
-			final TextButton sellButton = new TextButton("Sell 000", skin);
-			final Label inventoryLabel = new Label("0", skin);
+			final Label nameLabel = new Label(merchandise.name, labelStyleDefault);
+			final TextButton buyButton = new TextButton("0", textButtonStyleDefault);
+			final TextButton sellButton = new TextButton("0", textButtonStyleDefault);
+			final Label inventoryLabel = new Label("0", labelStyleDefault);
 
 			nameLabel.setAlignment(Align.right);
+			inventoryLabel.setAlignment(Align.center);
 
 			merchTable.add(nameLabel);
 			merchTable.add(buyButton);
@@ -234,12 +259,12 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 		production.pad(5f).align(Align.top);
 		production.columnDefaults(0).align(Align.right).padRight(10f);
 		production.columnDefaults(1).align(Align.center).fillX().minWidth(20f);
-		final Label productionLabel = new Label("Production", skin);
+		final Label productionLabel = new Label("Production", skin, "title-medium");
 		productionLabel.setAlignment(Align.center);
 		rightPanel.add(productionLabel).growX().pad(10f).row();
 		rightPanel.add(scrollPane(production)).grow().row();
 
-		final Label rumorsLabel = new Label("Rumors", skin);
+		final Label rumorsLabel = new Label("Rumors", skin, "title-medium");
 		rumorsLabel.setAlignment(Align.center);
 		rightPanel.add(rumorsLabel).growX().pad(10f).row();
 		rumors = new Table(skin);
@@ -249,11 +274,15 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 
 		final Table playerMoney = new Table(skin);
 		playerMoney.align(Align.center);
-		playerMoneyLabel = new Label("???", skin);
+		playerMoneyLabel = new Label("???", labelStyleDefault);
 		playerMoney.add("Caravan gold:").padRight(10f).align(Align.right);
 		playerMoney.add(playerMoneyLabel).align(Align.left);
 
-		rightPanel.add(playerMoney).expandX().align(Align.center).row();
+		rightPanel.add(playerMoney).expandX().align(Align.center).padTop(20f).row();
+
+		// Initial layout is kinda weird
+		root.validate();
+		root.invalidateHierarchy();
 	}
 
 	private static ScrollPane scrollPane(Actor inside) {

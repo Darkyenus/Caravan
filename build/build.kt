@@ -1,5 +1,5 @@
 @file:BuildDependencyPlugin("wemi-plugin-jvm-hotswap")
-@file:BuildDependency("com.darkyen:ResourcePacker:2.6")
+@file:BuildDependency("com.darkyen:ResourcePacker:85c7979a08")
 
 import com.darkyen.resourcepacker.PreferSymlinks
 import com.darkyen.resourcepacker.packResources
@@ -7,7 +7,6 @@ import wemi.Keys
 import wemi.dependency.Jitpack
 import wemi.dependency.ProjectDependency
 import wemi.dependency.ScopeAggregate
-import wemi.expiresWith
 import wemi.key
 import wemi.util.FileSet
 import wemi.util.SystemInfo
@@ -48,7 +47,7 @@ val caravan:Project by project(Archetypes.JavaProject) {
 	packResources set {
 		System.setProperty("java.awt.headless", "true")
 		val resources = path("resources")
-		expiresWith(resources)
+		expiresNow()
 		packResources(resources.toFile(), packedResourcesDir.get().toFile(), listOf(PreferSymlinks to SystemInfo.IS_POSIX))
 	}
 

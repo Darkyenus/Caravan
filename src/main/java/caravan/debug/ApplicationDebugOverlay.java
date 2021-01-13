@@ -55,13 +55,13 @@ public final class ApplicationDebugOverlay extends CaravanApplication.UIScreen {
 		table.add().expand().row();
 
 		// Log
-		log = new Label("", CaravanApplication.uiSkin(), "chatLog");
+		log = new Label("", CaravanApplication.uiSkin(), "log");
 		log.setAlignment(Align.bottomLeft);
 		log.setWrap(true);
 		logScroll = new ScrollPane(log, CaravanApplication.uiSkin(), "light");
 		logScroll.setFlickScroll(false);
 		logScroll.setFadeScrollBars(true);
-		final TextField commandEntry = new TextField("", CaravanApplication.uiSkin(), "chat");
+		final TextField commandEntry = new TextField("", CaravanApplication.uiSkin(), "faded");
 
 		final Table chatTable = new Table(CaravanApplication.uiSkin());
 		chatTable.add(logScroll).expand().fill().bottom().row();

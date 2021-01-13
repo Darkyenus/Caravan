@@ -19,7 +19,7 @@ public final class MainMenuScreen extends CaravanApplication.UIScreen {
 	protected void initializeUI(@NotNull CaravanApplication application, @NotNull Table root) {
 		root.align(Align.center);
 
-		root.add(new Label("Caravan", CaravanApplication.uiSkin()))
+		root.add(new Label("Caravan", CaravanApplication.uiSkin(), "title-large"))
 				.align(Align.center)
 				.pad(30f)
 				.row();
