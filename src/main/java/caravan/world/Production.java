@@ -1,11 +1,9 @@
 package caravan.world;
 
-import caravan.components.TownC;
 import caravan.services.Id;
 import caravan.util.Inventory;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.utils.Array;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiConsumer;
@@ -16,9 +14,6 @@ import java.util.function.BiConsumer;
 public abstract class Production extends Id<Production> {
 
 	public static final Registry<Production> REGISTRY = new Registry<>();
-
-	@Deprecated
-	public static final Array<Production> PRODUCTION = new Array<>(true, 100, Production.class);
 
 	/** Name of the production process/industry */
 	public final String name;
@@ -33,7 +28,7 @@ public abstract class Production extends Id<Production> {
 	/** Evaluate what is needed to produce something.
 	 * @param environment in this environment
 	 * @param resources put what is required into this inventory */
-	public abstract float produce(@NotNull TownC environment, @NotNull Inventory resources);
+	public abstract float produce(@NotNull Environment environment, @NotNull Inventory resources);
 
 	@Override
 	public String toString() {
@@ -62,13 +57,13 @@ public abstract class Production extends Id<Production> {
 		short id = 0;
 		new Production(id++, "Wool and Hide Production", Merchandise.RAW_ANIMAL_FIBER) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				return map(0.05f, 0.5f, 2f, environment.fieldSpace);
 			}
 		};
 		new Production(id++, "Plant Fiber Farming", Merchandise.RAW_PLANT_FIBER) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				float land = environment.fieldSpace;
 				float water = environment.precipitation;
 				return map(0.1f, 1f, 2.5f, mix(land, water));
@@ -76,21 +71,21 @@ public abstract class Production extends Id<Production> {
 		};
 		new Production(id++, "Weaving (plant fiber)", Merchandise.CLOTH) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				resources.add(Merchandise.RAW_PLANT_FIBER, 5);
 				return 4.9f;
 			}
 		};
 		new Production(id++, "Weaving (animal fiber)", Merchandise.CLOTH) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				resources.add(Merchandise.RAW_ANIMAL_FIBER, 5);
 				return 4.8f;
 			}
 		};
 		new Production(id++, "Luxury Weaving", Merchandise.CLOTH_LUXURY) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				resources.add(Merchandise.RAW_ANIMAL_FIBER, 3);
 				resources.add(Merchandise.RAW_PLANT_FIBER, 3);
 				return 4.5f;
@@ -98,14 +93,14 @@ public abstract class Production extends Id<Production> {
 		};
 		new Production(id++, "Clothing Tailoring", Merchandise.CLOTHING) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				resources.add(Merchandise.CLOTH, 7);
 				return 6f;
 			}
 		};
 		new Production(id++, "Luxury Clothing Tailoring", Merchandise.CLOTHING_LUXURY) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				resources.add(Merchandise.CLOTH, 3);
 				resources.add(Merchandise.CLOTH_LUXURY, 4);
 				return 5.5f;
@@ -113,28 +108,26 @@ public abstract class Production extends Id<Production> {
 		};
 		new Production(id++, "Livestock Farming", Merchandise.MEAT_FRESH) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
-				// https://www.wolframalpha.com/input/?i=fit+polynomial+%281%2C3%29+%280.25%2C1%29+%280%2C0.1%29
-				final float p = environment.fieldSpace;
-				return -0.933333f*p*p + 3.83333f*p + 0.1f;
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
+				return Production.map(0.2f, 2f, 6f, environment.fieldSpace);
 			}
 		};
 		new Production(id++, "Fishing", Merchandise.MEAT_FRESH) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				float units = 0;
 				if (environment.hasSaltWater) {
-					units += 1.5f;
+					units += 3f;
 				}
 				if (environment.hasFreshWater) {
-					units += 0.7f;
+					units += 1.5f;
 				}
 				return units;
 			}
 		};
 		new Production(id++, "Meat salting", Merchandise.MEAT_PRESERVED) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				resources.add(Merchandise.MEAT_FRESH, 40);
 				resources.add(Merchandise.SALT, 10);
 				return 40;
@@ -142,45 +135,45 @@ public abstract class Production extends Id<Production> {
 		};
 		new Production(id++, "Meat smoking", Merchandise.MEAT_PRESERVED) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				resources.add(Merchandise.MEAT_FRESH, 40);
-				resources.add(Merchandise.WOOD_FUEL, 30);
+				resources.add(Merchandise.WOOD_FUEL, 25);
 				return 40;
 			}
 		};
 		new Production(id++, "Sausage making", Merchandise.MEAT_LUXURY) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
-				resources.add(Merchandise.MEAT_PRESERVED, 40);
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
+				resources.add(Merchandise.MEAT_PRESERVED, 30);
 				resources.add(Merchandise.SALT, 7);
 				resources.add(Merchandise.SPICES, 4);
-				return 40;
+				return 30;
 			}
 		};
 		new Production(id++, "Grain Farming", Merchandise.GRAIN) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				float land = environment.fieldSpace;
 				float water = environment.precipitation;
 				float temperature = fuzzyInRange(10f, 35f, environment.temperature);
-				return map(0.1f, 2f, 6f, mix(land, water, (float) Math.sqrt(temperature)));
+				return map(0.1f, 4f, 11f, mix(land, water, (float) Math.sqrt(temperature)));
 			}
 		};
 		new Production(id++, "Beekeeping", Merchandise.HONEY) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				return mix(environment.fieldSpace, environment.woodAbundance) * 5;
 			}
 		};
 		new Production(id++, "Sugar cane farming", Merchandise.SUGAR) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				return map(0, 1, 5, mix(environment.fieldSpace, fuzzyInRange(25, 35, environment.temperature), fuzzyInRange(0.7f, 1f, environment.precipitation)));
 			}
 		};
 		new Production(id++, "Beer brewing", Merchandise.BEER) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				resources.add(Merchandise.GRAIN, 15);
 				resources.add(Merchandise.WATER_FRESH, 20);
 				return 20;
@@ -188,7 +181,7 @@ public abstract class Production extends Id<Production> {
 		};
 		new Production(id++, "Wine making", Merchandise.WINE) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				resources.add(Merchandise.FRUIT_FRESH, 15);
 				resources.add(Merchandise.WATER_FRESH, 10);
 				return 10;
@@ -196,7 +189,7 @@ public abstract class Production extends Id<Production> {
 		};
 		new Production(id++, "Mead making", Merchandise.MEAD) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				resources.add(Merchandise.HONEY, 15);
 				resources.add(Merchandise.WATER_FRESH, 15);
 				return 15;
@@ -204,7 +197,7 @@ public abstract class Production extends Id<Production> {
 		};
 		new Production(id++, "Water gathering", Merchandise.WATER_FRESH) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				if (environment.hasFreshWater) {
 					return 50;
 				}
@@ -215,7 +208,7 @@ public abstract class Production extends Id<Production> {
 		};
 		new Production(id++, "Fruit growing", Merchandise.FRUIT_FRESH) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				float land = environment.fieldSpace;
 				float water = environment.precipitation;
 				float temperature = fuzzyInRangeWithPeak(18f, 30f,35f, environment.temperature);
@@ -224,7 +217,7 @@ public abstract class Production extends Id<Production> {
 		};
 		new Production(id++, "Vegetable growing", Merchandise.VEGETABLES_FRESH) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				float land = environment.fieldSpace;
 				float water = environment.precipitation;
 				float temperature = fuzzyInRangeWithPeak(10f, 25f, 32f, environment.temperature);
@@ -233,7 +226,7 @@ public abstract class Production extends Id<Production> {
 		};
 		new Production(id++, "Fruit drying", Merchandise.FRUIT_DRIED) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				if (environment.temperature < 25f) {
 					return 0;
 				}
@@ -246,7 +239,7 @@ public abstract class Production extends Id<Production> {
 		};
 		new Production(id++, "Spice farming", Merchandise.SPICES) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				final float temperature = fuzzyInRange(25f, 35f, environment.temperature);
 				final float precipitation = fuzzyInRange(0.1f, 0.5f, environment.precipitation);
 				return map(0, 0.2f, 2f, mix(temperature, precipitation));
@@ -254,7 +247,7 @@ public abstract class Production extends Id<Production> {
 		};
 		new Production(id++, "Salt extraction", Merchandise.SALT) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				if (!environment.hasSaltWater || environment.precipitation > 0.3f) {
 					return 0;
 				}
@@ -263,14 +256,14 @@ public abstract class Production extends Id<Production> {
 		};
 		new Production(id++, "Book writing", Merchandise.BOOK) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				resources.add(Merchandise.RAW_ANIMAL_FIBER, 1);
-				return 0.2f;
+				return 1f;
 			}
 		};
 		new Production(id++, "Perfume making", Merchandise.PERFUME) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				resources.add(Merchandise.FRUIT_FRESH, 1);
 				resources.add(Merchandise.WOOD_FUEL, 2);
 				resources.add(Merchandise.SPICES, 3);
@@ -280,51 +273,51 @@ public abstract class Production extends Id<Production> {
 		};
 		new Production(id++, "Rare metal mining", Merchandise.METAL_RARE_ORE) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
-				return map(0, 1, 8, environment.rareMetalOccurrence);
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
+				return map(0, 2, 8, environment.rareMetalOccurrence);
 			}
 		};
 		new Production(id++, "Metal mining", Merchandise.METAL_ORE) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				return map(0, 2, 9, environment.metalOccurrence);
 			}
 		};
 		new Production(id++, "Coal mining", Merchandise.COAL) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
-				return map(0, 3, 10, environment.coalOccurrence);
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
+				return map(0, 10, 26, environment.coalOccurrence);
 			}
 		};
 		new Production(id++, "Jewel mining", Merchandise.JEWELS) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
-				return map(0, 1, 2, environment.jewelOccurrence);
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
+				return map(0, 2, 4, environment.jewelOccurrence);
 			}
 		};
 		new Production(id++, "Forestry", Merchandise.WOOD_LOG) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				return map(0.1f, 5, 25, environment.woodAbundance);
 			}
 		};
 		new Production(id++,"Wood processing to lumber", Merchandise.WOOD_LUMBER) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				resources.add(Merchandise.WOOD_LOG, 10);
 				return 7;
 			}
 		};
 		new Production(id++,"Wood processing to fuel (logs)", Merchandise.WOOD_FUEL) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				resources.add(Merchandise.WOOD_LOG, 20);
 				return 20;
 			}
 		};
 		new Production(id++,"Wood processing to fuel (lumber)", Merchandise.WOOD_FUEL) {
 			@Override
-			public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				resources.add(Merchandise.WOOD_LUMBER, 30);
 				return 30;
 			}
@@ -333,18 +326,18 @@ public abstract class Production extends Id<Production> {
 		id = alternatives(id, PRODUCTION_MATERIAL_FUEL, (idBox, fuel) -> {
 			new Production(idBox[0]++, "Baking (" + fuel.materialName + ")", Merchandise.BAKED_GOODS) {
 				@Override
-				public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
-					resources.add(Merchandise.GRAIN, 50);
+				public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
+					resources.add(Merchandise.GRAIN, 30);
 					resources.add(Merchandise.WATER_FRESH, 20);
 					resources.add(fuel, 10);
-					resources.add(Merchandise.SALT, 3);
+					resources.add(Merchandise.SALT, 1);
 					return 50;
 				}
 			};
 
 			new Production(idBox[0]++, "Rare metal smelting ("+fuel.materialName+")", Merchandise.METAL_RARE_INGOT) {
 				@Override
-				public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+				public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 					resources.add(Merchandise.METAL_RARE_ORE, 20);
 					resources.add(fuel, 20);
 					return 10;
@@ -352,7 +345,7 @@ public abstract class Production extends Id<Production> {
 			};
 			new Production(idBox[0]++, "Metal smelting ("+fuel.materialName+")", Merchandise.METAL_INGOT) {
 				@Override
-				public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+				public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 					resources.add(Merchandise.METAL_ORE, 20);
 					resources.add(fuel, 40);
 					return 15;
@@ -360,7 +353,7 @@ public abstract class Production extends Id<Production> {
 			};
 			new Production(idBox[0]++, "Jewelry crafting ("+ fuel.materialName +")", Merchandise.JEWELRY) {
 				@Override
-				public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+				public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 					resources.add(Merchandise.METAL_RARE_INGOT, 7);
 					resources.add(Merchandise.METAL_INGOT, 1);
 					resources.add(Merchandise.JEWELS, 5);
@@ -371,7 +364,7 @@ public abstract class Production extends Id<Production> {
 
 			new Production(idBox[0]++, "Armor and weapon smithing ("+ fuel.materialName +")", Merchandise.ARMOR_AND_WEAPONS) {
 				@Override
-				public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+				public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 					resources.add(Merchandise.METAL_INGOT, 10);
 					resources.add(fuel, 7);
 					return 9;
@@ -380,7 +373,7 @@ public abstract class Production extends Id<Production> {
 
 			new Production(idBox[0]++, "Tool smithing ("+ fuel.materialName +")", Merchandise.TOOLS) {
 				@Override
-				public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+				public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 					resources.add(Merchandise.METAL_INGOT, 10);
 					resources.add(Merchandise.WOOD_LUMBER, 10);
 					resources.add(fuel, 7);
@@ -392,7 +385,7 @@ public abstract class Production extends Id<Production> {
 		id = alternatives(id, PRODUCTION_MATERIAL_LIQUOR_BASE, (idBox, origin) -> {
 			new Production(idBox[0]++, "Liquor making ("+ origin.materialName +")", Merchandise.LIQUOR) {
 				@Override
-				public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+				public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 					resources.add(origin, 15);
 					resources.add(Merchandise.WATER_FRESH, 20);
 					return 10;
@@ -403,7 +396,7 @@ public abstract class Production extends Id<Production> {
 		id = alternatives(id, PRODUCTION_MATERIAL_SWEETENER, (idBox, sweetener) -> {
 			new Production(idBox[0]++, "Fruit jam production ("+sweetener.materialName+")", Merchandise.FRUIT_JAM) {
 				@Override
-				public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+				public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 					resources.add(Merchandise.FRUIT_FRESH, 50);
 					resources.add(sweetener, 20);
 					return 50;
@@ -412,7 +405,7 @@ public abstract class Production extends Id<Production> {
 
 			new Production(idBox[0]++, "Luxury Baking ("+ sweetener.materialName +")", Merchandise.BAKED_GOODS_LUXURY) {
 				@Override
-				public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+				public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 					resources.add(Merchandise.GRAIN, 50);
 					resources.add(Merchandise.WATER_FRESH, 20);
 					resources.add(Merchandise.WOOD_FUEL, 10);
@@ -427,15 +420,13 @@ public abstract class Production extends Id<Production> {
 		id = alternatives(id, PRODUCTION_MATERIAL_PICKLING_BASE, (idBox, picklingBase) -> {
 			new Production(idBox[0]++, "Vegetable pickling ("+picklingBase.materialName+")", Merchandise.VEGETABLES_PICKLED) {
 				@Override
-				public float produce(@NotNull TownC environment, @NotNull Inventory resources) {
+				public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 					resources.add(Merchandise.VEGETABLES_FRESH, 50);
 					resources.add(picklingBase, 10);
 					return 50;
 				}
 			};
 		});
-
-		Gdx.app.debug("Production", "Production registered, nextId: "+id);
 	}
 
 	private static int alternativeLevel = 0;

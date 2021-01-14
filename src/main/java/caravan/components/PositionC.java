@@ -26,6 +26,10 @@ public final class PositionC extends CaravanComponent {
         return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
     }
 
+    public static float manhattanDistance(@NotNull PositionC a, float bx, float by) {
+        return Math.abs(a.x - bx) + Math.abs(a.y - by);
+    }
+
     public static boolean inFrustum(@NotNull PositionC pos, @NotNull Rectangle frustum, float size) {
         return pos.x + size > frustum.x && pos.x - size < frustum.x + frustum.width && pos.y + size > frustum.y && pos.y - size < frustum.y + frustum.height;
     }

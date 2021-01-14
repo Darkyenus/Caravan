@@ -10,6 +10,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
 
 /** A map which assigns a numerical attribute to the whole world. */
 public final class WorldAttributeFloat {
@@ -130,6 +133,18 @@ public final class WorldAttributeFloat {
 		}
 	}
 
+	public void add(@NotNull WorldAttributeFloat map) {
+		assert width == map.width;
+		assert height == map.height;
+
+		final float[] values = this.values;
+		final int length = values.length;
+		final float[] otherValues = map.values;
+		for (int i = 0; i < length; i++) {
+			values[i] += otherValues[i];
+		}
+	}
+
 	/** Multiply all values on the grid with multiplier. */
 	public void scale(float multiplier) {
 		final float[] values = this.values;
@@ -145,6 +160,19 @@ public final class WorldAttributeFloat {
 		final int length = values.length;
 		for (int i = 0; i < length; i++) {
 			values[i] = MathUtils.clamp(values[i], min, max);
+		}
+	}
+
+	/** Normalize all values to lie between min and max. */
+	public void normalize(float min, float max) {
+		final float mapMin = min();
+		final float rescale = (max - min) / (max() - mapMin);
+		final float offset = min - mapMin;
+
+		final float[] values = this.values;
+		final int length = values.length;
+		for (int i = 0; i < length; i++) {
+			values[i] = (values[i] + offset) * rescale;
 		}
 	}
 
@@ -240,6 +268,44 @@ public final class WorldAttributeFloat {
 				i++;
 			}
 		}
+	}
+
+	/** Set each cell value to whatever the f function returns. Run the fill function in parallel. */
+	public void fillParallel(@NotNull FillFunction f) {
+		final int commonPoolParallelism = ForkJoinPool.getCommonPoolParallelism();
+		if (commonPoolParallelism <= 1) {
+			fill(f);
+			return;
+		}
+
+		final ForkJoinPool pool = ForkJoinPool.commonPool();
+		final int width = this.width;
+		final float[] values = this.values;
+		final int batchSize = (values.length + commonPoolParallelism - 1) / commonPoolParallelism;
+		ForkJoinTask<?> lastTask = null;
+
+		for (int i = 0; i < values.length; i += batchSize) {
+			final int start = i;
+			final int end = Math.min(start + batchSize, values.length);
+
+			final ForkJoinTask<?> finalLastTask = lastTask;
+			lastTask = pool.submit(() -> {
+				for (int j = start; j < end; j++) {
+					values[j] = f.value(j % width, j / width, values[j]);
+				}
+				if (finalLastTask != null) {
+					finalLastTask.join();
+				}
+			});
+		}
+
+		if (lastTask != null) {
+			lastTask.join();
+		}
+	}
+
+	public void fill(float value) {
+		Arrays.fill(this.values, value);
 	}
 
 	/** In the area around (x,y) decrease the values by (radius - euclidean)*scale distance from that point */

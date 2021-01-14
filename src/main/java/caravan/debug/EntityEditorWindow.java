@@ -35,6 +35,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.function.Function;
 
+import static caravan.util.Util.ALL_HANDLING_INPUT_LISTENER;
+import static caravan.util.Util.findClosest;
+import static caravan.util.Util.newScrollPane;
+
 /**
  * A window widget for entity inspection and real-time value editing.
  */
@@ -64,13 +68,16 @@ public final class EntityEditorWindow extends Window {
 
 	public EntityEditorWindow(@NotNull Skin skin, @NotNull Engine engine, @NotNull Vector2 nearestPointCursor) {
 		super("Entity Editor", skin);
+		addListener(ALL_HANDLING_INPUT_LISTENER);
+		getTitleTable().padLeft(10f);
+
 		this.engine = engine;
 		this.playerMapper = engine.getMapper(PlayerC.class);
 		this.playerEntities = engine.getEntities(Components.DOMAIN.familyWith(PlayerC.class, PositionC.class));
 
 		final Table root = new Table(skin);
 		entityTree = new Tree<>(skin);
-		final ScrollPane entityTreeScroll = new ScrollPane(entityTree);
+		final ScrollPane entityTreeScroll = newScrollPane(entityTree, "light");
 
 		add(root).expand().fill();
 
@@ -78,30 +85,8 @@ public final class EntityEditorWindow extends Window {
 			selectedEntity = getPlayerEntity();
 			refreshEntityView();
 		});
-		final Vector2 nearestVector1 = new Vector2();
 		button(root, "Nearest", () -> {
-			final Mapper<PositionC> positionMapper = engine.getMapper(PositionC.class);
-
-			int nearest = -1;
-			float nearestDist2 = Float.MAX_VALUE;
-
-			final IntArray entitiesArray = engine.getEntities().getIndices();
-			final int[] entities = entitiesArray.items;
-			final int entitiesSize = entitiesArray.size;
-			for (int i = 0; i < entitiesSize; i++) {
-				final int entity = entities[i];
-
-				final PositionC position = positionMapper.getOrNull(entity);
-				if (position == null) continue;
-
-				final float entityDst2 = nearestVector1.set(position.x, position.y).dst2(nearestPointCursor);
-				if (entityDst2 < nearestDist2) {
-					nearest = entity;
-					nearestDist2 = entityDst2;
-				}
-			}
-
-			selectedEntity = nearest;
+			selectedEntity = findClosest(engine.getEntities(), engine.getMapper(PositionC.class), nearestPointCursor);
 			refreshEntityView();
 		});
 		button(root, "Drop Beacon", () -> {
@@ -115,10 +100,9 @@ public final class EntityEditorWindow extends Window {
 			}
 			final PositionC positionC = positionMapper.getOrNull(tracked);
 			if (positionC == null) return;
-			final Vector2 trackedPosition = nearestVector1.set(positionC.x, positionC.y);
 
 			final int entity = engine.createEntity();
-			engine.getMapper(PositionC.class).create(entity).set(trackedPosition.x, trackedPosition.y);
+			engine.getMapper(PositionC.class).create(entity).set(positionC.x, positionC.y);
 			engine.getMapper(RenderC.class).create(entity).set(Sprites.BAND_SMALL);
 			engine.getMapper(CameraFocusC.class).create(entity).set(1f);
 		});

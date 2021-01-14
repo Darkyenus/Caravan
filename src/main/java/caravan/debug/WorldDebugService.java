@@ -24,7 +24,8 @@ import org.jetbrains.annotations.NotNull;
 public class WorldDebugService extends EntitySystem implements RenderingService, UIService {
 
 	private ItemSelector<Tile> tileSelector;
-	private EntityEditorWindow entityEditor;
+	private EntityEditorWindow entityEditorWindow;
+	private EconomyOverviewWindow economyOverviewWindow;
 
 	private ShapeRenderer shapeRenderer;
 
@@ -47,7 +48,8 @@ public class WorldDebugService extends EntitySystem implements RenderingService,
 				},
 				Tile.REGISTRY.iterator());
 
-		entityEditor = new EntityEditorWindow(CaravanApplication.uiSkin(), engine, worldSpaceCursor);
+		entityEditorWindow = new EntityEditorWindow(CaravanApplication.uiSkin(), engine, worldSpaceCursor);
+		economyOverviewWindow = new EconomyOverviewWindow(engine, worldSpaceCursor);
 
 		shapeRenderer = new ShapeRenderer();
 	}
@@ -56,11 +58,15 @@ public class WorldDebugService extends EntitySystem implements RenderingService,
 	public void createUI(@NotNull CaravanApplication application, @NotNull Stage stage) {
 		stage.addActor(tileSelector);
 		tileSelector.setVisible(false);
-		tileSelector.setPosition(500f, 500f);
+		tileSelector.setPosition(10f, 10f);
 
-		stage.addActor(entityEditor);
-		entityEditor.setVisible(false);
-		entityEditor.setPosition(300f, 300f);
+		stage.addActor(entityEditorWindow);
+		entityEditorWindow.setVisible(false);
+		entityEditorWindow.setPosition(220f, 10f);
+
+		stage.addActor(economyOverviewWindow);
+		economyOverviewWindow.setVisible(false);
+		economyOverviewWindow.setPosition(430f, 10f);
 	}
 
 	@Override
@@ -69,7 +75,10 @@ public class WorldDebugService extends EntitySystem implements RenderingService,
 			tileSelector.setVisible(!tileSelector.isVisible());
 		}
 		if (Gdx.input.isKeyJustPressed(Input.Keys.F5)) {
-			entityEditor.setVisible(!entityEditor.isVisible());
+			entityEditorWindow.setVisible(!entityEditorWindow.isVisible());
+		}
+		if (Gdx.input.isKeyJustPressed(Input.Keys.F6)) {
+			economyOverviewWindow.setVisible(!economyOverviewWindow.isVisible());
 		}
 	}
 
@@ -78,7 +87,7 @@ public class WorldDebugService extends EntitySystem implements RenderingService,
 		frustum.getCenter(worldSpaceCursor);
 
 		final boolean tiles = tileSelector.isVisible();
-		final boolean entities = entityEditor.isVisible();
+		final boolean entities = entityEditorWindow.isVisible();
 
 		if (!tiles && !entities) {
 			return;

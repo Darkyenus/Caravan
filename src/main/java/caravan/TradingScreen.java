@@ -19,6 +19,8 @@ import com.badlogic.gdx.utils.ObjectIntMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static caravan.util.Util.newScrollPane;
+
 /**
  * Screen overlay that appears when a player caravan arrives into a town to trade.
  */
@@ -173,7 +175,7 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 		merchTable.columnDefaults(1).expand(1, 0).align(Align.center).fill().padLeft(10f);// buyButton
 		merchTable.columnDefaults(2).expand(1, 0).align(Align.center).fill().padLeft(10f);// sellButton
 		merchTable.columnDefaults(3).expand(1, 0).align(Align.center).fill().minWidth(15f).padLeft(10f);// inventoryLabel
-		final ScrollPane pane = scrollPane(merchTable);
+		final ScrollPane pane = newScrollPane(merchTable);
 		root.add(pane).grow().padRight(10f);
 
 		final ChangeListener buyListener = new ChangeListener() {
@@ -273,7 +275,7 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 		final Label productionLabel = new Label("Production", skin, "title-medium");
 		productionLabel.setAlignment(Align.center);
 		rightPanel.add(productionLabel).growX().pad(10f).row();
-		rightPanel.add(scrollPane(production)).grow().row();
+		rightPanel.add(newScrollPane(production)).grow().row();
 
 		final Label rumorsLabel = new Label("Rumors", skin, "title-medium");
 		rumorsLabel.setAlignment(Align.center);
@@ -281,22 +283,12 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 		rumors = new Table(skin);
 		rumors.pad(5f).align(Align.top);
 		rumors.defaults().pad(5f).align(Align.left);
-		rightPanel.add(scrollPane(rumors)).grow().row();
+		rightPanel.add(newScrollPane(rumors)).grow().row();
 
 		// Initial layout is kinda weird
 		root.validate();
 		root.invalidateHierarchy();
 	}
-
-	private static ScrollPane scrollPane(Actor inside) {
-		final ScrollPane pane = new ScrollPane(inside, CaravanApplication.uiSkin());
-		pane.setFadeScrollBars(false);
-		pane.setFlickScroll(false);
-		pane.setScrollingDisabled(true, false);
-		pane.setSmoothScrolling(true);
-		return pane;
-	}
-
 
 	public static boolean performBuy(@NotNull TownC town, @NotNull CaravanC caravan, @NotNull Merchandise m) {
 		final int buyPrice = town.prices.buyPrice(m);

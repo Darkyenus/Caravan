@@ -18,18 +18,25 @@ public final class PriceList {
 
 	/** Price a caravan has to pay for a single unit of merchandise. */
 	public int buyPrice(@NotNull Merchandise m) {
-		return MathUtils.ceil(basePrice(m) * 1.05f);
+		return MathUtils.ceil(basePrice(m) * (1f + baseVariability(m)));
 	}
 
 	/** Price a caravan will get for selling a single unit of merchandise. */
 	public int sellPrice(@NotNull Merchandise m) {
-		return MathUtils.floor(basePrice(m) * 0.95f);
+		return MathUtils.floor(basePrice(m) * (1f - baseVariability(m)));
 	}
 
 	/** Price locals pay for the merchandise. */
 	public float basePrice(@NotNull Merchandise m) {
 		final int ordinal = m.ordinal();
 		return (float) (Math.pow(1.02, demand[ordinal] - supply[ordinal]) * 10);
+	}
+
+	/** The more goods are traded, the smaller the buy/sell gap is. Returns values (0, 0.5]. */
+	private float baseVariability(@NotNull Merchandise m) {
+		final int ordinal = m.ordinal();
+		final int base = (int) demand[ordinal] + (int) supply[ordinal];
+		return (0.5f / (base * 0.2f + 1));
 	}
 
 	/** Update prices after a single unit of merchandise was bought by a caravan. */
@@ -65,6 +72,18 @@ public final class PriceList {
 	public void initialize(short defaultSupply, short defaultDemand) {
 		Arrays.fill(this.demand, defaultSupply);
 		Arrays.fill(this.supply, defaultDemand);
+	}
+
+	/** Add everything from the other price list into this one. Used during world generation. */
+	public void add(PriceList prices) {
+		final short[] supply = this.supply;
+		final short[] demand = this.demand;
+		final short[] otherSupply = prices.supply;
+		final short[] otherDemand = prices.demand;
+		for (int i = 0; i < Merchandise.COUNT; i++) {
+			supply[i] += otherSupply[i];
+			demand[i] += otherDemand[i];
+		}
 	}
 
 	@Override

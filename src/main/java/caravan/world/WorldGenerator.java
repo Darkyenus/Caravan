@@ -4,6 +4,8 @@ import caravan.components.Components;
 import caravan.components.PositionC;
 import caravan.components.TownC;
 import caravan.services.EntitySpawnService;
+import caravan.services.Id;
+import caravan.services.TownSystem;
 import caravan.services.WorldService;
 import caravan.util.CSVWriter;
 import caravan.util.PooledArray;
@@ -24,7 +26,6 @@ import static caravan.services.TownSystem.simulateInternalEconomy;
 import static caravan.util.Util.kernelSide;
 import static caravan.util.Util.manhattanKernel;
 import static caravan.util.Util.maxIndex;
-import static caravan.util.Util.rRound;
 
 /**
  * Generates game worlds.
@@ -40,12 +41,8 @@ public final class WorldGenerator {
 		final WorldAttributeFloat altitude = generateHeight(width, height, random);
 		final WorldAttributeFloat slope = altitude.slope();
 
-		final WorldAttributeFloat windX = new WorldAttributeFloat(width, height, 0f);
-		final WorldAttributeFloat windY = new WorldAttributeFloat(width, height, 0f);
-		generateWind(windX, windY, altitude, random);
-
 		final WorldAttributeFloat temperature = generateTemperature(altitude, random);
-		final WorldAttributeFloat precipitation = generatePrecipitation(temperature, altitude, windX, windY, random);
+		final WorldAttributeFloat precipitation = generatePrecipitation(temperature, random);
 		final WorldAttributeFloat forestMap = generateForests(altitude, temperature, precipitation, random);
 		final WorldAttributeFloat pastureMap = generatePastures(temperature, precipitation, random);
 
@@ -64,7 +61,7 @@ public final class WorldGenerator {
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
 				final float h = altitude.get(x, y);
-				if (h <= 0f){
+				if (h <= 0f) {
 					tiles.set(x, y, Tiles.Water);
 					continue;
 				}
@@ -90,59 +87,43 @@ public final class WorldGenerator {
 			}
 		}
 
+		// Generate ore locations
+		final WorldAttributeFloat rareMetalOccurrence = new WorldAttributeFloat(world.width, world.height, 0f);
+		final WorldAttributeFloat metalOccurrence = new WorldAttributeFloat(world.width, world.height, 0f);
+		final WorldAttributeFloat coalOccurrence = new WorldAttributeFloat(world.width, world.height, 0f);
+		final WorldAttributeFloat jewelOccurrence = new WorldAttributeFloat(world.width, world.height, 0f);
+		final WorldAttributeFloat stoneOccurrence = new WorldAttributeFloat(world.width, world.height, 0f);
+		final WorldAttributeFloat limestoneOccurrence = new WorldAttributeFloat(world.width, world.height, 0f);
+		generateMineral(rareMetalOccurrence, 0.025f, 30f, random);
+		generateMineral(metalOccurrence, 0.145f, 40f, random);
+		generateMineral(coalOccurrence, 0.07f, 50f, random);
+		generateMineral(jewelOccurrence, 0.03f, 20f, random);
+		generateMineral(stoneOccurrence, 0.2f, 50f, random);
+		generateMineral(limestoneOccurrence, 0.1f, 40f, random);
+
 		// Generate cities
-		final WorldAttributeFloat townPlacementScore = new WorldAttributeFloat(width, height, 0f);
-		townPlacementScore.fill((x, y, v) -> {
-			final float alt = altitude.get(x, y);
-			if (alt <= 0f) {
-				// No towns under the sea
-				return Float.NEGATIVE_INFINITY;
-			}
-
-			final float wood = forestMap.getKernelMax(x, y, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE);
-			final float pasture = pastureMap.getKernelMax(x, y, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE);
-			final float fish = fishMap.getKernelMax(x, y, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE);
-
-			final boolean saltWaterSource = altitude.getKernelMin(x, y, null, 5, 5) <= 0f;
-			// TODO(jp): Incorporate river computation and use harsher precipitation cutoff (don't forget to change town computation as well)
-			final boolean freshWaterSource = precipitation.getKernelMax(x, y, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE) >= 0.4f;
-
-			float score = 0;
-			score += freshWaterSource ? 0.6f : 0f;
-			score += saltWaterSource ? 0.2f : 0f;
-			score += wood * 0.5f;
-			score += pasture * 0.5f;
-			score += fish * 0.5f;
-			return score;
-		});
-		townPlacementScore.add(random.nextLong(), 30, 2f);// Some interesting randomness
-
 		final Mapper<TownC> townMapper = engine.getMapper(TownC.class);
 		final Mapper<PositionC> positionMapper = engine.getMapper(PositionC.class);
 		final IntArray townEntities = new IntArray();
 
-		final int townCount = 24;
-		float[] rareMetal = new float[townCount];
-		float[] metal = new float[townCount];
-		float[] coal = new float[townCount];
-		float[] jewel = new float[townCount];
-		float[] stone = new float[townCount];
-		float[] limestone = new float[townCount];
-		generateMineral(rareMetal, 0.05f, random);
-		generateMineral(metal, 0.1f, random);
-		generateMineral(coal, 0.2f, random);
-		generateMineral(jewel, 0.06f, random);
-		generateMineral(stone, 0.3f, random);
-		generateMineral(limestone, 0.3f, random);
+		final WorldAttributeFloat townPlacementScore = new WorldAttributeFloat(width, height, 0f);
+		final WorldAttributeFloat townClosenessPenalty = new WorldAttributeFloat(width, height, 0f);
+		townClosenessPenalty.add(random.nextLong(), 30, 0.1f);// Some interesting randomness
 
+		final int townCount = 24;
 		for (int townIndex = 0; townIndex < townCount; townIndex++) {
+			if (townIndex % 4 == 0) {
+				fillOutTownPlacementScore(townPlacementScore, townClosenessPenalty, townEntities, townMapper, random, altitude, temperature, precipitation,
+						forestMap, pastureMap, fishMap, rareMetalOccurrence, metalOccurrence, coalOccurrence, jewelOccurrence, stoneOccurrence, limestoneOccurrence);
+			}
+
 			final int townCellIndex = maxIndex(townPlacementScore.values);
 			final int townX = townCellIndex % width;
 			final int townY = townCellIndex / width;
 			tiles.set(townX, townY, Tiles.Town);
 
-			// Decrement score around this place, to have towns more far away from each other
 			townPlacementScore.dent(townX, townY, 35, 3f);
+			townClosenessPenalty.dent(townX, townY, 35, 3f);
 
 			// Place the town and set it up
 			final String townName = generateTownName();
@@ -151,27 +132,15 @@ public final class WorldGenerator {
 
 			final TownC town = townMapper.get(townEntity);
 			town.name = townName;
-
 			town.population = 10 + random.nextInt(90);
 			town.money = town.population * 10 + random.nextInt(50);
-			town.hasFreshWater = precipitation.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE) >= 0.4f;
-			town.hasSaltWater = altitude.getKernelMin(townX, townY, null, 5, 5) <= 0f;
-
-			town.woodAbundance = forestMap.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE);
-			town.fieldSpace = pastureMap.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE);
-			town.fishAbundance = fishMap.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE);
-
-			town.temperature = temperature.get(townX, townY);
-			town.precipitation = precipitation.get(townX, townY);
-
-			town.rareMetalOccurrence = rareMetal[townIndex];
-			town.metalOccurrence = metal[townIndex];
-			town.coalOccurrence = coal[townIndex];
-			town.jewelOccurrence = jewel[townIndex];
-			town.stoneOccurrence = stone[townIndex];
-			town.limestoneOccurrence = limestone[townIndex];
-
 			town.prices.initialize((short) 10, (short) 10);
+			extractEnvironment(town.environment, townX, townY, precipitation, altitude, forestMap, pastureMap, fishMap, temperature,
+					rareMetalOccurrence, metalOccurrence, coalOccurrence, jewelOccurrence, stoneOccurrence, limestoneOccurrence);
+
+			if (townIndex % 4 == 3) {
+				simulateSuperInitialWorldPrices(townMapper, townEntities, 30);
+			}
 		}
 
 		// Fill in town neighbor distances
@@ -225,6 +194,65 @@ public final class WorldGenerator {
 		engine.flush();
 	}
 
+	private static void fillOutTownPlacementScore(WorldAttributeFloat townPlacementScore, WorldAttributeFloat townClosenessPenalty, IntArray townEntities, Mapper<TownC> townMapper, RandomXS128 random, WorldAttributeFloat altitude, WorldAttributeFloat temperature, WorldAttributeFloat precipitation, WorldAttributeFloat forestMap, WorldAttributeFloat pastureMap, WorldAttributeFloat fishMap, WorldAttributeFloat rareMetalOccurrence, WorldAttributeFloat metalOccurrence, WorldAttributeFloat coalOccurrence, WorldAttributeFloat jewelOccurrence, WorldAttributeFloat stoneOccurrence, WorldAttributeFloat limestoneOccurrence) {
+		townPlacementScore.fill(0);
+
+		final TownC dummyTown = new TownC();
+		for (int i = 0; i < townEntities.size; i++) {
+			dummyTown.prices.add(townMapper.get(townEntities.get(i)).prices);
+		}
+
+		townPlacementScore.fillParallel((x, y, v) -> {
+			final float alt = altitude.get(x, y);
+			if (alt <= 0f) {
+				// No towns under the sea, hopefully
+				return -100f;
+			}
+
+			extractEnvironment(dummyTown.environment, x, y, precipitation, altitude, forestMap, pastureMap, fishMap, temperature,
+					rareMetalOccurrence, metalOccurrence, coalOccurrence, jewelOccurrence, stoneOccurrence, limestoneOccurrence);
+
+			float profit = 0;
+			final Id.Registry<Production> registry = Production.REGISTRY;
+			for (int i = 0; i < registry.count(); i++) {
+				final Production production = registry.getDense(i);
+				profit += Math.max(TownSystem.productionProfit(dummyTown, production), 0);
+			}
+
+			return profit;
+		});
+		townPlacementScore.normalize(0f, 1f);
+		townPlacementScore.add(townClosenessPenalty);
+	}
+
+	private static void extractEnvironment(@NotNull Environment environment, int townX, int townY,
+	                                       @NotNull WorldAttributeFloat precipitation,
+	                                       @NotNull WorldAttributeFloat altitude,
+	                                       @NotNull WorldAttributeFloat forestMap,
+	                                       @NotNull WorldAttributeFloat pastureMap,
+	                                       @NotNull WorldAttributeFloat fishMap,
+	                                       @NotNull WorldAttributeFloat temperature,
+	                                       @NotNull WorldAttributeFloat rareMetalOccurrence,
+	                                       @NotNull WorldAttributeFloat metalOccurrence,
+	                                       @NotNull WorldAttributeFloat coalOccurrence,
+	                                       @NotNull WorldAttributeFloat jewelOccurrence,
+	                                       @NotNull WorldAttributeFloat stoneOccurrence,
+	                                       @NotNull WorldAttributeFloat limestoneOccurrence) {
+		environment.hasFreshWater = precipitation.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE) >= 0.4f;
+		environment.hasSaltWater = altitude.getKernelMin(townX, townY, null, 5, 5) <= 0f;
+		environment.woodAbundance = forestMap.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE);
+		environment.fieldSpace = pastureMap.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE);
+		environment.fishAbundance = fishMap.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE);
+		environment.temperature = temperature.get(townX, townY);
+		environment.precipitation = precipitation.get(townX, townY);
+		environment.rareMetalOccurrence = rareMetalOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE);
+		environment.metalOccurrence = metalOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE);
+		environment.coalOccurrence = coalOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE);
+		environment.jewelOccurrence = jewelOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE);
+		environment.stoneOccurrence = stoneOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE);
+		environment.limestoneOccurrence = limestoneOccurrence.getKernelMax(townX, townY, MINERAL_REACH_KERNEL, MINERAL_REACH_KERNEL_SIZE, MINERAL_REACH_KERNEL_SIZE);
+	}
+
 	public static void generatePlayerCaravan(@NotNull Engine engine) {
 		final Mapper<PositionC> position = engine.getMapper(PositionC.class);
 		final IntArray townEntities = engine.getEntities(Components.DOMAIN.familyWith(TownC.class, PositionC.class)).getIndices();
@@ -247,7 +275,10 @@ public final class WorldGenerator {
 		final PositionC otherTownPosition = position.get(closestTown);
 		float offX = otherTownPosition.x - starterTownPosition.x;
 		float offY = otherTownPosition.y - starterTownPosition.y;
-		final float scale = 5f / (Math.abs(offX) + Math.abs(offY));
+		float scale = 5f / (Math.abs(offX) + Math.abs(offY));
+		if (!Float.isFinite(scale)) {
+			scale = 0;
+		}
 		offX *= scale;
 		offY *= scale;
 		float posX = starterTownPosition.x + offX;
@@ -255,6 +286,40 @@ public final class WorldGenerator {
 
 		engine.getService(EntitySpawnService.class).spawnPlayerCaravan(posX, posY, Merchandise.Category.VALUES);
 		engine.flush();
+	}
+
+	public static void simulateSuperInitialWorldPrices(@NotNull Mapper<TownC> town, @NotNull IntArray townEntities, int iterations) {
+		for (int i = 0; i < iterations; i++) {
+			// Update internal economy and production
+			for (int ti = 0; ti < townEntities.size; ti++) {
+				simulateInternalEconomy(town.get(townEntities.get(ti)));
+			}
+
+			// Simulate trade
+			townEntities.shuffle();
+			for (int ti0 = 0; ti0 < townEntities.size; ti0++) {
+				final TownC localTown = town.get(townEntities.get(ti0));
+
+				for (int ti1 = 0; ti1 < townEntities.size; ti1++) {
+					final TownC otherTown = town.get(townEntities.get(ti1));
+
+					arbitrageTowns(localTown, otherTown, 10f);
+					arbitrageTowns(otherTown, localTown, 10f);
+				}
+			}
+
+			// Apply communism to reset initial price instability
+			int totalMoney = 0;
+			for (int ti = 0; ti < townEntities.size; ti++) {
+				totalMoney += town.get(townEntities.get(ti)).money;
+			}
+			final int townMoney = (totalMoney + townEntities.size - 1) / townEntities.size;
+			for (int ti = 0; ti < townEntities.size; ti++) {
+				final TownC localTown = town.get(townEntities.get(ti));
+				localTown.money = townMoney;
+				localTown.wealth = 0;
+			}
+		}
 	}
 
 	public static void simulateInitialWorldPrices(@NotNull Engine engine, int iterations, boolean dumpResults) {
@@ -285,7 +350,7 @@ public final class WorldGenerator {
 				}
 			}
 
-			if (i < iterations/2) {
+			if (i < iterations / 2) {
 				// Apply communism to reset initial price instability
 				int totalMoney = 0;
 				for (int ti = 0; ti < townEntities.size; ti++) {
@@ -347,8 +412,10 @@ public final class WorldGenerator {
 	private static final float[] MINERAL_REACH_KERNEL = manhattanKernel(0.3f, 1);
 	private static final int MINERAL_REACH_KERNEL_SIZE = kernelSide(MINERAL_REACH_KERNEL);
 
-	/** Generate heightmap, where 0 = sea level and 1 = 1km, with no hard cap,
-	 * but average max height being around 4km */
+	/**
+	 * Generate heightmap, where 0 = sea level and 1 = 1km, with no hard cap,
+	 * but average max height being around 4km
+	 */
 	private static WorldAttributeFloat generateHeight(int width, int height, RandomXS128 random) {
 		final WorldAttributeFloat h = new WorldAttributeFloat(width, height, 1f);
 		// We want a continent, so start off with a huge mountain in the center
@@ -371,35 +438,7 @@ public final class WorldGenerator {
 			a *= a;
 			return a * 8f;
 		});
-
-		//h.saveVisualization("height");
-		//System.out.println("Max height: "+h.max()+" km  Median: "+h.median() + "   Average:  "+h.average());
 		return h;
-	}
-
-	private static void generateWind(WorldAttributeFloat windX, WorldAttributeFloat windY, WorldAttributeFloat height, RandomXS128 random) {
-		// Wind generally moves westward (positive X) and can be broken up by mountains
-		// Note that this concerns high-altitude winds (2km to 40km) not near-ground winds
-		// http://www.eniscuola.net/en/argomento/air-in-motion/winds/high-altitude-winds/
-
-		// Generate wind by generating some amount of "wind particles" and propagating them through the map.
-		// As each particle travels through the land,
-
-		// Initialize wind at the west edge, with more wind near the middle, as area near equator gets less wind (?)
-		// For simplicity, let's use nondescript wind units, with 1 being "very windy"
-		for (int y = 0; y < windX.height; y++) {
-			float closenessToMiddle = 1f - Math.abs((windX.height - y * 2f) / windX.height);
-			for (int i = 0; i < 10; i++) {
-				simulateWindParticle(-1, y, (0.5f + closenessToMiddle * 0.5f) * 0.8f + 0.2f * random.nextFloat(), random.nextFloat() * 0.2f - 0.1f, windX, windY, height, random, 0.5f + random.nextFloat() * 0.1f);
-			}
-		}
-	}
-
-	private static void simulateWindParticle(int originX, int originY, float originalVelocityX, float originalVelocityY,
-	                                         WorldAttributeFloat windX, WorldAttributeFloat windY,
-	                                         WorldAttributeFloat height, RandomXS128 random, float power) {
-
-		//TODO
 	}
 
 	/** Temperature in degrees Celsius */
@@ -428,12 +467,13 @@ public final class WorldGenerator {
 	}
 
 	/** Generate rainfall, 0 being no rainfall, 1 being raining almost always. */
-	private static WorldAttributeFloat generatePrecipitation(WorldAttributeFloat temperature, WorldAttributeFloat height, WorldAttributeFloat windX, WorldAttributeFloat windY, RandomXS128 random) {
+	private static WorldAttributeFloat generatePrecipitation(WorldAttributeFloat temperature, RandomXS128 random) {
 		final WorldAttributeFloat precipitation = new WorldAttributeFloat(temperature.width, temperature.height, 1f);
+		precipitation.add(random.nextLong(), 160f, 2f);
 		precipitation.add(random.nextLong(), 80f, 1f);
-		precipitation.scale(0.5f);
+		precipitation.add(random.nextLong(), 30f, 0.5f);
+		precipitation.normalize(0f, 1f);
 		return precipitation;
-		// TODO(jp): More complex algorithm that uses given inputs
 	}
 
 	/** Generate forest, 0 being no forest, 1 being forest, split point is at 0.5 */
@@ -487,6 +527,7 @@ public final class WorldGenerator {
 
 	/**
 	 * Generate a mineral occurrence map.
+	 *
 	 * @param map output
 	 * @param rarity (0, 1) how much of the world should have this
 	 * @param fieldSize the size of the mineral fields
@@ -498,30 +539,10 @@ public final class WorldGenerator {
 		map.fill((x, y, v) -> (float) Math.sqrt(v)); // To make nicer falloff
 	}
 
-	private static void generateMineral(float[] amounts, float rarity, RandomXS128 random) {
-		final int good = rRound(amounts.length * rarity);
-		final int medium = rRound(amounts.length * rarity * 2);
-		final int bad = rRound(amounts.length * rarity * 3);
-
-		for (int i = 0; i < good; i++) {
-			amounts[random.nextInt(amounts.length)] = 0.8f + random.nextFloat() * 0.2f;
-		}
-		for (int i = 0; i < medium; i++) {
-			amounts[random.nextInt(amounts.length)] = 0.4f + random.nextFloat() * 0.4f;
-		}
-		for (int i = 0; i < bad; i++) {
-			amounts[random.nextInt(amounts.length)] = random.nextFloat() * 0.4f;
-		}
-
-		for (int i = 0; i < amounts.length; i++) {
-			amounts[i] = MathUtils.clamp(amounts[i], 0, 1);
-		}
-	}
-
 	private static void dumpTownData(int index, Mapper<TownC> town, Mapper<PositionC> position, IntArray townEntities) {
 		townEntities.sort();
 
-		try (CSVWriter w = new CSVWriter(new OutputStreamWriter(new FileOutputStream("towns"+index+".csv")))) {
+		try (CSVWriter w = new CSVWriter(new OutputStreamWriter(new FileOutputStream("towns" + index + ".csv")))) {
 			w.item("id");
 			w.item("x");
 			w.item("y");
@@ -547,9 +568,9 @@ public final class WorldGenerator {
 			w.item("stoneOccurrence");
 			w.item("limestoneOccurrence");
 			for (Merchandise value : Merchandise.VALUES) {
-				w.item("supply_"+value.name());
-				w.item("demand_"+value.name());
-				w.item("price_"+value.name());
+				w.item("supply_" + value.name());
+				w.item("demand_" + value.name());
+				w.item("price_" + value.name());
 			}
 			for (Production production : Production.REGISTRY) {
 				w.item(production.name);
@@ -561,37 +582,37 @@ public final class WorldGenerator {
 				final TownC t = town.get(townEntity);
 				final PositionC p = position.get(townEntity);
 
-				w.item(""+townEntity);
-				w.item(""+p.x);
-				w.item(""+p.y);
-				w.item(""+t.closestNeighbors.length);
+				w.item("" + townEntity);
+				w.item("" + p.x);
+				w.item("" + p.y);
+				w.item("" + t.closestNeighbors.length);
 
-				w.item(""+t.tradeBuyCounter);
-				w.item(""+t.tradeSellCounter);
+				w.item("" + t.tradeBuyCounter);
+				w.item("" + t.tradeSellCounter);
 
-				w.item(""+t.population);
-				w.item(""+t.money);
-				w.item(""+t.wealth);
-				w.item(""+t.hasFreshWater);
-				w.item(""+t.hasSaltWater);
-				w.item(""+t.woodAbundance);
-				w.item(""+t.fieldSpace);
-				w.item(""+t.fishAbundance);
-				w.item(""+t.temperature);
-				w.item(""+t.precipitation);
-				w.item(""+t.rareMetalOccurrence);
-				w.item(""+t.metalOccurrence);
-				w.item(""+t.coalOccurrence);
-				w.item(""+t.jewelOccurrence);
-				w.item(""+t.stoneOccurrence);
-				w.item(""+t.limestoneOccurrence);
+				w.item("" + t.population);
+				w.item("" + t.money);
+				w.item("" + t.wealth);
+				w.item("" + t.environment.hasFreshWater);
+				w.item("" + t.environment.hasSaltWater);
+				w.item("" + t.environment.woodAbundance);
+				w.item("" + t.environment.fieldSpace);
+				w.item("" + t.environment.fishAbundance);
+				w.item("" + t.environment.temperature);
+				w.item("" + t.environment.precipitation);
+				w.item("" + t.environment.rareMetalOccurrence);
+				w.item("" + t.environment.metalOccurrence);
+				w.item("" + t.environment.coalOccurrence);
+				w.item("" + t.environment.jewelOccurrence);
+				w.item("" + t.environment.stoneOccurrence);
+				w.item("" + t.environment.limestoneOccurrence);
 				for (Merchandise m : Merchandise.VALUES) {
-					w.item(""+t.prices.supply(m));
-					w.item(""+t.prices.demand(m));
-					w.item(""+t.prices.basePrice(m));
+					w.item("" + t.prices.supply(m));
+					w.item("" + t.prices.demand(m));
+					w.item("" + t.prices.basePrice(m));
 				}
 				for (Production production : Production.REGISTRY) {
-					w.item(""+t.production.get(production, 0));
+					w.item("" + t.production.get(production, 0));
 				}
 
 				w.row();

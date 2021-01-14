@@ -3,6 +3,7 @@ package caravan.debug;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -11,6 +12,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 import java.util.Iterator;
+
+import static caravan.util.Util.ALL_HANDLING_INPUT_LISTENER;
+import static caravan.util.Util.newScrollPane;
 
 /**
  * @author Darkyen
@@ -24,13 +28,17 @@ public final class ItemSelector <T> extends Window {
 
     public ItemSelector(Skin skin, String title, ItemSelected<T> selectedCallback, DrawItem<T> renderer, Iterator<T> filler) {
         super(title, skin);
+        addListener(ALL_HANDLING_INPUT_LISTENER);
+        getTitleTable().padLeft(10f);
+
         this.selectedCallback = selectedCallback;
         this.renderer = renderer;
         this.filler = filler;
         tilesTable = new Table();
         tilesTable.defaults().space(2f);
-        ScrollPane tileScrollPane = new ScrollPane(tilesTable);
+        ScrollPane tileScrollPane = newScrollPane(tilesTable, "light");
         add(tileScrollPane).expand().fill();
+        setTouchable(Touchable.enabled);
     }
 
     private final ClickListener ITEM_SELECTOR_CLICK_LISTENER = new ClickListener(){

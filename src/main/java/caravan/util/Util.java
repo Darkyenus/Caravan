@@ -1,9 +1,23 @@
 package caravan.util;
 
+import caravan.CaravanApplication;
+import caravan.components.PositionC;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Event;
+import com.badlogic.gdx.scenes.scene2d.EventListener;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
+import com.badlogic.gdx.utils.IntArray;
+import com.darkyen.retinazer.Component;
+import com.darkyen.retinazer.EntitySetView;
+import com.darkyen.retinazer.Mapper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 /**
  * Utility methods for finding min or max value in an array.
@@ -114,4 +128,49 @@ public final class Util {
 	public static int kernelSide(float[] kernel) {
 		return Math.round((float) Math.sqrt(kernel.length));
 	}
+
+	public static @NotNull ScrollPane newScrollPane(@NotNull Actor inside) {
+		return newScrollPane(inside, "default");
+	}
+
+	public static @NotNull ScrollPane newScrollPane(@NotNull Actor inside, @NotNull String style) {
+		final ScrollPane pane = new ScrollPane(inside, CaravanApplication.uiSkin(), style);
+		pane.setFadeScrollBars(false);
+		pane.setFlickScroll(false);
+		pane.setScrollingDisabled(true, false);
+		pane.setSmoothScrolling(true);
+		return pane;
+	}
+
+	public static <C extends Component> void forEach(@NotNull EntitySetView entities, @NotNull Mapper<C> mapper, @NotNull Consumer<C> action) {
+		final IntArray indices = entities.getIndices();
+		for (int i = 0; i < indices.size; i++) {
+			action.accept(mapper.get(indices.get(i)));
+		}
+	}
+
+	public static int findClosest(@NotNull EntitySetView entitySet, @NotNull Mapper<PositionC> positionMapper, @NotNull Vector2 target) {
+		int nearest = -1;
+		float nearestDist2 = Float.MAX_VALUE;
+
+		final IntArray entitiesArray = entitySet.getIndices();
+		final int[] entities = entitiesArray.items;
+		final int entitiesSize = entitiesArray.size;
+		for (int i = 0; i < entitiesSize; i++) {
+			final int entity = entities[i];
+
+			final PositionC position = positionMapper.getOrNull(entity);
+			if (position == null) continue;
+
+			final float entityDst2 = PositionC.manhattanDistance(position, target.x, target.y);
+			if (entityDst2 < nearestDist2) {
+				nearest = entity;
+				nearestDist2 = entityDst2;
+			}
+		}
+
+		return nearest;
+	}
+
+	public static final EventListener ALL_HANDLING_INPUT_LISTENER = event -> event instanceof InputEvent;
 }

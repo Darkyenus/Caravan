@@ -98,14 +98,17 @@ public enum Merchandise {
 	}
 
 	/** Stuff that is considered food for internal town consumption, including luxuries. */
-	public static final Merchandise[] FOOD = new Merchandise[] {
-			MEAT_FRESH,
-			MEAT_PRESERVED,
+	public static final Merchandise[] BASIC_FOOD = new Merchandise[] {
 			BAKED_GOODS,
 			FRUIT_FRESH,
+			VEGETABLES_FRESH
+	};
+
+	public static final Merchandise[] EXTRA_FOOD = new Merchandise[] {
+			MEAT_FRESH,
+			MEAT_PRESERVED,
 			FRUIT_DRIED,
 			FRUIT_JAM,
-			VEGETABLES_FRESH,
 			VEGETABLES_PICKLED,
 			SALT
 	};

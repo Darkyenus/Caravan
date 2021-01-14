@@ -61,7 +61,7 @@ public final class TownSystem extends EntityProcessorSystem {
 			final Production production = entry.key;
 			final float scale = entry.value / 10f;
 
-			final float created = production.produce(town, consumedOne);
+			final float created = production.produce(town.environment, consumedOne);
 			produced.add(production.output, created * scale);
 			consumed.add(consumedOne, scale);
 			consumedOne.reset();
@@ -140,8 +140,9 @@ public final class TownSystem extends EntityProcessorSystem {
 		float valueOfBoughtStuff = 0;
 
 		// Basic food
-		valueOfBoughtStuff += fulfillBasicNeed(town, Merchandise.FOOD, rRound(town.population / 10f));
-		if (!town.hasFreshWater) {
+		valueOfBoughtStuff += fulfillBasicNeed(town, Merchandise.BASIC_FOOD, rRound(town.population * 0.06f));
+		valueOfBoughtStuff += fulfillBasicNeed(town, Merchandise.EXTRA_FOOD, rRound(town.population * 0.03f));
+		if (!town.environment.hasFreshWater) {
 			valueOfBoughtStuff += fulfillBasicNeed(town, Merchandise.FRESH_WATER, rRound(town.population / 8f));
 		}
 
@@ -216,9 +217,9 @@ public final class TownSystem extends EntityProcessorSystem {
 		}
 	}
 
-	private static float productionProfit(@NotNull TownC town, @NotNull Production production) {
+	public static float productionProfit(@NotNull TownC town, @NotNull Production production) {
 		final Inventory inv = new Inventory();
-		final float result = production.produce(town, inv);
+		final float result = production.produce(town.environment, inv);
 
 		float gained = result * town.prices.sellPrice(production.output);
 		float lost = 0f;
