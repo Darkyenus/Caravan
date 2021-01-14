@@ -1,6 +1,8 @@
-package caravan.world;
+package caravan.util;
 
+import caravan.world.Merchandise;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.utils.Pool;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import org.jetbrains.annotations.NotNull;
@@ -9,9 +11,9 @@ import java.util.Arrays;
 
 /** Inventory of items.
  * The maximum amount of items of a single type is {@link Short#MAX_VALUE}, should be enough. */
-public final class Inventory {
+public final class Inventory implements Pool.Poolable {
 
-	private final short[] amount = new short[Merchandise.VALUES.length];
+	private final short[] amount = new short[Merchandise.COUNT];
 
 	public int get(@NotNull Merchandise m) {
 		return amount[m.ordinal()];
@@ -57,17 +59,18 @@ public final class Inventory {
 		System.arraycopy(inventory.amount, 0, this.amount, 0, this.amount.length);
 	}
 
-	public void clear() {
+	@Override
+	public void reset() {
 		Arrays.fill(this.amount, (short) 0);
 	}
 
 	public void save(@NotNull Output output) {
-		output.writeInt(amount.length);
-		output.writeShorts(amount, 0, amount.length);
+		final EnumSerializer.Writer writer = Merchandise.SERIALIZER.write(output);
+		writer.write(output, amount);
 	}
 
 	public void load(@NotNull Input input) {
-		final short[] amount = input.readShorts(input.readInt());
-		System.arraycopy(amount, 0, this.amount, 0, Math.min(amount.length, this.amount.length));
+		final EnumSerializer.Reader reader = Merchandise.SERIALIZER.read(input);
+		reader.read(input, this.amount);
 	}
 }

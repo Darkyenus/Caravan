@@ -269,7 +269,7 @@ public final class CameraFocusSystem extends EntityProcessorSystem implements Re
     }
 
     @Override
-    public void save(Output output) {
+    public void save(@NotNull Output output) {
         output.writeFloat(zoomExponent);
         final boolean detached = currentFramingDetached && !currentFramingCatchUp;
         output.writeBoolean(detached);
@@ -282,7 +282,7 @@ public final class CameraFocusSystem extends EntityProcessorSystem implements Re
     }
 
     @Override
-    public void load(Input input) {
+    public void load(@NotNull Input input) {
         zoomExponent = input.readFloat();
         final boolean detached = input.readBoolean();
         currentFramingDetached = detached;

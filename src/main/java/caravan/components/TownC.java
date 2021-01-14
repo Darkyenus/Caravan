@@ -1,7 +1,7 @@
 package caravan.components;
 
 import caravan.util.CaravanComponent;
-import caravan.world.PriceList;
+import caravan.util.PriceList;
 import caravan.world.Production;
 import com.badlogic.gdx.utils.ObjectIntMap;
 import com.esotericsoftware.kryo.io.Input;

@@ -31,9 +31,9 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 
 	private Label townNameLabel;
 	private Label playerMoneyLabel;
-	private final TextButton[] buyButtons = new TextButton[Merchandise.VALUES.length];
-	private final TextButton[] sellButtons = new TextButton[Merchandise.VALUES.length];
-	private final Label[] inventoryLabels = new Label[Merchandise.VALUES.length];
+	private final TextButton[] buyButtons = new TextButton[Merchandise.COUNT];
+	private final TextButton[] sellButtons = new TextButton[Merchandise.COUNT];
+	private final Label[] inventoryLabels = new Label[Merchandise.COUNT];
 	private Table production;
 	private Table rumors;
 

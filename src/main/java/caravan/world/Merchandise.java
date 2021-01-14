@@ -1,5 +1,6 @@
 package caravan.world;
 
+import caravan.util.EnumSerializer;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -74,7 +75,16 @@ public enum Merchandise {
 	@NotNull
 	public final Category category;
 
-	public static final Merchandise[] VALUES = values();
+	public static final EnumSerializer<Merchandise> SERIALIZER = new EnumSerializer<>(0,
+			new Merchandise[]{// Version 0
+					RAW_PLANT_FIBER, RAW_ANIMAL_FIBER, CLOTH, CLOTH_LUXURY, CLOTHING, CLOTHING_LUXURY, MEAT_FRESH, MEAT_PRESERVED, GRAIN, BAKED_GOODS, HONEY, SUGAR, WATER_FRESH, FRUIT_FRESH, FRUIT_DRIED,
+					FRUIT_JAM, VEGETABLES_FRESH, VEGETABLES_PICKLED, SALT, BAKED_GOODS_LUXURY, MEAT_LUXURY, BEER, WINE, LIQUOR, MEAD, SPICES, BOOK, PERFUME, JEWELRY, METAL_RARE_ORE, METAL_RARE_INGOT,
+					METAL_ORE, METAL_INGOT, COAL, JEWELS, ARMOR_AND_WEAPONS, TOOLS, WOOD_LOG, WOOD_FUEL, WOOD_LUMBER
+			}
+			);
+
+	public static final @NotNull Merchandise @NotNull [] VALUES = SERIALIZER.currentValues();
+	public static final int COUNT = VALUES.length;
 
 	Merchandise(String name, boolean tradeable, @NotNull Category category) {
 		this(name, name.toLowerCase(), tradeable, category);
@@ -150,7 +160,12 @@ public enum Merchandise {
 
 		public final String name;
 
-		public static final Category[] VALUES = values();
+		public static final EnumSerializer<Category> SERIALIZER = new EnumSerializer<>(0,
+				new Category[]{ TEXTILES, FOOD, LUXURIES, TRADE_GOODS } // Version 0
+				);
+
+		public static final Category[] VALUES = SERIALIZER.currentValues();
+		public static final int COUNT = VALUES.length;
 
 		Category(String name) {
 			this.name = name;

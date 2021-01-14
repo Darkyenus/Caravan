@@ -2,7 +2,7 @@ package caravan.services;
 
 import caravan.components.Components;
 import caravan.components.TownC;
-import caravan.world.Inventory;
+import caravan.util.Inventory;
 import caravan.world.Merchandise;
 import caravan.world.Production;
 import com.badlogic.gdx.math.MathUtils;
@@ -12,8 +12,6 @@ import com.badlogic.gdx.utils.ObjectIntMap;
 import com.darkyen.retinazer.Mapper;
 import com.darkyen.retinazer.Wire;
 import com.darkyen.retinazer.systems.EntityProcessorSystem;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
 import org.jetbrains.annotations.NotNull;
 
 import static caravan.util.Util.max;
@@ -24,14 +22,10 @@ import static caravan.util.Util.rRound;
 /**
  * Simulates town economics, internal supply and demand.
  */
-public final class TownSystem extends EntityProcessorSystem implements StatefulService {
-
-	private static final float DAY_DURATION = 30f;
-
-	private float dayCountdown;
+public final class TownSystem extends EntityProcessorSystem {
 
 	@Wire
-	private SimulationService simulationService;
+	private TimeService timeService;
 	@Wire
 	private Mapper<TownC> town;
 
@@ -41,10 +35,8 @@ public final class TownSystem extends EntityProcessorSystem implements StatefulS
 
 	@Override
 	public void update() {
-		dayCountdown -= simulationService.delta;
-		while (dayCountdown <= 0) {
+		for (int i = 0; i < timeService.dayAdvances; i++) {
 			super.update();
-			dayCountdown += DAY_DURATION;
 		}
 	}
 
@@ -72,7 +64,7 @@ public final class TownSystem extends EntityProcessorSystem implements StatefulS
 			final float created = production.produce(town, consumedOne);
 			produced.add(production.output, created * scale);
 			consumed.add(consumedOne, scale);
-			consumedOne.clear();
+			consumedOne.reset();
 		}
 
 		for (Merchandise m : Merchandise.VALUES) {
@@ -235,20 +227,5 @@ public final class TownSystem extends EntityProcessorSystem implements StatefulS
 		}
 
 		return gained - lost;
-	}
-
-	@Override
-	public int stateVersion() {
-		return 1;
-	}
-
-	@Override
-	public void save(Output output) {
-		output.writeFloat(dayCountdown);
-	}
-
-	@Override
-	public void load(Input input) {
-		dayCountdown = input.readFloat();
 	}
 }

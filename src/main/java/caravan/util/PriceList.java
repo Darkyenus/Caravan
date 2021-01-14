@@ -1,5 +1,6 @@
-package caravan.world;
+package caravan.util;
 
+import caravan.world.Merchandise;
 import com.badlogic.gdx.math.MathUtils;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
@@ -11,9 +12,9 @@ import java.util.Arrays;
 public final class PriceList {
 
 	/** How many units have been sold here */
-	private final short[] supply = new short[Merchandise.VALUES.length];
+	private final short[] supply = new short[Merchandise.COUNT];
 	/** How many units have been bought here */
-	private final short[] demand = new short[Merchandise.VALUES.length];
+	private final short[] demand = new short[Merchandise.COUNT];
 
 	/** Price a caravan has to pay for a single unit of merchandise. */
 	public int buyPrice(@NotNull Merchandise m) {
@@ -76,17 +77,14 @@ public final class PriceList {
 	}
 
 	public void save(@NotNull Output output) {
-		assert supply.length == demand.length;
-		output.writeInt(supply.length);
-		output.writeShorts(supply, 0, supply.length);
-		output.writeShorts(demand, 0, supply.length);
+		final EnumSerializer.Writer writer = Merchandise.SERIALIZER.write(output);
+		writer.write(output, this.supply);
+		writer.write(output, this.demand);
 	}
 
 	public void load(@NotNull Input input) {
-		final int length = input.readInt();
-		final short[] supply = input.readShorts(length);
-		final short[] demand = input.readShorts(length);
-		System.arraycopy(supply, 0, this.supply, 0, Math.min(supply.length, this.supply.length));
-		System.arraycopy(demand, 0, this.demand, 0, Math.min(demand.length, this.demand.length));
+		final EnumSerializer.Reader reader = Merchandise.SERIALIZER.read(input);
+		reader.read(input, this.supply);
+		reader.read(input, this.demand);
 	}
 }

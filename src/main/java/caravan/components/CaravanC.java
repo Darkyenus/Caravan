@@ -1,7 +1,9 @@
 package caravan.components;
 
 import caravan.util.CaravanComponent;
-import caravan.world.Inventory;
+import caravan.util.EnumSerializer;
+import caravan.util.Inventory;
+import caravan.util.TownPriceMemory;
 import caravan.world.Merchandise;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
@@ -14,8 +16,9 @@ import java.util.Arrays;
 public final class CaravanC extends CaravanComponent {
 
 	public int money;
-	public boolean[] categories = new boolean[Merchandise.Category.VALUES.length];
+	public boolean[] categories = new boolean[Merchandise.Category.COUNT];
 	public final Inventory inventory = new Inventory();
+	public final TownPriceMemory priceMemory = new TownPriceMemory(7);
 	public float speed;
 
 	{
@@ -26,7 +29,8 @@ public final class CaravanC extends CaravanComponent {
 	public void reset() {
 		money = 0;
 		Arrays.fill(categories, false);
-		inventory.clear();
+		inventory.reset();
+		priceMemory.reset();
 		speed = 2f;
 	}
 
@@ -34,17 +38,23 @@ public final class CaravanC extends CaravanComponent {
 	public void save(@NotNull Output output) {
 		output.writeInt(money);
 		output.writeFloat(speed);
-		output.writeInt(categories.length);
-		output.writeBooleans(categories, 0, categories.length);
+
+		final EnumSerializer.Writer writer = Merchandise.Category.SERIALIZER.write(output);
+		writer.write(output, categories);
+
 		inventory.save(output);
+		priceMemory.save(output);
 	}
 
 	@Override
 	public void load(@NotNull Input input, int version) {
 		money = input.readInt();
 		speed = input.readFloat();
-		final boolean[] categories = input.readBooleans(input.readInt());
-		System.arraycopy(categories, 0, this.categories, 0, Math.min(categories.length, this.categories.length));
+
+		final EnumSerializer.Reader reader = Merchandise.Category.SERIALIZER.read(input);
+		reader.read(input, categories);
+
 		inventory.load(input);
+		priceMemory.load(input);
 	}
 }

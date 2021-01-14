@@ -2,6 +2,7 @@ package caravan.world;
 
 import caravan.components.TownC;
 import caravan.services.Id;
+import caravan.util.Inventory;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;

@@ -72,7 +72,7 @@ public final class WorldService implements EngineService, RenderingService, Stat
 	}
 
 	@Override
-	public void save(Output output) {
+	public void save(@NotNull Output output) {
 		output.writeInt(width);
 		output.writeInt(height);
 		output.writeShort(tiles.defaultValue.id);
@@ -82,7 +82,7 @@ public final class WorldService implements EngineService, RenderingService, Stat
 	}
 
 	@Override
-	public void load(Input input) {
+	public void load(@NotNull Input input) {
 		final int width = input.readInt();
 		final int height = input.readInt();
 		final Tile defaultTile = Tile.REGISTRY.getOrDefault(input.readShort());

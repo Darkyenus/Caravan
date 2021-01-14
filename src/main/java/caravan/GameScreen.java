@@ -9,7 +9,7 @@ import caravan.services.MoveSystem;
 import caravan.services.PlayerControlSystem;
 import caravan.services.RenderSystem;
 import caravan.services.RenderingService;
-import caravan.services.SimulationService;
+import caravan.services.TimeService;
 import caravan.services.StatefulService;
 import caravan.services.TitleRenderService;
 import caravan.services.UIService;
@@ -42,7 +42,7 @@ public final class GameScreen extends CaravanApplication.UIScreen {
 
 	public Engine engine;
 
-	private SimulationService simulationService;
+	private TimeService simulationService;
 	private CameraFocusSystem cameraFocusSystem;
 
 	private RenderingService[] renderingServices;
@@ -58,7 +58,7 @@ public final class GameScreen extends CaravanApplication.UIScreen {
 		final int worldWidth = 300;
 		final int worldHeight = 300;
 		engine = new Engine(Components.DOMAIN,
-				simulationService = new SimulationService(),
+				simulationService = new TimeService(),
 				new EntitySpawnService(),
 				new PlayerControlSystem(application, gameInput),
 				new MoveSystem(),

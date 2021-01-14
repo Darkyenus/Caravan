@@ -28,7 +28,7 @@ public final class RenderSystem extends EntityProcessorSystem implements Renderi
 	@Wire
 	private Mapper<PositionC> position;
 	@Wire
-	private SimulationService simulation;
+	private TimeService simulation;
 
 	public RenderSystem() {
 		super(Components.DOMAIN.familyWith(RenderC.class, PositionC.class));

@@ -7,6 +7,7 @@ import caravan.services.EntitySpawnService;
 import caravan.services.WorldService;
 import caravan.util.CSVWriter;
 import caravan.util.PooledArray;
+import caravan.util.PriceList;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.RandomXS128;

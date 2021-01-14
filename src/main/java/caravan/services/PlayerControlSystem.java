@@ -39,7 +39,7 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
     private Mapper<RenderC> rendererMapper;
 
     @Wire
-    private SimulationService simulation;
+    private TimeService simulation;
 
     @Wire
     private MoveSystem moveSystem;

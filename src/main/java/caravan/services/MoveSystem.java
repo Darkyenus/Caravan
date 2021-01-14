@@ -20,7 +20,7 @@ public final class MoveSystem extends EntityProcessorSystem {
     private Mapper<MoveC> moveMapper;
 
     @Wire
-    private SimulationService simulation;
+    private TimeService simulation;
 
     public MoveSystem() {
         super(Components.DOMAIN.familyWith(PositionC.class, MoveC.class));
