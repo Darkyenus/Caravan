@@ -14,6 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Value;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.UIUtils;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.ObjectIntMap;
 import org.jetbrains.annotations.NotNull;
@@ -188,7 +189,7 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 				}
 
 				final Merchandise merchandise = (Merchandise) actor.getUserObject();
-				if (!performBuy(town, caravan, merchandise)) {
+				if (!performBuy(town, caravan, merchandise, UIUtils.alt() || UIUtils.shift())) {
 					Gdx.app.log("TradingSystem", "Buy of " + merchandise + " failed");
 				} else {
 					refresh();
@@ -205,7 +206,7 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 				}
 
 				final Merchandise merchandise = (Merchandise) actor.getUserObject();
-				if (!performSell(town, caravan, merchandise)) {
+				if (!performSell(town, caravan, merchandise, UIUtils.alt() || UIUtils.shift())) {
 					Gdx.app.log("TradingSystem", "Sell of " + merchandise + " failed");
 				} else {
 					refresh();
@@ -290,27 +291,35 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 		root.invalidateHierarchy();
 	}
 
-	public static boolean performBuy(@NotNull TownC town, @NotNull CaravanC caravan, @NotNull Merchandise m) {
+	public static boolean performBuy(@NotNull TownC town, @NotNull CaravanC caravan, @NotNull Merchandise m, boolean allForPrice) {
+		boolean boughtSomething = false;
 		final int buyPrice = town.prices.buyPrice(m);
-		if (buyPrice > caravan.money) {
-			return false;
-		}
-		town.money += buyPrice;
-		caravan.money -= buyPrice;
-		caravan.inventory.add(m, 1);
-		town.prices.buyUnit(m);
+		do {
+			if (buyPrice > caravan.money) {
+				return boughtSomething;
+			}
+			boughtSomething = true;
+			town.money += buyPrice;
+			caravan.money -= buyPrice;
+			caravan.inventory.add(m, 1);
+			town.prices.buyUnit(m);
+		} while (allForPrice && (buyPrice == town.prices.buyPrice(m)));
 		return true;
 	}
 
-	public static boolean performSell(@NotNull TownC town, @NotNull CaravanC caravan, @NotNull Merchandise m) {
-		if (caravan.inventory.get(m) <= 0) {
-			return false;
-		}
+	public static boolean performSell(@NotNull TownC town, @NotNull CaravanC caravan, @NotNull Merchandise m, boolean allForPrice) {
+		boolean soldSomething = false;
 		final int sellPrice = Math.min(town.prices.sellPrice(m), town.money);
-		town.money -= sellPrice;
-		caravan.money += sellPrice;
-		caravan.inventory.add(m, -1);
-		town.prices.sellUnit(m);
+		do {
+			if (caravan.inventory.get(m) <= 0) {
+				return soldSomething;
+			}
+			soldSomething = true;
+			town.money -= sellPrice;
+			caravan.money += sellPrice;
+			caravan.inventory.add(m, -1);
+			town.prices.sellUnit(m);
+		} while (allForPrice && sellPrice == Math.min(town.prices.sellPrice(m), town.money));
 		return true;
 	}
 }
