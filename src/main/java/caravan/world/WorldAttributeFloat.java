@@ -10,7 +10,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 
@@ -167,13 +166,17 @@ public final class WorldAttributeFloat {
 	public void normalize(float min, float max) {
 		final float mapMin = min();
 		final float rescale = (max - min) / (max() - mapMin);
-		final float offset = min - mapMin;
+		final float offset = min - mapMin * rescale;
 
 		final float[] values = this.values;
 		final int length = values.length;
 		for (int i = 0; i < length; i++) {
-			values[i] = (values[i] + offset) * rescale;
+			values[i] = offset + values[i] * rescale;
 		}
+	}
+
+	public void interpolate(@NotNull Interpolation interp) {
+
 	}
 
 	/** Take all values that are <= inset tiles away from the edge (tile at 0,0 is 1,1 from edge),

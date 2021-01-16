@@ -16,7 +16,6 @@ import org.jetbrains.annotations.NotNull;
 
 import static caravan.util.Util.max;
 import static caravan.util.Util.maxIndex;
-import static caravan.util.Util.minIndex;
 import static caravan.util.Util.rRound;
 
 /**
@@ -79,81 +78,90 @@ public final class TownSystem extends EntityProcessorSystem {
 		}
 	}
 
-	/** Simulate buying whatever is cheap from the merch amount times. */
-	private static float fulfillBasicNeed(@NotNull TownC town, @NotNull Merchandise[] merch, int amount) {
-		float[] prices = new float[merch.length];
-		for (int i = 0; i < merch.length; i++) {
-			prices[i] = town.prices.basePrice(merch[i]);
-		}
-		float value = 0;
-		while (amount > 0) {
-			int toBuyIndex = minIndex(prices);
-			value += town.prices.basePrice(merch[toBuyIndex]);
-			town.prices.buyUnit(merch[toBuyIndex]);
-			// Steadily increase price to simulate lowered demand of the same good type in large quantities.
-			// i.e. people don't want to eat only one thing and would rather pay up for something else
-			prices[toBuyIndex] = Math.max(town.prices.basePrice(merch[toBuyIndex]), prices[toBuyIndex] * 1.2f);
-			amount--;
-		}
-		return value;
-	}
-
-	/** Simulate buying amount*every entry of merch. */
-	private static float fulfillGeneralNeed(@NotNull TownC town, @NotNull Merchandise[] merch, float amount) {
-		float value = 0;
-		for (Merchandise m : merch) {
-			int roundedAmount = rRound(amount);
-			for (int i = 0; i < roundedAmount; i++) {
-				value += town.prices.basePrice(m);
-				town.prices.buyUnit(m);
-			}
-		}
-		return value;
-	}
-
-	private static float fulfillLuxuryNeed(@NotNull TownC town, @NotNull Merchandise[] merch, int amount, float budget) {
-		if (amount < 1 || budget <= 0) {
+	private static float fulfillNeed(@NotNull TownC town, @NotNull Merchandise[] merch, float totalAmount, float budget, float variableConsumption) {
+		if (merch.length <= 0) {
 			return 0;
 		}
 
-		float value = 0;
-		final Array<@NotNull Merchandise> shuffle = new Array<>(merch);
-		boolean boughtSomething;
-		outer:do {
-			boughtSomething = false;
-			shuffle.shuffle();
-			for (Merchandise m : shuffle) {
-				final float p = town.prices.basePrice(m);
-				value += p;
-				budget -= p;
-				town.prices.buyUnit(m);
-				boughtSomething = true;
-				if (--amount <= 0 || budget < 0) {
-					break outer;
+		if (merch.length == 1) {
+			// Special case
+			final int amount = rRound(totalAmount);
+			float spentValue = 0;
+			final Merchandise m = merch[0];
+			for (int a = 0; a < amount; a++) {
+				final float price = town.prices.basePrice(m);
+				if (spentValue + price > budget) {
+					break;
 				}
+				spentValue += price;
+				town.prices.buyUnit(m);
 			}
-		} while (boughtSomething);
-		return value;
+			return spentValue;
+		}
+
+		final float variableAmountTotal = totalAmount * variableConsumption;
+		final float guaranteedAmountPerItem = (totalAmount - variableAmountTotal) / merch.length;
+
+		float[] unitsToBuy = new float[merch.length];
+		for (int i = 0; i < merch.length; i++) {
+			unitsToBuy[i] = -town.prices.basePrice(merch[i]);
+		}
+		{// Softmax-like
+			final float offset = max(unitsToBuy);
+			float sum = 0;
+			for (int i = 0; i < merch.length; i++) {
+				sum += (unitsToBuy[i] = (float) Math.exp(unitsToBuy[i] - offset));
+			}
+			float iSum = variableAmountTotal / sum;
+			for (int i = 0; i < merch.length; i++) {
+				unitsToBuy[i] = unitsToBuy[i] * iSum + guaranteedAmountPerItem;
+			}
+		}
+
+		float totalPriceEstimate = 0f;
+		for (int i = 0; i < merch.length; i++) {
+			totalPriceEstimate += unitsToBuy[i] * town.prices.basePrice(merch[i]);
+		}
+
+		if (totalPriceEstimate > budget) {
+			float scaleDown = budget / totalPriceEstimate;
+			for (int i = 0; i < merch.length; i++) {
+				unitsToBuy[i] *= scaleDown;
+			}
+		}
+
+		float spentValue = 0;
+		for (int i = 0; i < merch.length; i++) {
+			final int amount = rRound(unitsToBuy[i]);
+
+			for (int a = 0; a < amount; a++) {
+				final Merchandise m = merch[i];
+				spentValue += town.prices.basePrice(m);
+				town.prices.buyUnit(m);
+			}
+		}
+
+		return spentValue;
 	}
 
 	private static void simulateInternalConsumption(@NotNull TownC town) {
 		float valueOfBoughtStuff = 0;
 
 		// Basic food
-		valueOfBoughtStuff += fulfillBasicNeed(town, Merchandise.BASIC_FOOD, rRound(town.population * 0.06f));
-		valueOfBoughtStuff += fulfillBasicNeed(town, Merchandise.EXTRA_FOOD, rRound(town.population * 0.03f));
+		valueOfBoughtStuff += fulfillNeed(town, Merchandise.BASIC_FOOD, town.population * 0.15f, Float.POSITIVE_INFINITY,1f);
+		valueOfBoughtStuff += fulfillNeed(town, Merchandise.EXTRA_FOOD, town.population * 0.06f, Float.POSITIVE_INFINITY, 0.7f);
 		if (!town.environment.hasFreshWater) {
-			valueOfBoughtStuff += fulfillBasicNeed(town, Merchandise.FRESH_WATER, rRound(town.population / 8f));
+			valueOfBoughtStuff += fulfillNeed(town, Merchandise.FRESH_WATER, town.population * 0.2f, Float.POSITIVE_INFINITY, 0f);
 		}
 
 		// Basic goods
-		valueOfBoughtStuff += fulfillGeneralNeed(town, Merchandise.COMMON_GOODS, town.population / 50f);
+		valueOfBoughtStuff += fulfillNeed(town, Merchandise.COMMON_GOODS, town.population * 0.02f, Float.POSITIVE_INFINITY, 0.4f);
 
 		// Luxury goods, as budget allows
 		float budget = (town.money - valueOfBoughtStuff) * 0.5f;
 		town.wealth = MathUtils.clamp(town.wealth + (float) Math.tanh(budget * 0.1) * 0.1f, -1, 1);
 
-		fulfillLuxuryNeed(town, Merchandise.LUXURY_GOODS, rRound(town.population / 5f), budget);
+		fulfillNeed(town, Merchandise.LUXURY_GOODS, town.population * 0.2f, budget, 0.5f);
 	}
 
 	/** Pick which production leads to most money. */
@@ -224,7 +232,10 @@ public final class TownSystem extends EntityProcessorSystem {
 		float gained = result * town.prices.sellPrice(production.output);
 		float lost = 0f;
 		for (Merchandise m : Merchandise.VALUES) {
-			lost += inv.get(m) * town.prices.buyPrice(m);
+			final int amount = inv.get(m);
+			if (amount != 0) {
+				lost += amount * town.prices.buyPrice(m);
+			}
 		}
 
 		return gained - lost;

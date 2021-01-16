@@ -32,6 +32,14 @@ public final class Util {
 		return result;
 	}
 
+	public static double max(double...values) {
+		double result = values[0];
+		for (int i = 1, valuesLength = values.length; i < valuesLength; i++) {
+			result = Math.max(result, values[i]);
+		}
+		return result;
+	}
+
 	public static float min(float...values) {
 		float result = values[0];
 		for (int i = 1, valuesLength = values.length; i < valuesLength; i++) {
@@ -83,6 +91,14 @@ public final class Util {
 			}
 		}
 		return -1;
+	}
+
+	public static boolean isSanePositive(short value) {
+		return value >= 0 && value < 30000;
+	}
+
+	public static boolean isSanePositive(float value) {
+		return Float.isFinite(value) && value < 1e10f && value >= 0f;
 	}
 
 	public static short toShortClamp(int value) {

@@ -2,7 +2,6 @@ package caravan.world;
 
 import caravan.services.Id;
 import caravan.util.Inventory;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.MathUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,10 +37,6 @@ public abstract class Production extends Id<Production> {
 	private static final Merchandise[] PRODUCTION_MATERIAL_FUEL = new Merchandise[] {
 			Merchandise.COAL,
 			Merchandise.WOOD_FUEL,
-	};
-	private static final Merchandise[] PRODUCTION_MATERIAL_SWEETENER = new Merchandise[] {
-			Merchandise.SUGAR,
-			Merchandise.HONEY,
 	};
 	private static final Merchandise[] PRODUCTION_MATERIAL_LIQUOR_BASE = new Merchandise[] {
 			Merchandise.VEGETABLES_FRESH,
@@ -117,10 +112,10 @@ public abstract class Production extends Id<Production> {
 			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				float units = 0;
 				if (environment.hasSaltWater) {
-					units += 3f;
+					units += 6f;
 				}
 				if (environment.hasFreshWater) {
-					units += 1.5f;
+					units += 2.5f;
 				}
 				return units;
 			}
@@ -137,7 +132,7 @@ public abstract class Production extends Id<Production> {
 			@Override
 			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				resources.add(Merchandise.MEAT_FRESH, 40);
-				resources.add(Merchandise.WOOD_FUEL, 25);
+				resources.add(Merchandise.WOOD_FUEL, 15);
 				return 40;
 			}
 		};
@@ -156,19 +151,13 @@ public abstract class Production extends Id<Production> {
 				float land = environment.fieldSpace;
 				float water = environment.precipitation;
 				float temperature = fuzzyInRange(10f, 35f, environment.temperature);
-				return map(0.1f, 4f, 11f, mix(land, water, (float) Math.sqrt(temperature)));
+				return map(0.1f, 4f, 11f, mix(land, water, temperature));
 			}
 		};
 		new Production(id++, "Beekeeping", Merchandise.HONEY) {
 			@Override
 			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
-				return mix(environment.fieldSpace, environment.woodAbundance) * 5;
-			}
-		};
-		new Production(id++, "Sugar cane farming", Merchandise.SUGAR) {
-			@Override
-			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
-				return map(0, 1, 5, mix(environment.fieldSpace, fuzzyInRange(25, 35, environment.temperature), fuzzyInRange(0.7f, 1f, environment.precipitation)));
+				return Math.max(environment.fieldSpace, environment.woodAbundance) * 10;
 			}
 		};
 		new Production(id++, "Beer brewing", Merchandise.BEER) {
@@ -184,7 +173,7 @@ public abstract class Production extends Id<Production> {
 			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				resources.add(Merchandise.FRUIT_FRESH, 15);
 				resources.add(Merchandise.WATER_FRESH, 10);
-				return 10;
+				return 25;
 			}
 		};
 		new Production(id++, "Mead making", Merchandise.MEAD) {
@@ -192,7 +181,7 @@ public abstract class Production extends Id<Production> {
 			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				resources.add(Merchandise.HONEY, 15);
 				resources.add(Merchandise.WATER_FRESH, 15);
-				return 15;
+				return 25;
 			}
 		};
 		new Production(id++, "Water gathering", Merchandise.WATER_FRESH) {
@@ -215,26 +204,30 @@ public abstract class Production extends Id<Production> {
 				return map(0.1f, 1f, 4f, mix(land, water, temperature));
 			}
 		};
+		new Production(id++, "Fruit jam production", Merchandise.FRUIT_JAM) {
+			@Override
+			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
+				resources.add(Merchandise.FRUIT_FRESH, 50);
+				resources.add(Merchandise.HONEY, 15);
+				return 50;
+			}
+		};
 		new Production(id++, "Vegetable growing", Merchandise.VEGETABLES_FRESH) {
 			@Override
 			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
 				float land = environment.fieldSpace;
 				float water = environment.precipitation;
-				float temperature = fuzzyInRangeWithPeak(10f, 25f, 32f, environment.temperature);
-				return map(0.1f, 2f, 4f, mix(land, water, (float) Math.sqrt(temperature)));
+				float temperature = fuzzyInRangeWithPeak(5f, 25f, 30f, environment.temperature);
+				return map(0.1f, 2f, 4f, mix(land, water, temperature));
 			}
 		};
 		new Production(id++, "Fruit drying", Merchandise.FRUIT_DRIED) {
 			@Override
 			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
-				if (environment.temperature < 25f) {
-					return 0;
-				}
-				if (environment.precipitation >= 0.5f) {
-					return 0;
-				}
-				resources.add(Merchandise.FRUIT_FRESH, 50);
-				return 30;
+				float effectivity = mix(fuzzyInRange(18f, 35f, environment.temperature),
+						fuzzyInRange(0f, 0.6f, environment.precipitation));
+				resources.add(Merchandise.FRUIT_FRESH, MathUtils.round(50 * effectivity));
+				return 30 * effectivity;
 			}
 		};
 		new Production(id++, "Spice farming", Merchandise.SPICES) {
@@ -248,10 +241,12 @@ public abstract class Production extends Id<Production> {
 		new Production(id++, "Salt extraction", Merchandise.SALT) {
 			@Override
 			public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
-				if (!environment.hasSaltWater || environment.precipitation > 0.3f) {
+				if (!environment.hasSaltWater) {
 					return 0;
 				}
-				return fuzzyInRangeWithPeak(15f, 35f, 40f, environment.temperature) * 40f;
+				float effectivity = mix(fuzzyInRange(18f, 40f, environment.temperature),
+						fuzzyInRange(0f, 0.6f, environment.precipitation));
+				return 40 * effectivity;
 			}
 		};
 		new Production(id++, "Book writing", Merchandise.BOOK) {
@@ -335,6 +330,19 @@ public abstract class Production extends Id<Production> {
 				}
 			};
 
+			new Production(idBox[0]++, "Luxury Baking ("+fuel.materialName+")", Merchandise.BAKED_GOODS_LUXURY) {
+				@Override
+				public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
+					resources.add(Merchandise.GRAIN, 25);
+					resources.add(Merchandise.WATER_FRESH, 15);
+					resources.add(fuel, 10);
+					resources.add(Merchandise.SALT, 3);
+					resources.add(Merchandise.SPICES, 3);
+					resources.add(Merchandise.HONEY, 6);
+					return 35;
+				}
+			};
+
 			new Production(idBox[0]++, "Rare metal smelting ("+fuel.materialName+")", Merchandise.METAL_RARE_INGOT) {
 				@Override
 				public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
@@ -389,30 +397,6 @@ public abstract class Production extends Id<Production> {
 					resources.add(origin, 15);
 					resources.add(Merchandise.WATER_FRESH, 20);
 					return 10;
-				}
-			};
-		});
-
-		id = alternatives(id, PRODUCTION_MATERIAL_SWEETENER, (idBox, sweetener) -> {
-			new Production(idBox[0]++, "Fruit jam production ("+sweetener.materialName+")", Merchandise.FRUIT_JAM) {
-				@Override
-				public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
-					resources.add(Merchandise.FRUIT_FRESH, 50);
-					resources.add(sweetener, 20);
-					return 50;
-				}
-			};
-
-			new Production(idBox[0]++, "Luxury Baking ("+ sweetener.materialName +")", Merchandise.BAKED_GOODS_LUXURY) {
-				@Override
-				public float produce(@NotNull Environment environment, @NotNull Inventory resources) {
-					resources.add(Merchandise.GRAIN, 50);
-					resources.add(Merchandise.WATER_FRESH, 20);
-					resources.add(Merchandise.WOOD_FUEL, 10);
-					resources.add(Merchandise.SALT, 3);
-					resources.add(Merchandise.SPICES, 3);
-					resources.add(sweetener, 6);
-					return 50;
 				}
 			};
 		});

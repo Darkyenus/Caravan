@@ -20,7 +20,6 @@ public enum Merchandise {
 	GRAIN("Grain", true, Category.FOOD),
 	BAKED_GOODS("Baked goods", true, Category.FOOD),
 	HONEY("Honey", true, Category.FOOD),
-	SUGAR("Sugar", true, Category.FOOD),
 	WATER_FRESH("Fresh water", true, Category.FOOD),
 	FRUIT_FRESH("Fresh fruit", "fruit", false, Category.FOOD),
 	FRUIT_DRIED("Dried fruit", true, Category.FOOD),
@@ -60,6 +59,7 @@ public enum Merchandise {
 	//DAIRY_MILK("Milk"),
 	//DAIRY_CHEESE("Cheese"),
 	//FOOD_OIL_FAT("Cooking oil"),
+	//SUGAR("Sugar", true, Category.FOOD),
 	;
 
 	/** Base name shown in the UI */
@@ -77,7 +77,7 @@ public enum Merchandise {
 
 	public static final EnumSerializer<Merchandise> SERIALIZER = new EnumSerializer<>(0,
 			new Merchandise[]{// Version 0
-					RAW_PLANT_FIBER, RAW_ANIMAL_FIBER, CLOTH, CLOTH_LUXURY, CLOTHING, CLOTHING_LUXURY, MEAT_FRESH, MEAT_PRESERVED, GRAIN, BAKED_GOODS, HONEY, SUGAR, WATER_FRESH, FRUIT_FRESH, FRUIT_DRIED,
+					RAW_PLANT_FIBER, RAW_ANIMAL_FIBER, CLOTH, CLOTH_LUXURY, CLOTHING, CLOTHING_LUXURY, MEAT_FRESH, MEAT_PRESERVED, GRAIN, BAKED_GOODS, HONEY, WATER_FRESH, FRUIT_FRESH, FRUIT_DRIED,
 					FRUIT_JAM, VEGETABLES_FRESH, VEGETABLES_PICKLED, SALT, BAKED_GOODS_LUXURY, MEAT_LUXURY, BEER, WINE, LIQUOR, MEAD, SPICES, BOOK, PERFUME, JEWELRY, METAL_RARE_ORE, METAL_RARE_INGOT,
 					METAL_ORE, METAL_INGOT, COAL, JEWELS, ARMOR_AND_WEAPONS, TOOLS, WOOD_LOG, WOOD_FUEL, WOOD_LUMBER
 			}
@@ -101,16 +101,15 @@ public enum Merchandise {
 	public static final Merchandise[] BASIC_FOOD = new Merchandise[] {
 			BAKED_GOODS,
 			FRUIT_FRESH,
-			VEGETABLES_FRESH
+			VEGETABLES_FRESH,
+			MEAT_FRESH
 	};
 
 	public static final Merchandise[] EXTRA_FOOD = new Merchandise[] {
-			MEAT_FRESH,
 			MEAT_PRESERVED,
 			FRUIT_DRIED,
 			FRUIT_JAM,
-			VEGETABLES_PICKLED,
-			SALT
+			VEGETABLES_PICKLED
 	};
 
 	/** required only when the city does not have its own source */

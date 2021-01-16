@@ -94,12 +94,12 @@ public final class WorldGenerator {
 		final WorldAttributeFloat jewelOccurrence = new WorldAttributeFloat(world.width, world.height, 0f);
 		final WorldAttributeFloat stoneOccurrence = new WorldAttributeFloat(world.width, world.height, 0f);
 		final WorldAttributeFloat limestoneOccurrence = new WorldAttributeFloat(world.width, world.height, 0f);
-		generateMineral(rareMetalOccurrence, 0.025f, 30f, random);
-		generateMineral(metalOccurrence, 0.145f, 40f, random);
-		generateMineral(coalOccurrence, 0.07f, 50f, random);
-		generateMineral(jewelOccurrence, 0.03f, 20f, random);
-		generateMineral(stoneOccurrence, 0.2f, 50f, random);
-		generateMineral(limestoneOccurrence, 0.1f, 40f, random);
+		generateMineral(rareMetalOccurrence, 0.35f, 30f, random);
+		generateMineral(metalOccurrence, 0.55f, 40f, random);
+		generateMineral(coalOccurrence, 0.4f, 50f, random);
+		generateMineral(jewelOccurrence, 0.25f, 20f, random);
+		generateMineral(stoneOccurrence, 0.7f, 50f, random);
+		generateMineral(limestoneOccurrence, 0.5f, 40f, random);
 
 		// Generate cities
 		final Mapper<TownC> townMapper = engine.getMapper(TownC.class);
@@ -113,7 +113,7 @@ public final class WorldGenerator {
 		final int townCount = 24;
 		for (int townIndex = 0; townIndex < townCount; townIndex++) {
 			if (townIndex % 4 == 0) {
-				fillOutTownPlacementScore(townPlacementScore, townClosenessPenalty, townEntities, townMapper, random, altitude, temperature, precipitation,
+				fillOutTownPlacementScore(townPlacementScore, townClosenessPenalty, townEntities, townMapper, altitude, temperature, precipitation,
 						forestMap, pastureMap, fishMap, rareMetalOccurrence, metalOccurrence, coalOccurrence, jewelOccurrence, stoneOccurrence, limestoneOccurrence);
 			}
 
@@ -139,7 +139,7 @@ public final class WorldGenerator {
 					rareMetalOccurrence, metalOccurrence, coalOccurrence, jewelOccurrence, stoneOccurrence, limestoneOccurrence);
 
 			if (townIndex % 4 == 3) {
-				simulateSuperInitialWorldPrices(townMapper, townEntities, 30);
+				simulateSuperInitialWorldPrices(townMapper, townEntities, 50);
 			}
 		}
 
@@ -194,7 +194,7 @@ public final class WorldGenerator {
 		engine.flush();
 	}
 
-	private static void fillOutTownPlacementScore(WorldAttributeFloat townPlacementScore, WorldAttributeFloat townClosenessPenalty, IntArray townEntities, Mapper<TownC> townMapper, RandomXS128 random, WorldAttributeFloat altitude, WorldAttributeFloat temperature, WorldAttributeFloat precipitation, WorldAttributeFloat forestMap, WorldAttributeFloat pastureMap, WorldAttributeFloat fishMap, WorldAttributeFloat rareMetalOccurrence, WorldAttributeFloat metalOccurrence, WorldAttributeFloat coalOccurrence, WorldAttributeFloat jewelOccurrence, WorldAttributeFloat stoneOccurrence, WorldAttributeFloat limestoneOccurrence) {
+	private static void fillOutTownPlacementScore(WorldAttributeFloat townPlacementScore, WorldAttributeFloat townClosenessPenalty, IntArray townEntities, Mapper<TownC> townMapper, WorldAttributeFloat altitude, WorldAttributeFloat temperature, WorldAttributeFloat precipitation, WorldAttributeFloat forestMap, WorldAttributeFloat pastureMap, WorldAttributeFloat fishMap, WorldAttributeFloat rareMetalOccurrence, WorldAttributeFloat metalOccurrence, WorldAttributeFloat coalOccurrence, WorldAttributeFloat jewelOccurrence, WorldAttributeFloat stoneOccurrence, WorldAttributeFloat limestoneOccurrence) {
 		townPlacementScore.fill(0);
 
 		final TownC dummyTown = new TownC();
@@ -303,8 +303,8 @@ public final class WorldGenerator {
 				for (int ti1 = 0; ti1 < townEntities.size; ti1++) {
 					final TownC otherTown = town.get(townEntities.get(ti1));
 
-					arbitrageTowns(localTown, otherTown, 10f);
-					arbitrageTowns(otherTown, localTown, 10f);
+					arbitrageTowns(localTown, otherTown, 5f);
+					arbitrageTowns(otherTown, localTown, 5f);
 				}
 			}
 
@@ -444,20 +444,15 @@ public final class WorldGenerator {
 	/** Temperature in degrees Celsius */
 	private static WorldAttributeFloat generateTemperature(WorldAttributeFloat altitude, RandomXS128 random) {
 		final WorldAttributeFloat temperature = new WorldAttributeFloat(altitude.width, altitude.height, 0f);
-		// Temperature is primarily determined by latitude, with south part of the map being very hot,
-		// while north being freezing, just because.
-		final float northTemperature = -10f + random.nextFloat() * 15f;
-		final float southTemperature = 23f + random.nextFloat() * 12f;
-		for (int y = 0; y < altitude.height; y++) {
-			final float temp = MathUtils.map(0, altitude.height - 1, northTemperature, southTemperature, y);
-			for (int x = 0; x < altitude.width; x++) {
-				temperature.set(x, y, temp);
-			}
-		}
-		// Another contributor is height - most sources give drop of 6C per 1km of height
+		temperature.add(random.nextLong(), 80f, 1f);
+		temperature.add(random.nextLong(), 40f, 0.5f);
+		temperature.add(random.nextLong(), 20f, 0.25f);
+		temperature.normalize(-3f, 37f);
+
+		// Account for height height - most sources give drop of 6C per 1km of height
 		for (int y = 0; y < altitude.height; y++) {
 			for (int x = 0; x < altitude.width; x++) {
-				temperature.set(x, y, temperature.get(x, y) + altitude.get(x, y) * -6f);
+				temperature.set(x, y, temperature.get(x, y) + altitude.get(x, y) * /*-6f*/ -3f);
 			}
 		}
 		// Another potential contributors: continentality, winds, slope etc.
@@ -503,6 +498,7 @@ public final class WorldGenerator {
 		forest.add(random.nextLong(), 5f, 0.4f);
 		forest.add(-0.1f);
 		forest.clamp(0f, 1f);
+		forest.interpolate(Interpolation.pow5);
 		return forest;
 	}
 
@@ -522,6 +518,7 @@ public final class WorldGenerator {
 		pasture.add(random.nextLong(), 20f, 0.4f);
 		pasture.add(random.nextLong(), 2f, 0.15f);
 		pasture.clamp(0f, 1f);
+		pasture.interpolate(Interpolation.pow5);
 		return pasture;
 	}
 
@@ -535,8 +532,9 @@ public final class WorldGenerator {
 	private static void generateMineral(WorldAttributeFloat map, float rarity, float fieldSize, RandomXS128 random) {
 		map.add(random.nextLong(), fieldSize, 1f);
 		map.add(rarity * 2f - 1f);
-		map.clamp(0f, 1f);
-		map.fill((x, y, v) -> (float) Math.sqrt(v)); // To make nicer falloff
+		map.clamp(0f, 0.5f);
+		map.scale(2f);
+		map.interpolate(Interpolation.smooth);
 	}
 
 	private static void dumpTownData(int index, Mapper<TownC> town, Mapper<PositionC> position, IntArray townEntities) {

@@ -8,6 +8,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
+import static caravan.util.Util.isSanePositive;
+
 /** Prices and market caps of goods of a particular trading post. */
 public final class PriceList {
 
@@ -29,24 +31,30 @@ public final class PriceList {
 	/** Price locals pay for the merchandise. */
 	public float basePrice(@NotNull Merchandise m) {
 		final int ordinal = m.ordinal();
-		return (float) (Math.pow(1.02, demand[ordinal] - supply[ordinal]) * 10);
+		final float result = (float) (Math.pow(1.02, demand[ordinal] - supply[ordinal]) * 10);
+		//assert isSanePositive(result);
+		return MathUtils.clamp(result, 0.1f, 500f);
 	}
 
 	/** The more goods are traded, the smaller the buy/sell gap is. Returns values (0, 0.5]. */
 	private float baseVariability(@NotNull Merchandise m) {
 		final int ordinal = m.ordinal();
 		final int base = (int) demand[ordinal] + (int) supply[ordinal];
-		return (0.5f / (base * 0.2f + 1));
+		final float result = (0.5f / (base * 0.2f + 1));
+		assert result > 0f && result <= 0.5f;
+		return result;
 	}
 
 	/** Update prices after a single unit of merchandise was bought by a caravan. */
 	public void buyUnit(@NotNull Merchandise m) {
-		this.demand[m.ordinal()]++;
+		final short now = ++this.demand[m.ordinal()];
+		assert isSanePositive(now);
 	}
 
 	/** Update prices after a single unit of merchandise was sold to the town by a caravan. */
 	public void sellUnit(@NotNull Merchandise m) {
-		this.supply[m.ordinal()]++;
+		final short now = ++this.supply[m.ordinal()];
+		assert isSanePositive(now);
 	}
 
 	/** Called every game day or so to update the internal counters. */

@@ -136,51 +136,24 @@ public class EconomyOverviewWindow extends Window {
 		everythingTable.add("Average", "title-small");
 		everythingTable.row();
 
-		{
-			everythingTable.add("Money");
-			final Label total = new Label("", skin);
-			final Label min = new Label("", skin);
-			final Label max = new Label("", skin);
-			final Label average = new Label("", skin);
-			everythingTable.add(total);
-			everythingTable.add(min);
-			everythingTable.add(max);
-			everythingTable.add(average);
-			everythingTable.row();
-
-			final FloatCounter counter = new FloatCounter(0);
-			updateProcessors.add(() -> {
-				counter.reset();
-				forEach(towns, town, (town) -> counter.put(town.money));
-				total.setText(String.format("%.2f", counter.total));
-				min.setText(String.format("%.2f", counter.min));
-				max.setText(String.format("%.2f", counter.max));
-				average.setText(String.format("%.2f", counter.average));
-			});
-		}
-
-		{
-			everythingTable.add("Wealth");
-			final Label total = new Label("", skin);
-			final Label min = new Label("", skin);
-			final Label max = new Label("", skin);
-			final Label average = new Label("", skin);
-			everythingTable.add(total);
-			everythingTable.add(min);
-			everythingTable.add(max);
-			everythingTable.add(average);
-			everythingTable.row();
-
-			final FloatCounter counter = new FloatCounter(0);
-			updateProcessors.add(() -> {
-				counter.reset();
-				forEach(towns, town, (town) -> counter.put(town.wealth));
-				total.setText(String.format("%.2f", counter.total));
-				min.setText(String.format("%.2f", counter.min));
-				max.setText(String.format("%.2f", counter.max));
-				average.setText(String.format("%.2f", counter.average));
-			});
-		}
+		addOtherTownStatistic(skin, everythingTable, "Money", (town) -> town.money);
+		addOtherTownStatistic(skin, everythingTable, "Wealth", (town) -> town.wealth);
+		addOtherTownStatistic(skin, everythingTable, "Population", (town) -> town.population);
+		addOtherTownStatistic(skin, everythingTable, "Trade Buy C.", (town) -> town.tradeBuyCounter);
+		addOtherTownStatistic(skin, everythingTable, "Trade Sell C.", (town) -> town.tradeSellCounter);
+		addOtherTownStatistic(skin, everythingTable, "Has Fresh Water", (town) -> town.environment.hasFreshWater ? 1 : 0);
+		addOtherTownStatistic(skin, everythingTable, "Has Salt Water", (town) -> town.environment.hasSaltWater ? 1 : 0);
+		addOtherTownStatistic(skin, everythingTable, "Wood Abundance", (town) -> town.environment.woodAbundance);
+		addOtherTownStatistic(skin, everythingTable, "Field Space", (town) -> town.environment.fieldSpace);
+		addOtherTownStatistic(skin, everythingTable, "Fish Abundance", (town) -> town.environment.fishAbundance);
+		addOtherTownStatistic(skin, everythingTable, "Temperature", (town) -> town.environment.temperature);
+		addOtherTownStatistic(skin, everythingTable, "Precipitation", (town) -> town.environment.precipitation);
+		addOtherTownStatistic(skin, everythingTable, "Rare Metal Occurrence", (town) -> town.environment.rareMetalOccurrence);
+		addOtherTownStatistic(skin, everythingTable, "Metal Occurrence", (town) -> town.environment.metalOccurrence);
+		addOtherTownStatistic(skin, everythingTable, "Coal Occurrence", (town) -> town.environment.coalOccurrence);
+		addOtherTownStatistic(skin, everythingTable, "Jewel Occurrence", (town) -> town.environment.jewelOccurrence);
+		addOtherTownStatistic(skin, everythingTable, "Stone Occurrence", (town) -> town.environment.stoneOccurrence);
+		addOtherTownStatistic(skin, everythingTable, "Limestone Occurrence", (town) -> town.environment.limestoneOccurrence);
 
 		//region Selected town profit
 		final Label townProductionName = new Label("", skin, "title-small");
@@ -216,6 +189,34 @@ public class EconomyOverviewWindow extends Window {
 		pack();
 		setResizable(true);
 		setResizeBorder(20);
+	}
+
+	@FunctionalInterface
+	private interface TownStatisticFunction {
+		float get(@NotNull TownC town);
+	}
+
+	private void addOtherTownStatistic(Skin skin, Table everythingTable, String money, TownStatisticFunction func) {
+		everythingTable.add(money);
+		final Label total = new Label("", skin);
+		final Label min = new Label("", skin);
+		final Label max = new Label("", skin);
+		final Label average = new Label("", skin);
+		everythingTable.add(total);
+		everythingTable.add(min);
+		everythingTable.add(max);
+		everythingTable.add(average);
+		everythingTable.row();
+
+		final FloatCounter counter = new FloatCounter(0);
+		updateProcessors.add(() -> {
+			counter.reset();
+			forEach(towns, town, (town) -> counter.put(func.get(town)));
+			total.setText(String.format("%.2f", counter.total));
+			min.setText(String.format("%.2f", counter.min));
+			max.setText(String.format("%.2f", counter.max));
+			average.setText(String.format("%.2f", counter.average));
+		});
 	}
 
 	public void refresh() {
