@@ -3,5 +3,4 @@
 - Other caravans
 - Rumors
 - Own "memory" (showing prices at last 3 visited towns)
-- Fix camera - scrolling against edge turns it into singularity
 - Upgrade system

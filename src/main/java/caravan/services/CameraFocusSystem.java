@@ -144,29 +144,23 @@ public final class CameraFocusSystem extends EntityProcessorSystem implements Re
                 final float beforeY = beforeShift.y;
                 // do not touch beforeShift after this, it is the same instance as afterShift
                 final Vector3 afterShift = unproject(Gdx.input.getX(), Gdx.input.getY());
-                shiftX = afterShift.x - beforeX;
-                shiftY = afterShift.y - beforeY;
+                shiftX = beforeX - afterShift.x;
+                shiftY = beforeY - afterShift.y;
             }
-            currentFraming.x -= shiftX;
-            currentFraming.y -= shiftY;
+            currentFraming.x += shiftX;
+            currentFraming.y += shiftY;
         }
 
         if (currentFramingDetached && !currentFramingCatchUp) {
             // No need to follow anything when the framing is independent.
             // Just make sure that it is still focused on the game area
-            float minX = currentFraming.x;
-            float minY = currentFraming.y;
-            float maxX = minX + currentFraming.width;
-            float maxY = minY + currentFraming.height;
-            final float minWorldX = 0 - currentFraming.width * 0.5f;
-            final float maxWorldX = worldService.width + currentFraming.width * 0.5f;
-            final float minWorldY = 0 - currentFraming.height * 0.5f;
-            final float maxWorldY = worldService.height + currentFraming.height * 0.5f;
-            minX = Math.max(minX, minWorldX);
-            minY = Math.max(minY, minWorldY);
-            maxX = Math.min(maxX, maxWorldX);
-            maxY = Math.min(maxY, maxWorldY);
-            currentFraming.set(minX, minY, maxX - minX, maxY - minY);
+
+            final float minWorldX = -currentFraming.width * 0.5f;
+            final float maxWorldX = worldService.width - currentFraming.width * 0.5f;
+            final float minWorldY = -currentFraming.height * 0.5f;
+            final float maxWorldY = worldService.height - currentFraming.height * 0.5f;
+            currentFraming.x = MathUtils.clamp(currentFraming.x, minWorldX, maxWorldX);
+            currentFraming.y = MathUtils.clamp(currentFraming.y, minWorldY, maxWorldY);
             return;
         }
         firstEntity = true;
