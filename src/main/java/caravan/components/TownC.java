@@ -37,7 +37,7 @@ public final class TownC extends CaravanComponent {
 	//region Technical
 	private static final int[] NO_NEIGHBORS = new int[0];
 
-	public int[] closestNeighbors = NO_NEIGHBORS;
+	public int @NotNull [] closestNeighbors = NO_NEIGHBORS;
 
 	/** How many trades did occur with this city, selling goods to them. */
 	public int tradeSellCounter;

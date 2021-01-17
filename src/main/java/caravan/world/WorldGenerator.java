@@ -10,6 +10,7 @@ import caravan.services.WorldService;
 import caravan.util.CSVWriter;
 import caravan.util.PooledArray;
 import caravan.util.PriceList;
+import caravan.util.Util;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.RandomXS128;
@@ -159,6 +160,7 @@ public final class WorldGenerator {
 		}
 		final PooledArray<TownDistance> distances = new PooledArray<>(TownDistance::new);
 
+		// Build first degree neighbor towns
 		for (int i = 0; i < townEntities.size; i++) {
 			final int townEntity = townEntities.get(i);
 			final PositionC townPos = positionMapper.get(townEntity);
@@ -189,6 +191,18 @@ public final class WorldGenerator {
 				closeTowns[t] = distances.get(t).townEntity;
 			}
 			townMapper.get(townEntity).closestNeighbors = closeTowns;
+		}
+
+		// Adjust closestNeighbors to be symmetric
+		for (int t0 = 0; t0 < townEntities.size; t0++) {
+			final int firstTownEntity = townEntities.get(t0);
+			final TownC town0 = townMapper.get(firstTownEntity);
+
+			// Check all neighbors and make sure that they can reach us
+			for (int secondTownEntity : town0.closestNeighbors) {
+				final TownC town1 = townMapper.get(secondTownEntity);
+				town1.closestNeighbors = Util.intArraySetAdd(town1.closestNeighbors, firstTownEntity);
+			}
 		}
 
 

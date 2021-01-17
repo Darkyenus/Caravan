@@ -93,6 +93,19 @@ public final class Util {
 		return -1;
 	}
 
+	/**
+	 * Return an array that contains all values of the original array and also the new value.
+	 * If the new value already exists, does not add it.
+	 */
+	public static int[] intArraySetAdd(int[] values, int newValue) {
+		if (indexOf(values, newValue) != -1) {
+			return values;
+		}
+		final int[] newValues = Arrays.copyOf(values, values.length + 1);
+		newValues[values.length] = newValue;
+		return newValues;
+	}
+
 	public static boolean isSanePositive(short value) {
 		return value >= 0 && value < 30000;
 	}

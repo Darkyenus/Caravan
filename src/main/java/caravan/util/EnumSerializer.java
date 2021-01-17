@@ -14,8 +14,8 @@ public final class EnumSerializer<E extends Enum<E>> {
 
 	private final int version;
 	private final @Nullable E @NotNull [] @NotNull[] versionValues;
-	private final Writer writer;
-	private final Reader[] readers;
+	private final Writer<E> writer;
+	private final Reader<E>[] readers;
 
 	/**
 	 * @param version current version, start at 0 and increment every time enum changes
@@ -24,6 +24,7 @@ public final class EnumSerializer<E extends Enum<E>> {
 	 *  from 0 up to and including current version. Supply the values explicitly, not through a {@code values()} call.
 	 *  Deleted enum constants in old versions may be null.
 	 */
+	@SuppressWarnings("unchecked")
 	@SafeVarargs
 	public EnumSerializer(int version, @Nullable E @NotNull [] @NotNull ... versionValues) {
 		assert version >= 0 && version + 1 == versionValues.length;
@@ -31,7 +32,7 @@ public final class EnumSerializer<E extends Enum<E>> {
 		this.versionValues = versionValues;
 		final @Nullable E[] reportedEnumValues = versionValues[version];
 		final int currentValueCount = reportedEnumValues.length;
-		writer = new Writer(currentValueCount);
+		writer = new Writer<>(currentValueCount);
 		readers = new Reader[version + 1];
 
 		final E firstValue = versionValues[version][0];
@@ -50,27 +51,28 @@ public final class EnumSerializer<E extends Enum<E>> {
 	}
 
 	/** Write a version header and return an object, through which data can be serialized. */
-	public @NotNull Writer write(@NotNull Output output) {
+	public @NotNull Writer<E> write(@NotNull Output output) {
 		output.writeVarInt(version, true);
 		return writer;
 	}
 
 	/** Read a version header and return an object, through which previously serialized data can be read. */
-	public @NotNull Reader read(@NotNull Input input) {
+	public @NotNull Reader<E> read(@NotNull Input input) {
 		final int version = input.readVarInt(true);
 		if (version < 0 || version > this.version) {
 			throw new SerializationException("Unknown enum version: "+version);
 		}
 
-		Reader reader = readers[version];
+		Reader<E> reader = readers[version];
 		if (reader == null) {
-			reader = readers[version] = new Reader(versionValues[this.version].length, versionValues[version]);
+			reader = readers[version] = new Reader<>(versionValues[this.version].length, versionValues[version]);
 		}
 
 		return reader;
 	}
 
-	public static final class Writer {
+	@SuppressWarnings("unused")
+	public static final class Writer<E extends Enum<E>> {
 
 		private final int enumConstantCount;
 
@@ -112,14 +114,23 @@ public final class EnumSerializer<E extends Enum<E>> {
 				output.writeByte(bb);
 			}
 		}
+
+		public void writeValueOrNull(@NotNull Output output, @Nullable E value) {
+			output.writeVarInt(value != null ? value.ordinal() + 1 : 0, true);
+		}
+
+		public void writeValue(@NotNull Output output, @NotNull E value) {
+			output.writeVarInt(value.ordinal(), true);
+		}
 	}
 
-	public static final class Reader {
+	@SuppressWarnings("unused")
+	public static final class Reader<E extends Enum<E>> {
 
 		private final int enumConstantCount;
-		private final @Nullable Enum<?> @NotNull [] values;
+		private final @Nullable E @NotNull [] values;
 
-		private Reader(int enumConstantCount, @Nullable Enum<?> @NotNull [] values) {
+		private Reader(int enumConstantCount, @Nullable E @NotNull [] values) {
 			this.enumConstantCount = enumConstantCount;
 			this.values = values;
 		}
@@ -163,6 +174,21 @@ public final class EnumSerializer<E extends Enum<E>> {
 				}
 				remainingBits -= bits;
 			}
+		}
+
+		public @Nullable E readValueOrNull(@NotNull Input input, @Nullable E defaultValue) {
+			final int i = input.readVarInt(true);
+			if (i == 0) {
+				return null;
+			}
+			final E value = values[i - 1];
+			return value == null ? defaultValue : value;
+		}
+
+		public @NotNull E readValue(@NotNull Input input, @NotNull E defaultValue) {
+			final int i = input.readVarInt(true);
+			final E value = values[i];
+			return value == null ? defaultValue : value;
 		}
 	}
 }

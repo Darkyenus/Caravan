@@ -42,7 +42,7 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
     private Mapper<RenderC> rendererMapper;
 
     @Wire
-    private TimeService simulation;
+    private TimeService timeService;
 
     @Wire
     private CameraFocusSystem cameraFocusSystem;
@@ -81,7 +81,7 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
 
     @Override
     public void update() {
-        if (simulation.simulating) {
+        if (timeService.simulating) {
             super.update();
         }
     }
@@ -165,10 +165,13 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
         }
 
         if (move.waypoints.size == 0 && playerC.openTradeOnArrival) {
-            final int town = townSystem.getNearbyTown(position);
-            if (town != -1) {
+            final int townEntity = townSystem.getNearbyTown(position);
+            if (townEntity != -1) {
+                final TownC town = townMapper.get(townEntity);
+                caravan.priceMemory.remember(timeService.day, townEntity, town);
+
                 if (application.addScreen(tradingScreen)) {
-                    tradingScreen.reset(townMapper.get(town), caravan);
+                    tradingScreen.reset(town, caravan);
                     playerC.openTradeOnArrival = false;
                 }
             } else {

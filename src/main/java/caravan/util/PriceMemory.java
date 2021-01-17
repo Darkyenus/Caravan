@@ -124,6 +124,50 @@ public final class PriceMemory implements Pool.Poolable {
 		}
 	}
 
+	/** Total capacity of this memory.
+	 * Valid memory slots are [0, capacity). */
+	public int capacity() {
+		return this.townEntityIds.length;
+	}
+
+	/**
+	 * Check whether the given memory slot is valid for reading.
+	 * @param slot slot id
+	 * @param noOlderThanDay consider the memory invalid if it is older than from this day
+	 * @param notThisTownEntity consider the memory invalid if the town is this one (for convenience)
+	 */
+	public boolean isMemorySlotValid(int slot, int noOlderThanDay, int notThisTownEntity) {
+		final int townEntityId = townEntityIds[slot];
+		return townEntityId != -1 && townEntityId != notThisTownEntity && memoryDay[slot] >= noOlderThanDay;
+	}
+
+	/**
+	 * Return the slot ID for the memory of townEntity that is not older than specified date.
+	 * @return id or -1 if no such memory slot
+	 */
+	public int validSlotForTown(int townEntity, int noOlderThanDay) {
+		final int i = Util.indexOf(townEntityIds, townEntity);
+		if (i < 0 || memoryDay[i] < noOlderThanDay) {
+			return -1;
+		}
+		return i;
+	}
+
+	/** Return the remembered buy price at the given memory slot for the given merchandise. */
+	public int buyPrice(int slot, @NotNull Merchandise m) {
+		return buyPrices[slot * townEntityIds.length + m.ordinal()];
+	}
+
+	/** Return the remembered sell price at the given memory slot for the given merchandise. */
+	public int sellPrice(int slot, @NotNull Merchandise m) {
+		return sellPrices[slot * townEntityIds.length + m.ordinal()];
+	}
+
+	/** Return the town entity ID for the memory at the given slot. */
+	public int townEntity(int slot) {
+		return townEntityIds[slot];
+	}
+
 	public void save(@NotNull Output output) {
 		final int[] townEntityIds = this.townEntityIds;
 		final int[] memoryDay = this.memoryDay;

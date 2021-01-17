@@ -49,13 +49,17 @@ public final class TownSystem extends EntityProcessorSystem {
 		simulateInternalEconomy(town.get(entity));
 	}
 
-	public int getNearestTown(@NotNull PositionC position, float maxDistance) {
+	public int getNearestTown(@NotNull PositionC position, float maxDistance, int excludingTownEntity) {
 		int town = -1;
 		float townDistance = maxDistance;
 
 		final IntArray townIndices = getEntities().getIndices();
 		for (int i = 0; i < townIndices.size; i++) {
 			final int townEntity = townIndices.get(i);
+			if (townEntity == excludingTownEntity) {
+				continue;
+			}
+
 			final PositionC townPos = this.position.get(townEntity);
 			final float distance = PositionC.manhattanDistance(townPos, position);
 			if (distance < townDistance) {
@@ -69,7 +73,7 @@ public final class TownSystem extends EntityProcessorSystem {
 
 	/** Get a town entity that is accessible from the given position or -1 if there is no such town. */
 	public int getNearbyTown(@NotNull PositionC position) {
-		return getNearestTown(position, 1.5f);
+		return getNearestTown(position, 1.5f, -1);
 	}
 
 	public static void simulateInternalEconomy(@NotNull TownC town) {
