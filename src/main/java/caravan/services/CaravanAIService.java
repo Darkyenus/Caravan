@@ -44,7 +44,7 @@ public final class CaravanAIService extends EntityProcessorSystem {
 
 	@Override
 	public void update() {
-		if (timeService.simulating && timeService.delta > 0) {
+		if (timeService.simulating) {
 			super.update();
 		}
 	}

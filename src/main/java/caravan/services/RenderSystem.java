@@ -54,7 +54,7 @@ public final class RenderSystem extends EntityProcessorSystem implements Renderi
 		final EntityRenderable[] renderableItems = renderables.items;
 		Arrays.sort(renderableItems, 0, renderableCount, RENDERABLE_COMPARATOR);
 
-		final float animationTime = simulation.simulating ? simulation.delta : 0f;
+		final float animationTime = simulation.gameDelta;
 
 		batch.begin();
 		final Mapper<RenderC> renderMapper = this.render;

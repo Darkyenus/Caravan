@@ -63,6 +63,8 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
 
     /** Used for alternating direction */
     private boolean nextMoveVertical = false;
+    private static float DIRECTIONAL_MOVE_ALTERNATION_DELAY = 0.3f;
+    private float nextMoveVerticalChangeCountdown = DIRECTIONAL_MOVE_ALTERNATION_DELAY;
     private boolean directionalMove = false;
 
     public PlayerControlSystem(CaravanApplication application, GameInput gameInput) {
@@ -77,13 +79,6 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
         MOVE = gameInput.use(Inputs.MOVE);
 
         tradingScreen = new TradingScreen();
-    }
-
-    @Override
-    public void update() {
-        if (timeService.simulating) {
-            super.update();
-        }
     }
 
     @Override
@@ -121,7 +116,6 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
             } else if (DOWN.isPressed()) {
                 deltaY = -1;
                 render.set(CARAVAN_DOWN);
-
             }
 
             if (deltaX != 0 && deltaY != 0) {
@@ -130,7 +124,17 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
                 } else {
                     deltaY = 0;
                 }
-                nextMoveVertical = !nextMoveVertical;
+                nextMoveVerticalChangeCountdown -= timeService.gameDelta;
+                if (nextMoveVerticalChangeCountdown <= 0f) {
+                    nextMoveVerticalChangeCountdown += DIRECTIONAL_MOVE_ALTERNATION_DELAY;
+                    nextMoveVertical = !nextMoveVertical;
+                }
+            } else if (deltaX != 0) {
+                nextMoveVertical = true;
+                nextMoveVerticalChangeCountdown = DIRECTIONAL_MOVE_ALTERNATION_DELAY;
+            } else {
+                nextMoveVertical = false;
+                nextMoveVerticalChangeCountdown = DIRECTIONAL_MOVE_ALTERNATION_DELAY;
             }
 
             move.waypoints.clear();
@@ -143,6 +147,7 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
             directionalMove = true;
             cameraFocusSystem.setFree(false);
             playerC.openTradeOnArrival = true;
+            timeService.requestResume();
         } else if (directionalMove) {
             // Stop movement after keys are released
             move.waypoints.clear();
@@ -157,6 +162,7 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
 
             if (worldService.addMovePathTo(position, move, speed, targetTileX, targetTileY)) {
                 playerC.openTradeOnArrival = true;
+                timeService.requestResume();
             } else {
                 move.waypoints.clear();
             }
@@ -165,6 +171,7 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
         }
 
         if (move.waypoints.size == 0 && playerC.openTradeOnArrival) {
+            timeService.requestPause();
             final int townEntity = townSystem.getNearbyTown(position);
             if (townEntity != -1) {
                 final TownC town = townMapper.get(townEntity);

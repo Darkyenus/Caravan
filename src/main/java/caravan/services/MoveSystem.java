@@ -29,7 +29,7 @@ public final class MoveSystem extends EntityProcessorSystem {
 
     @Override
     public void update() {
-        if (simulation.simulating) {
+        if (simulation.gameDelta > 0f) {
             super.update();
         }
     }
@@ -38,7 +38,7 @@ public final class MoveSystem extends EntityProcessorSystem {
 
     @Override
     protected void process(int entity) {
-        float delta = simulation.delta;
+        float delta = simulation.gameDelta;
 
         final PositionC position = positionMapper.get(entity);
         final FloatArray path = moveMapper.get(entity).waypoints;

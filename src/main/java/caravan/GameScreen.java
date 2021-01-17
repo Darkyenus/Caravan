@@ -44,7 +44,7 @@ public final class GameScreen extends CaravanApplication.UIScreen {
 
 	public Engine engine;
 
-	private TimeService simulationService;
+	private TimeService timeService;
 	private CameraFocusSystem cameraFocusSystem;
 
 	private RenderingService[] renderingServices;
@@ -60,7 +60,7 @@ public final class GameScreen extends CaravanApplication.UIScreen {
 		final int worldWidth = 300;
 		final int worldHeight = 300;
 		engine = new Engine(Components.DOMAIN,
-				simulationService = new TimeService(),
+				timeService = new TimeService(gameInput),
 				new EntitySpawnService(),
 				new PlayerControlSystem(application, gameInput),
 				new MoveSystem(),
@@ -88,6 +88,7 @@ public final class GameScreen extends CaravanApplication.UIScreen {
 		} else {
 			Gdx.app.log("GameScreen", "Loaded successfully");
 		}
+		timeService.requestPause();
 
 		super.create(application);
 	}
@@ -101,8 +102,7 @@ public final class GameScreen extends CaravanApplication.UIScreen {
 
 	@Override
 	public void update(@NotNull CaravanApplication application, float delta) {
-		simulationService.simulating = true;// Set this to false when paused
-		simulationService.delta = delta;
+		timeService.rawDelta = delta;
 
 		engine.update();
 		super.update(application, delta);

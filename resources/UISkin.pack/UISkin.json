@@ -10,6 +10,7 @@
   },
 
   "com.badlogic.gdx.graphics.Color": {
+    "white": { "a": 1, "r": 1, "g": 1, "b": 1 },
     "p-red": { "a": 1, "r": 0.831, "g": 0.459, "b": 0.392 },
     "p-orange": { "a": 1, "r": 0.9098, "g": 0.7686, "b": 0.596 },
     "p-beige": { "a": 1, "r": 0.925, "g": 0.925, "b": 0.878 },
@@ -37,6 +38,7 @@
     "default": { "font": "regular-medium", "fontColor": "p-dark" },
     "default-disabled": { "font": "regular-medium", "fontColor": "p-blue" },
     "tooltip": { "font": "regular-small", "fontColor": "p-dark", "background": "ui33" },
+    "hud": { "font": "title-world", "fontColor": "white" },
     "title-large": { "font": "title-large", "fontColor": "p-dark" },
     "title-medium": { "font": "title-medium", "fontColor": "p-dark" },
     "title-small": { "font": "title-small", "fontColor": "p-dark" },
