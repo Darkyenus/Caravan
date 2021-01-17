@@ -32,7 +32,7 @@ import static caravan.util.Util.maxIndex;
  */
 public final class WorldGenerator {
 
-	public static void generateWorld(@NotNull Engine engine, long seed, final int width, final int height) {
+	public static void generateWorld(@NotNull Engine engine, long seed, final int width, final int height, final int townCount) {
 		final WorldService world = engine.getService(WorldService.class);
 
 		final WorldAttribute<Tile> tiles = world.tiles;
@@ -110,10 +110,10 @@ public final class WorldGenerator {
 		final WorldAttributeFloat townClosenessPenalty = new WorldAttributeFloat(width, height, 0f);
 		townClosenessPenalty.add(random.nextLong(), 30, 0.1f);// Some interesting randomness
 
-		final int townCount = 24;
+		TownC lastDummyTown = null;
 		for (int townIndex = 0; townIndex < townCount; townIndex++) {
 			if (townIndex % 4 == 0) {
-				fillOutTownPlacementScore(townPlacementScore, townClosenessPenalty, townEntities, townMapper, altitude, temperature, precipitation,
+				lastDummyTown = fillOutTownPlacementScore(townPlacementScore, townClosenessPenalty, townEntities, townMapper, altitude, temperature, precipitation,
 						forestMap, pastureMap, fishMap, rareMetalOccurrence, metalOccurrence, coalOccurrence, jewelOccurrence, stoneOccurrence, limestoneOccurrence);
 			}
 
@@ -134,12 +134,16 @@ public final class WorldGenerator {
 			town.name = townName;
 			town.population = 10 + random.nextInt(90);
 			town.money = town.population * 10 + random.nextInt(50);
-			town.prices.initialize((short) 10, (short) 10);
+			if (townIndex < 4) {
+				town.prices.initialize((short) 10, (short) 10);
+			} else {
+				town.prices.set(lastDummyTown.prices);
+			}
 			extractEnvironment(town.environment, townX, townY, precipitation, altitude, forestMap, pastureMap, fishMap, temperature,
 					rareMetalOccurrence, metalOccurrence, coalOccurrence, jewelOccurrence, stoneOccurrence, limestoneOccurrence);
 
 			if (townIndex % 4 == 3) {
-				simulateSuperInitialWorldPrices(townMapper, townEntities, 50);
+				simulateSuperInitialWorldPrices(townMapper, townEntities, 100);
 			}
 		}
 
@@ -194,13 +198,14 @@ public final class WorldGenerator {
 		engine.flush();
 	}
 
-	private static void fillOutTownPlacementScore(WorldAttributeFloat townPlacementScore, WorldAttributeFloat townClosenessPenalty, IntArray townEntities, Mapper<TownC> townMapper, WorldAttributeFloat altitude, WorldAttributeFloat temperature, WorldAttributeFloat precipitation, WorldAttributeFloat forestMap, WorldAttributeFloat pastureMap, WorldAttributeFloat fishMap, WorldAttributeFloat rareMetalOccurrence, WorldAttributeFloat metalOccurrence, WorldAttributeFloat coalOccurrence, WorldAttributeFloat jewelOccurrence, WorldAttributeFloat stoneOccurrence, WorldAttributeFloat limestoneOccurrence) {
+	private static TownC fillOutTownPlacementScore(WorldAttributeFloat townPlacementScore, WorldAttributeFloat townClosenessPenalty, IntArray townEntities, Mapper<TownC> townMapper, WorldAttributeFloat altitude, WorldAttributeFloat temperature, WorldAttributeFloat precipitation, WorldAttributeFloat forestMap, WorldAttributeFloat pastureMap, WorldAttributeFloat fishMap, WorldAttributeFloat rareMetalOccurrence, WorldAttributeFloat metalOccurrence, WorldAttributeFloat coalOccurrence, WorldAttributeFloat jewelOccurrence, WorldAttributeFloat stoneOccurrence, WorldAttributeFloat limestoneOccurrence) {
 		townPlacementScore.fill(0);
 
 		final TownC dummyTown = new TownC();
 		for (int i = 0; i < townEntities.size; i++) {
 			dummyTown.prices.add(townMapper.get(townEntities.get(i)).prices);
 		}
+		dummyTown.prices.scale(1f / townEntities.size);
 
 		townPlacementScore.fillParallel((x, y, v) -> {
 			final float alt = altitude.get(x, y);
@@ -223,6 +228,8 @@ public final class WorldGenerator {
 		});
 		townPlacementScore.normalize(0f, 1f);
 		townPlacementScore.add(townClosenessPenalty);
+
+		return dummyTown;
 	}
 
 	private static void extractEnvironment(@NotNull Environment environment, int townX, int townY,
@@ -285,6 +292,22 @@ public final class WorldGenerator {
 		float posY = starterTownPosition.y + offY;
 
 		engine.getService(EntitySpawnService.class).spawnPlayerCaravan(posX, posY, Merchandise.Category.VALUES);
+		engine.flush();
+	}
+
+	public static void generateNPCCaravans(@NotNull Engine engine, int amount) {
+		final Mapper<PositionC> position = engine.getMapper(PositionC.class);
+		final IntArray townEntities = engine.getEntities(Components.DOMAIN.familyWith(TownC.class, PositionC.class)).getIndices();
+		final EntitySpawnService entitySpawnService = engine.getService(EntitySpawnService.class);
+
+		for (int i = 0; i < amount; i++) {
+			final int starterTown = townEntities.random();
+			final PositionC starterTownPosition = position.get(starterTown);
+			float posX = starterTownPosition.x;
+			float posY = starterTownPosition.y;
+			entitySpawnService.spawnAiCaravan(posX, posY, Merchandise.Category.VALUES);
+		}
+
 		engine.flush();
 	}
 

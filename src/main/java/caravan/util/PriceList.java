@@ -47,14 +47,14 @@ public final class PriceList {
 
 	/** Update prices after a single unit of merchandise was bought by a caravan. */
 	public void buyUnit(@NotNull Merchandise m) {
-		final short now = ++this.demand[m.ordinal()];
-		assert isSanePositive(now);
+		final int ordinal = m.ordinal();
+		demand[ordinal] = Util.toShortClampUnsigned(demand[ordinal] + 1);
 	}
 
 	/** Update prices after a single unit of merchandise was sold to the town by a caravan. */
 	public void sellUnit(@NotNull Merchandise m) {
-		final short now = ++this.supply[m.ordinal()];
-		assert isSanePositive(now);
+		final int ordinal = m.ordinal();
+		supply[ordinal] = Util.toShortClampUnsigned(supply[ordinal] + 1);
 	}
 
 	/** Called every game day or so to update the internal counters. */
@@ -63,7 +63,7 @@ public final class PriceList {
 		final short[] supply = this.supply;
 		final int length = demand.length;
 		for (int i = 0; i < length; i++) {
-			int fulfilledDemand = Math.min(supply[i], demand[i]) / 4;
+			int fulfilledDemand = Math.min(supply[i], demand[i]) / 3;
 			supply[i] -= fulfilledDemand;
 			demand[i] -= fulfilledDemand;
 		}
@@ -83,14 +83,30 @@ public final class PriceList {
 	}
 
 	/** Add everything from the other price list into this one. Used during world generation. */
-	public void add(PriceList prices) {
+	public void add(@NotNull PriceList prices) {
 		final short[] supply = this.supply;
 		final short[] demand = this.demand;
 		final short[] otherSupply = prices.supply;
 		final short[] otherDemand = prices.demand;
 		for (int i = 0; i < Merchandise.COUNT; i++) {
-			supply[i] += otherSupply[i];
-			demand[i] += otherDemand[i];
+			supply[i] = Util.toShortClampUnsigned(supply[i] + otherSupply[i]);
+			demand[i] = Util.toShortClampUnsigned(demand[i] + otherDemand[i]);
+		}
+	}
+
+	/** Copy all prices from the argument to this instance. */
+	public void set(@NotNull PriceList prices) {
+		System.arraycopy(prices.demand, 0, this.demand, 0, Merchandise.COUNT);
+		System.arraycopy(prices.supply, 0, this.supply, 0, Merchandise.COUNT);
+	}
+
+	/** Scale both supply and demand by given multiplier. */
+	public void scale(float multiplier) {
+		final short[] supply = this.supply;
+		final short[] demand = this.demand;
+		for (int i = 0; i < Merchandise.COUNT; i++) {
+			supply[i] = Util.toShortClampUnsigned(MathUtils.round(supply[i] * multiplier));
+			demand[i] = Util.toShortClampUnsigned(MathUtils.round(demand[i] * multiplier));
 		}
 	}
 

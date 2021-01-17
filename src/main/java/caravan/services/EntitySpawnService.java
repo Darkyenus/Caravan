@@ -1,6 +1,7 @@
 package caravan.services;
 
 import caravan.components.CameraFocusC;
+import caravan.components.CaravanAIC;
 import caravan.components.CaravanC;
 import caravan.components.MoveC;
 import caravan.components.PlayerC;
@@ -31,6 +32,7 @@ public final class EntitySpawnService implements EngineService {
 	@Wire private Mapper<RenderC> render;
 	@Wire private Mapper<TownC> town;
 	@Wire private Mapper<CaravanC> caravan;
+	@Wire private Mapper<CaravanAIC> caravanAi;
 	@Wire private Mapper<TitleC> title;
 
 	/** Create player's caravan at given position. */
@@ -46,7 +48,22 @@ public final class EntitySpawnService implements EngineService {
 			c.categories[cat.ordinal()] = true;
 		}
 		c.money = 100;
-		c.speed = 5f;
+		c.speed = 5.5f;
+		return entity;
+	}
+
+	public int spawnAiCaravan(float x, float y, Merchandise.Category...categories) {
+		final int entity = engine.createEntity();
+		position.create(entity).set(x, y);
+		move.create(entity);
+		caravanAi.create(entity);
+		render.create(entity).set(CARAVAN_RIGHT);
+		final CaravanC c = caravan.create(entity);
+		for (Merchandise.Category cat : categories) {
+			c.categories[cat.ordinal()] = true;
+		}
+		c.money = 300;
+		c.speed = 4.5f;
 		return entity;
 	}
 

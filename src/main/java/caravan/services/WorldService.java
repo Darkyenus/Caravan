@@ -1,11 +1,15 @@
 package caravan.services;
 
+import caravan.components.MoveC;
+import caravan.components.PositionC;
 import caravan.util.PathFinding;
+import caravan.util.Vec2;
 import caravan.world.Tile;
 import caravan.world.WorldAttribute;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.utils.LongArray;
 import com.darkyen.retinazer.EngineService;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
@@ -64,6 +68,35 @@ public final class WorldService implements EngineService, RenderingService, Stat
 		final int y1 = MathUtils.ceil(frustum.y + frustum.height + OVERLAP);
 		Tile.drawTiles(this.tiles, batch, x0, y0, x1, y1);
 		batch.end();
+	}
+
+	public boolean addMovePathTo(@NotNull PositionC position, @NotNull MoveC move, float speed, int targetTileX, int targetTileY) {
+		final int originTileX = MathUtils.floor(position.x);
+		final int originTileY = MathUtils.floor(position.y);
+
+		final LongArray path = new LongArray(1);
+		path.add(Vec2.make(targetTileX, targetTileY));
+		final PathFinding.Path foundPath = pathFinding.findPath(Vec2.make(originTileX, originTileY), path.get(0), path);
+
+		if (foundPath == null) {
+			return false;
+		}
+
+		move.waypoints.clear();
+		int lastX = originTileX;
+		int lastY = originTileY;
+		float tileSpeed0 = defaultPathWorld.movementSpeedMultiplier(lastX, lastY) * speed;
+
+		for (int i = 0; i < foundPath.length(); i++) {
+			final int x = foundPath.nodeX(i);
+			final int y = foundPath.nodeY(i);
+			float tileSpeed1 = defaultPathWorld.movementSpeedMultiplier(x, y) * speed;
+			MoveSystem.addTileMoveWaypoint(position, move, x - lastX, y - lastY, tileSpeed0, tileSpeed1);
+			lastX = x;
+			lastY = y;
+			tileSpeed0 = tileSpeed1;
+		}
+		return true;
 	}
 
 	@Override

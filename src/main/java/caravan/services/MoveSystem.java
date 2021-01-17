@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.FloatArray;
 import com.darkyen.retinazer.*;
 import com.darkyen.retinazer.systems.EntityProcessorSystem;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * System that moves entities with {@link MoveC} and {@link PositionC} as they desire.
@@ -70,16 +71,13 @@ public final class MoveSystem extends EntityProcessorSystem {
         }
     }
 
-    public void addTileMoveWaypoint(int entity, int deltaX, int deltaY, float speedTile0, float speedTile1) {
-        final MoveC move = moveMapper.get(entity);
-
+    public static void addTileMoveWaypoint(@NotNull PositionC position, @NotNull MoveC move, int deltaX, int deltaY, float speedTile0, float speedTile1) {
         float previousX;
         float previousY;
         if (move.waypoints.size > 0) {
             previousX = move.waypoints.items[move.waypoints.size - 3];
             previousY = move.waypoints.items[move.waypoints.size - 2];
         } else {
-            final PositionC position = positionMapper.get(entity);
             previousX = position.x;
             previousY = position.y;
         }

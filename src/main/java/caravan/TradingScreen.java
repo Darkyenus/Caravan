@@ -3,6 +3,8 @@ package caravan;
 import caravan.components.CaravanC;
 import caravan.components.TownC;
 import caravan.util.PooledArray;
+import caravan.util.Tooltip;
+import caravan.util.Util;
 import caravan.world.Merchandise;
 import caravan.world.Production;
 import com.badlogic.gdx.Gdx;
@@ -20,11 +22,13 @@ import com.badlogic.gdx.utils.ObjectIntMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static caravan.CaravanApplication.uiSkin;
 import static caravan.util.Util.newScrollPane;
 
 /**
  * Screen overlay that appears when a player caravan arrives into a town to trade.
  */
+@SuppressWarnings("unchecked")
 public final class TradingScreen extends CaravanApplication.UIScreen {
 
 	@Nullable
@@ -35,7 +39,9 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 	private Label townNameLabel;
 	private Label playerMoneyLabel;
 	private final TextButton[] buyButtons = new TextButton[Merchandise.COUNT];
+	private final Tooltip<Label>[] buyButtonTooltips = new Tooltip[Merchandise.COUNT];
 	private final TextButton[] sellButtons = new TextButton[Merchandise.COUNT];
+	private final Tooltip<Label>[] sellButtonTooltips = new Tooltip[Merchandise.COUNT];
 	private final Label[] inventoryLabels = new Label[Merchandise.COUNT];
 	private Table production;
 	private Table rumors;
@@ -81,9 +87,10 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 				continue;
 			}
 
-			final TextButton buyButton = buyButtons[merch.ordinal()];
-			final TextButton sellButton = sellButtons[merch.ordinal()];
-			final Label inventoryLabel = inventoryLabels[merch.ordinal()];
+			final int ordinal = merch.ordinal();
+			final TextButton buyButton = buyButtons[ordinal];
+			final TextButton sellButton = sellButtons[ordinal];
+			final Label inventoryLabel = inventoryLabels[ordinal];
 
 			final boolean visible = caravan.categories[merch.category.ordinal()];
 
@@ -101,6 +108,29 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 			inventoryLabel.setVisible(visible);
 			inventoryLabel.setText(amountInInventory);
 			inventoryLabel.setStyle(amountInInventory == 0 ? labelStyleDefaultDisabled : labelStyleDefault);
+
+			Tooltip<Label> buyButtonTooltip = buyButtonTooltips[ordinal];
+			Tooltip<Label> sellButtonTooltip = sellButtonTooltips[ordinal];
+			final short buyMemory = caravan.inventoryPriceBuyMemory[ordinal];
+			final short sellMemory = caravan.inventoryPriceSellMemory[ordinal];
+			if (buyMemory > 0) {
+				if (buyButtonTooltip == null) {
+					buyButtonTooltips[ordinal] = buyButtonTooltip = newTooltip();
+				}
+				buyButtonTooltip.getActor().setText("Last bought for "+buyMemory);
+				buyButtonTooltip.setParent(buyButton);
+			} else if (buyButtonTooltip != null) {
+				buyButtonTooltip.setParent(null);
+			}
+			if (sellMemory > 0) {
+				if (sellButtonTooltip == null) {
+					sellButtonTooltips[ordinal] = sellButtonTooltip = newTooltip();
+				}
+				sellButtonTooltip.getActor().setText("Last sold for "+sellMemory);
+				sellButtonTooltip.setParent(sellButton);
+			} else if (sellButtonTooltip != null) {
+				sellButtonTooltip.setParent(null);
+			}
 		}
 
 		final PooledArray<ProductionAmountPair> productionEntries = this.productionTmp;
@@ -132,9 +162,14 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 		// TODO(jp): Add rumors
 	}
 
+	private static Tooltip<Label> newTooltip() {
+		final Label label = new Label("", uiSkin(), "tooltip");
+		return new Tooltip<>(label);
+	}
+
 	@Override
 	protected void initializeUI(@NotNull CaravanApplication application, @NotNull Table root) {
-		final Skin skin = CaravanApplication.uiSkin();
+		final Skin skin = uiSkin();
 		backgroundColor.set(skin.getColor("p-beige"));
 
 		labelStyleDefault = skin.get("default", Label.LabelStyle.class);
@@ -276,7 +311,7 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 		final Label productionLabel = new Label("Production", skin, "title-medium");
 		productionLabel.setAlignment(Align.center);
 		rightPanel.add(productionLabel).growX().pad(10f).row();
-		rightPanel.add(newScrollPane(production)).grow().row();
+		rightPanel.add(newScrollPane(production)).minHeight(100f).grow().row();
 
 		final Label rumorsLabel = new Label("Rumors", skin, "title-medium");
 		rumorsLabel.setAlignment(Align.center);
@@ -284,7 +319,7 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 		rumors = new Table(skin);
 		rumors.pad(5f).align(Align.top);
 		rumors.defaults().pad(5f).align(Align.left);
-		rightPanel.add(newScrollPane(rumors)).grow().row();
+		rightPanel.add(newScrollPane(rumors)).minHeight(100f).grow().row();
 
 		// Initial layout is kinda weird
 		root.validate();
@@ -303,6 +338,7 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 			caravan.money -= buyPrice;
 			caravan.inventory.add(m, 1);
 			town.prices.buyUnit(m);
+			caravan.inventoryPriceBuyMemory[m.ordinal()] = Util.toShortClampUnsigned(buyPrice);
 		} while (allForPrice && (buyPrice == town.prices.buyPrice(m)));
 		return true;
 	}
@@ -319,6 +355,7 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 			caravan.money += sellPrice;
 			caravan.inventory.add(m, -1);
 			town.prices.sellUnit(m);
+			caravan.inventoryPriceSellMemory[m.ordinal()] = Util.toShortClampUnsigned(sellPrice);
 		} while (allForPrice && sellPrice == Math.min(town.prices.sellPrice(m), town.money));
 		return true;
 	}

@@ -36,6 +36,7 @@
   "com.badlogic.gdx.scenes.scene2d.ui.Label$LabelStyle": {
     "default": { "font": "regular-medium", "fontColor": "p-dark" },
     "default-disabled": { "font": "regular-medium", "fontColor": "p-blue" },
+    "tooltip": { "font": "regular-small", "fontColor": "p-dark", "background": "ui33" },
     "title-large": { "font": "title-large", "fontColor": "p-dark" },
     "title-medium": { "font": "title-medium", "fontColor": "p-dark" },
     "title-small": { "font": "title-small", "fontColor": "p-dark" },

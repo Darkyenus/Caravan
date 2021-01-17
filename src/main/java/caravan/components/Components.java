@@ -18,7 +18,8 @@ public final class Components {
 			RenderC.class,
 			TitleC.class,
 			TownC.class,
-			CaravanC.class
+			CaravanC.class,
+			CaravanAIC.class
 	);
 
 	static {

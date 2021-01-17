@@ -4,6 +4,7 @@ import caravan.components.Components;
 import caravan.debug.WorldDebugService;
 import caravan.input.GameInput;
 import caravan.services.CameraFocusSystem;
+import caravan.services.CaravanAIService;
 import caravan.services.EntitySpawnService;
 import caravan.services.MoveSystem;
 import caravan.services.PlayerControlSystem;
@@ -12,6 +13,7 @@ import caravan.services.RenderingService;
 import caravan.services.TimeService;
 import caravan.services.StatefulService;
 import caravan.services.TitleRenderService;
+import caravan.services.TownSystem;
 import caravan.services.UIService;
 import caravan.services.WorldService;
 import caravan.util.CaravanComponent;
@@ -35,7 +37,7 @@ import java.io.BufferedInputStream;
 import java.util.List;
 
 /**
- * The screen with the actual game. Deals with setup of the engine, systems, loading (TBD), etc.
+ * The screen with the actual game. Deals with setup of the engine, systems, loading, etc.
  * The gameplay is implemented inside the systems.
  */
 public final class GameScreen extends CaravanApplication.UIScreen {
@@ -62,6 +64,8 @@ public final class GameScreen extends CaravanApplication.UIScreen {
 				new EntitySpawnService(),
 				new PlayerControlSystem(application, gameInput),
 				new MoveSystem(),
+				new TownSystem(),
+				new CaravanAIService(),
 				cameraFocusSystem = new CameraFocusSystem(5f, gameInput),
 				new WorldService(worldWidth, worldHeight, Tiles.Water),
 				new RenderSystem(),
@@ -74,9 +78,11 @@ public final class GameScreen extends CaravanApplication.UIScreen {
 
 		if (!load(saveFile)) {
 			Gdx.app.log("GameScreen", "Generating a new world");
-			WorldGenerator.generateWorld(engine, System.nanoTime(), worldWidth, worldHeight);
+			WorldGenerator.generateWorld(engine, System.nanoTime(), worldWidth, worldHeight, 24);
 			// Spawn player caravan
 			WorldGenerator.generatePlayerCaravan(engine);
+			// Spawn NPC caravans
+			WorldGenerator.generateNPCCaravans(engine, 32);
 			// Simulate the game world a bit to initialize
 			WorldGenerator.simulateInitialWorldPrices(engine, 200, false);
 		} else {

@@ -14,7 +14,7 @@ import java.util.Arrays;
  *
  * Stores sets of (townEntityId, day of the memory, price by merchandise id []).
  */
-public final class TownPriceMemory implements Pool.Poolable {
+public final class PriceMemory implements Pool.Poolable {
 
 	/** For each memory contains the town entity ID or -1 if there is no memory. */
 	private int[] townEntityIds;
@@ -27,7 +27,7 @@ public final class TownPriceMemory implements Pool.Poolable {
 	/**
 	 * @param memoryCapacity how many towns does the caravan remember
 	 */
-	public TownPriceMemory(int memoryCapacity) {
+	public PriceMemory(int memoryCapacity) {
 		townEntityIds = new int[memoryCapacity];
 		memoryDay = new int[memoryCapacity];
 		buyPrices = new short[memoryCapacity * Merchandise.COUNT];

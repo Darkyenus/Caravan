@@ -1,6 +1,7 @@
 package caravan.services;
 
 import caravan.components.Components;
+import caravan.components.PositionC;
 import caravan.components.TownC;
 import caravan.util.Inventory;
 import caravan.world.Merchandise;
@@ -8,6 +9,7 @@ import caravan.world.Production;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.RandomXS128;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.IntArray;
 import com.badlogic.gdx.utils.ObjectIntMap;
 import com.darkyen.retinazer.Mapper;
 import com.darkyen.retinazer.Wire;
@@ -20,6 +22,7 @@ import static caravan.util.Util.rRound;
 
 /**
  * Simulates town economics, internal supply and demand.
+ * Also handles querying towns for other systems.
  */
 public final class TownSystem extends EntityProcessorSystem {
 
@@ -27,9 +30,11 @@ public final class TownSystem extends EntityProcessorSystem {
 	private TimeService timeService;
 	@Wire
 	private Mapper<TownC> town;
+	@Wire
+	private Mapper<PositionC> position;
 
 	public TownSystem() {
-		super(Components.DOMAIN.familyWith(TownC.class));
+		super(Components.DOMAIN.familyWith(TownC.class, PositionC.class));
 	}
 
 	@Override
@@ -42,6 +47,29 @@ public final class TownSystem extends EntityProcessorSystem {
 	@Override
 	protected void process(int entity) {
 		simulateInternalEconomy(town.get(entity));
+	}
+
+	public int getNearestTown(@NotNull PositionC position, float maxDistance) {
+		int town = -1;
+		float townDistance = maxDistance;
+
+		final IntArray townIndices = getEntities().getIndices();
+		for (int i = 0; i < townIndices.size; i++) {
+			final int townEntity = townIndices.get(i);
+			final PositionC townPos = this.position.get(townEntity);
+			final float distance = PositionC.manhattanDistance(townPos, position);
+			if (distance < townDistance) {
+				town = townEntity;
+				townDistance = distance;
+			}
+		}
+
+		return town;
+	}
+
+	/** Get a town entity that is accessible from the given position or -1 if there is no such town. */
+	public int getNearbyTown(@NotNull PositionC position) {
+		return getNearestTown(position, 1.5f);
 	}
 
 	public static void simulateInternalEconomy(@NotNull TownC town) {
