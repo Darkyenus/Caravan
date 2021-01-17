@@ -2,6 +2,7 @@ package caravan.components;
 
 import caravan.util.CaravanComponent;
 import caravan.util.PriceList;
+import caravan.util.Rumors;
 import caravan.world.Environment;
 import caravan.world.Production;
 import com.badlogic.gdx.utils.ObjectIntMap;
@@ -27,6 +28,9 @@ public final class TownC extends CaravanComponent {
 
 	/** The town prices and inventory */
 	public final PriceList prices = new PriceList();
+
+	/** The town rumors. */
+	public final Rumors rumors = new Rumors(30);
 
 	/** How many people are doing what. */
 	public final ObjectIntMap<Production> production = new ObjectIntMap<>();
@@ -56,12 +60,10 @@ public final class TownC extends CaravanComponent {
 		money = 0;
 		wealth = 0;
 		prices.clear();
+		rumors.reset();
 		production.clear();
-
 		environment.reset();
-
 		closestNeighbors = NO_NEIGHBORS;
-
 		tradeSellCounter = 0;
 		tradeBuyCounter = 0;
 	}
@@ -81,6 +83,7 @@ public final class TownC extends CaravanComponent {
 		}
 
 		environment.save(output);
+		rumors.save(output);
 
 		output.writeInt(closestNeighbors.length);
 		output.writeInts(closestNeighbors, 0, closestNeighbors.length);
@@ -111,6 +114,7 @@ public final class TownC extends CaravanComponent {
 		}
 
 		environment.load(input);
+		rumors.load(input);
 
 		closestNeighbors = input.readInts(input.readInt());
 

@@ -66,9 +66,8 @@ public final class CaravanAIService extends EntityProcessorSystem {
 		final int nextTown;
 		if (nearbyTown != -1) {
 			final TownC town = this.town.get(nearbyTown);
-
+			town.rumors.addRandomPriceRumors(caravan.priceMemory, town.prices, nearbyTown, timeService.day);
 			final PriceMemory priceMemory = caravan.priceMemory;
-			priceMemory.remember(timeService.day, nearbyTown, town);
 
 			// Sell everything that makes profit
 			for (Merchandise m : Merchandise.VALUES) {
@@ -154,6 +153,8 @@ public final class CaravanAIService extends EntityProcessorSystem {
 					caravanAi.currentActivity = CaravanAIC.Activity.LOOKING_FOR_A_GOOD_DEAL;
 				}
 			}
+
+			priceMemory.remember(timeService.day, nearbyTown, town);
 		} else {
 			// This is probably our spawn point, move towards the nearest town
 			nextTown = townSystem.getNearestTown(position, Float.POSITIVE_INFINITY, -1);

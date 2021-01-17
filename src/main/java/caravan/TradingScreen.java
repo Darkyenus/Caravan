@@ -3,6 +3,7 @@ package caravan;
 import caravan.components.CaravanC;
 import caravan.components.TownC;
 import caravan.util.PooledArray;
+import caravan.util.Rumors;
 import caravan.util.Tooltip;
 import caravan.util.Util;
 import caravan.world.Merchandise;
@@ -19,6 +20,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.UIUtils;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.ObjectIntMap;
+import com.darkyen.retinazer.Mapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,6 +33,7 @@ import static caravan.util.Util.newScrollPane;
 @SuppressWarnings("unchecked")
 public final class TradingScreen extends CaravanApplication.UIScreen {
 
+	private Mapper<TownC> townMapper;
 	@Nullable
 	private TownC town;
 	@Nullable
@@ -55,8 +58,9 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 		super(500, false, true);
 	}
 
-	public void reset(@NotNull TownC town, @NotNull CaravanC caravan) {
+	public void reset(@NotNull Mapper<TownC> townMapper, @NotNull TownC town, @NotNull CaravanC caravan) {
 		this.town = town;
+		this.townMapper = townMapper;
 		this.caravan = caravan;
 		refresh();
 	}
@@ -159,7 +163,31 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 			wealthRumor = "This town is wealthy";
 		}
 		rumors.add(wealthRumor).row();
-		// TODO(jp): Add rumors
+
+		{
+			final PooledArray<Rumors.Rumor> rumors = town.rumors.rumors;
+			for (int i = 0; i < rumors.size; i++) {
+				final Rumors.Rumor rumor = rumors.get(i);
+
+				final String merchName = Util.getName(rumor.aboutMerchandise);
+				final String townName = Util.getName(rumor.aboutTownEntity, townMapper);
+
+				final String text;
+				switch (rumor.type) {
+					default:
+					case THING_EXISTS:
+						text = merchName+" exists in "+townName;
+						break;
+					case BUY_PRICE:
+						text = merchName+" is sold in "+townName+" for "+rumor.aboutPrice;
+						break;
+					case SELL_PRICE:
+						text = merchName+" is bought by "+townName+" for "+rumor.aboutPrice;
+						break;
+				}
+				this.rumors.add(text).row();
+			}
+		}
 	}
 
 	private static Tooltip<Label> newTooltip() {
@@ -208,9 +236,9 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 		merchTable.defaults().pad(2f);
 		merchTable.pad(5f);
 		merchTable.columnDefaults(0).expand(4, 0).align(Align.right).grow();// nameLabel
-		merchTable.columnDefaults(1).expand(1, 0).align(Align.center).fill().padLeft(10f);// buyButton
-		merchTable.columnDefaults(2).expand(1, 0).align(Align.center).fill().padLeft(10f);// sellButton
-		merchTable.columnDefaults(3).expand(1, 0).align(Align.center).fill().minWidth(15f).padLeft(10f);// inventoryLabel
+		merchTable.columnDefaults(1).expand(1, 0).align(Align.center).fill().minWidth(20f).padLeft(10f);// buyButton
+		merchTable.columnDefaults(2).expand(1, 0).align(Align.center).fill().minWidth(20f).padLeft(10f);// sellButton
+		merchTable.columnDefaults(3).expand(1, 0).align(Align.center).fill().minWidth(20f).padLeft(10f);// inventoryLabel
 		final ScrollPane pane = newScrollPane(merchTable);
 		root.add(pane).grow().padRight(10f);
 
@@ -311,15 +339,15 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 		final Label productionLabel = new Label("Production", skin, "title-medium");
 		productionLabel.setAlignment(Align.center);
 		rightPanel.add(productionLabel).growX().pad(10f).row();
-		rightPanel.add(newScrollPane(production)).minHeight(100f).grow().row();
+		rightPanel.add(newScrollPane(production)).minSize(100f, 100f).grow().row();
 
 		final Label rumorsLabel = new Label("Rumors", skin, "title-medium");
 		rumorsLabel.setAlignment(Align.center);
 		rightPanel.add(rumorsLabel).growX().pad(10f).row();
 		rumors = new Table(skin);
 		rumors.pad(5f).align(Align.top);
-		rumors.defaults().pad(5f).align(Align.left);
-		rightPanel.add(newScrollPane(rumors)).minHeight(100f).grow().row();
+		rumors.defaults().pad(5f).align(Align.center);
+		rightPanel.add(newScrollPane(rumors)).minSize(100f, 100f).grow().row();
 
 		// Initial layout is kinda weird
 		root.validate();

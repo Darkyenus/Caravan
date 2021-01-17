@@ -2,6 +2,8 @@ package caravan.util;
 
 import caravan.CaravanApplication;
 import caravan.components.PositionC;
+import caravan.components.TownC;
+import caravan.world.Merchandise;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -15,6 +17,7 @@ import com.darkyen.retinazer.Component;
 import com.darkyen.retinazer.EntitySetView;
 import com.darkyen.retinazer.Mapper;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -202,4 +205,13 @@ public final class Util {
 	}
 
 	public static final EventListener ALL_HANDLING_INPUT_LISTENER = event -> event instanceof InputEvent;
+
+	public static @NotNull String getName(@Nullable Merchandise m) {
+		return m == null ? "something" : m.name;
+	}
+
+	public static @NotNull String getName(int town, @NotNull Mapper<TownC> townMapper) {
+		TownC t = town < 0 ? null : townMapper.getOrNull(town);
+		return t == null ? "somewhere" : t.name;
+	}
 }

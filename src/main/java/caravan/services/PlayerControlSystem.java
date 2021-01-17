@@ -63,7 +63,7 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
 
     /** Used for alternating direction */
     private boolean nextMoveVertical = false;
-    private static float DIRECTIONAL_MOVE_ALTERNATION_DELAY = 0.3f;
+    private static final float DIRECTIONAL_MOVE_ALTERNATION_DELAY = 0.3f;
     private float nextMoveVerticalChangeCountdown = DIRECTIONAL_MOVE_ALTERNATION_DELAY;
     private boolean directionalMove = false;
 
@@ -178,7 +178,7 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
                 caravan.priceMemory.remember(timeService.day, townEntity, town);
 
                 if (application.addScreen(tradingScreen)) {
-                    tradingScreen.reset(town, caravan);
+                    tradingScreen.reset(townMapper, town, caravan);
                     playerC.openTradeOnArrival = false;
                 }
             } else {
