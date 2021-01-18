@@ -91,6 +91,10 @@ public final class CaravanAIService extends EntityProcessorSystem {
 				}
 
 				for (Merchandise m : Merchandise.VALUES) {
+					if (!m.tradeable) {
+						continue;
+					}
+
 					final int localBuyPrice = town.prices.buyPrice(m);
 					final int remoteSellPrice = priceMemory.sellPrice(memorySlot, m);
 					final int couldBuy = Math.min(caravan.money / localBuyPrice, 10);

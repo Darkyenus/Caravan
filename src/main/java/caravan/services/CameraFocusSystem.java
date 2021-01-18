@@ -104,18 +104,23 @@ public final class CameraFocusSystem extends EntityProcessorSystem implements Re
         scrollFunction = gameInput.use(Inputs.SCROLL);
         gameInput.use(Inputs.ZOOM_OUT, (times, pressed) -> {
             if (zoomExponent < MAX_ZOOM_EXPONENT) {
-                zoomExponent = Math.min(MAX_ZOOM_EXPONENT, zoomExponent + ZOOM_EXPONENT_STEP * times);
+                setZoomExponent(Math.min(MAX_ZOOM_EXPONENT, zoomExponent + ZOOM_EXPONENT_STEP * times));
                 return true;
             }
             return false;
         });
         gameInput.use(Inputs.ZOOM_IN, (times, pressed) -> {
             if (zoomExponent > MIN_ZOOM_EXPONENT) {
-                zoomExponent = Math.max(MIN_ZOOM_EXPONENT, zoomExponent - ZOOM_EXPONENT_STEP * times);
+                setZoomExponent(Math.max(MIN_ZOOM_EXPONENT, zoomExponent - ZOOM_EXPONENT_STEP * times));
                 return true;
             }
             return false;
         });
+    }
+
+    public void setZoomExponent(float newZoomExponent) {
+        // TODO(jp): Move towards/away from cursor position
+        this.zoomExponent = newZoomExponent;
     }
 
     /** Switch whether the camera is attached to the focused entities or not. */

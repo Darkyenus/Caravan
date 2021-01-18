@@ -41,7 +41,7 @@ public final class Rumors implements Pool.Poolable {
 
 	public void addRandomPriceRumors(@NotNull PriceMemory caravanMemory, @NotNull PriceList townPrices, int thisTownEntity, int today) {
 		final int offset = MathUtils.random.nextInt(Merchandise.COUNT);
-		final int count = MathUtils.random(5, 10);
+		int count = MathUtils.random(5, 10);
 
 		Merchandise bestBuyPriceMerch = null;
 		int bestBuyPriceDifference = 0;
@@ -55,6 +55,11 @@ public final class Rumors implements Pool.Poolable {
 
 		for (int i = 0; i < count; i++) {
 			final Merchandise m = Merchandise.VALUES[(offset + i) % Merchandise.COUNT];
+			if (!m.tradeable) {
+				count++;
+				continue;
+			}
+
 			final int localBuyPrice = townPrices.buyPrice(m);
 			final int localSellPrice = townPrices.sellPrice(m);
 

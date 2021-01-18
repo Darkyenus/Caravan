@@ -53,6 +53,7 @@ val caravan:Project by project(Archetypes.JavaProject) {
 
 	run set { using(lwjgl3) { run.get() } } // Redirect running to lwjgl3 backend
 	runHotswap set { using(lwjgl3) { runHotswap.get() } } // Redirect running to lwjgl3 backend
+	assembly set { using(lwjgl3) { assembly.get() } } // Redirect assembly to lwjgl3 backend
 }
 
 /**

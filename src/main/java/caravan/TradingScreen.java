@@ -2,6 +2,7 @@ package caravan;
 
 import caravan.components.CaravanC;
 import caravan.components.TownC;
+import caravan.util.ConfirmWindow;
 import caravan.util.PooledArray;
 import caravan.util.Rumors;
 import caravan.util.Tooltip;
@@ -53,6 +54,8 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 	private Label.LabelStyle labelStyleDefaultDisabled;
 	private TextButton.TextButtonStyle textButtonStyleDefault;
 	private TextButton.TextButtonStyle textButtonStyleDefaultDangerous;
+
+	private ConfirmWindow badPriceWarning;
 
 	public TradingScreen() {
 		super(500, false, true);
@@ -155,12 +158,16 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 
 		rumors.clear();
 		String wealthRumor;
-		if (town.wealth < -0.5f) {
+		if (town.wealth <= 0f) {
+			wealthRumor = "This town is desperately poor";
+		} else if (town.wealth < -0.5f) {
 			wealthRumor = "This town is poor";
 		} else if (town.wealth < 0.5f) {
 			wealthRumor = "This town breaks even";
-		} else {
+		} else if (town.wealth < 1f) {
 			wealthRumor = "This town is wealthy";
+		} else {
+			wealthRumor = "This town is fabulously wealthy";
 		}
 		rumors.add(wealthRumor).row();
 
@@ -205,6 +212,12 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 		textButtonStyleDefault = skin.get("default", TextButton.TextButtonStyle.class);
 		textButtonStyleDefaultDangerous = skin.get("default-dangerous", TextButton.TextButtonStyle.class);
 
+		badPriceWarning = new ConfirmWindow();
+		badPriceWarning.setYesText("Sell anyway");
+		badPriceWarning.setNoText("Cancel");
+		badPriceWarning.getTitleLabel().setText("Price warning");
+		badPriceWarning.setMessageText("Town can't pay full price, because it does not have enough money.");
+
 		root.pad(20f);
 
 		{
@@ -230,7 +243,6 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 
 			root.add(topBar).growX().colspan(2).padBottom(10f).row();
 		}
-
 
 		final Table merchTable = new Table(skin);
 		merchTable.defaults().pad(2f);
@@ -268,11 +280,25 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 					return;
 				}
 
+				final boolean allForPrice = UIUtils.alt() || UIUtils.shift();
 				final Merchandise merchandise = (Merchandise) actor.getUserObject();
-				if (!performSell(town, caravan, merchandise, UIUtils.alt() || UIUtils.shift())) {
-					Gdx.app.log("TradingSystem", "Sell of " + merchandise + " failed");
+
+				if (((TextButton) actor).getStyle() == textButtonStyleDefaultDangerous) {
+					// Ask for confirmation
+					badPriceWarning.setYesAction(() -> {
+						if (!performSell(town, caravan, merchandise, allForPrice)) {
+							Gdx.app.log("TradingSystem", "Sell of " + merchandise + " failed");
+						} else {
+							refresh();
+						}
+					});
+					badPriceWarning.show(actor.getStage());
 				} else {
-					refresh();
+					if (!performSell(town, caravan, merchandise, allForPrice)) {
+						Gdx.app.log("TradingSystem", "Sell of " + merchandise + " failed");
+					} else {
+						refresh();
+					}
 				}
 			}
 		};

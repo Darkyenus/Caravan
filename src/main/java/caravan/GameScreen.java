@@ -186,8 +186,8 @@ public final class GameScreen extends CaravanApplication.UIScreen {
 				try {
 					service.load(partialInput, serviceVersion);
 
-					if (partialInput.position() != partialInput.total()) {
-						Gdx.app.error("GameScreen", "Loading of service "+serviceName+" may be broken, "+(partialInput.total() - partialInput.position())+" bytes left in the buffer");
+					if (partialInput.position() != partialInput.limit()) {
+						Gdx.app.error("GameScreen", "Loading of service "+serviceName+" may be broken, "+(partialInput.limit() - partialInput.position())+" bytes left in the buffer");
 					}
 				} catch (Exception e) {
 					Gdx.app.error("GameScreen", "Failed to load service "+serviceName, e);
@@ -263,8 +263,8 @@ public final class GameScreen extends CaravanApplication.UIScreen {
 					final CaravanComponent component = (CaravanComponent) mapper.create(entity);
 					try {
 						component.load(partialInput, mapperVersions[c]);
-						if (partialInput.position() != partialInput.total()) {
-							Gdx.app.error("GameScreen", "Loading of entity "+entity+" may be broken, component "+component+" left "+(partialInput.total() - partialInput.position())+" bytes in the buffer");
+						if (partialInput.position() != partialInput.limit()) {
+							Gdx.app.error("GameScreen", "Loading of entity "+entity+" may be broken, component "+component+" left "+(partialInput.limit() - partialInput.position())+" bytes in the buffer");
 						}
 					} catch (Exception e) {
 						Gdx.app.error("GameScreen", "Loading of entity "+entity+" may not be complete, component "+component+" failed loading", e);

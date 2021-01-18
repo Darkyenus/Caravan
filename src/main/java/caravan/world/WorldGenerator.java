@@ -669,7 +669,7 @@ public final class WorldGenerator {
 		boolean vowel = MathUtils.random(9) == 0;
 		sb.append(Character.toUpperCase(random(vowel ? VOWELS : CONSONANTS)));
 
-		final int length = 3 + MathUtils.random(4);
+		final int length = 2 + MathUtils.random(4) + MathUtils.random(2) + MathUtils.random(2);
 		for (int i = 1; i < length; i++) {
 			vowel = !vowel;
 			sb.append(random(vowel ? VOWELS : CONSONANTS));

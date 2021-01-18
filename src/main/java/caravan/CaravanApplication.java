@@ -14,6 +14,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -449,7 +450,18 @@ public final class CaravanApplication implements ApplicationListener, InputProce
 
 		@Override
 		public void create(@NotNull CaravanApplication application) {
-			stage = new Stage(application.uiViewport, batch);
+			stage = new Stage(application.uiViewport, batch) {
+				final Vector2 v = new Vector2();
+
+				@Override
+				public boolean scrolled(float amountX, float amountY) {
+					final Vector2 v = screenToStageCoordinates(this.v.set(Gdx.input.getX(), Gdx.input.getY()));
+					setScrollFocus(hit(v.x, v.y, true));
+					final boolean result = super.scrolled(amountX, amountY);
+					setScrollFocus(null);
+					return result;
+				}
+			};
 			addProcessor(0, stage);
 			initializeUI(application, stage);
 		}

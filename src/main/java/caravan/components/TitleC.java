@@ -18,7 +18,6 @@ public final class TitleC extends CaravanComponent {
 	public final Color color = new Color(Color.WHITE);
 
 	public float yOffset;
-	public float lineHeight;
 
 	{
 		reset();
@@ -29,7 +28,6 @@ public final class TitleC extends CaravanComponent {
 		title = "";
 		color.set(Color.WHITE);
 		yOffset = 0f;
-		lineHeight = 1f;
 	}
 
 	@Override
@@ -37,7 +35,6 @@ public final class TitleC extends CaravanComponent {
 		output.writeString(title);
 		output.writeInt(Color.argb8888(color));
 		output.writeFloat(yOffset);
-		output.writeFloat(lineHeight);
 	}
 
 	@Override
@@ -45,6 +42,5 @@ public final class TitleC extends CaravanComponent {
 		title = input.readString();
 		Color.argb8888ToColor(color, input.readInt());
 		yOffset = input.readFloat();
-		lineHeight = input.readFloat();
 	}
 }
