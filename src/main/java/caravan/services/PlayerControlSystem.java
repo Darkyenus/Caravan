@@ -102,20 +102,14 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
 
             if (LEFT.isPressed()) {
                 deltaX = -1;
-                render.set(CARAVAN_RIGHT);
-                render.scaleX = -1;
             } else if (RIGHT.isPressed()) {
                 deltaX = +1;
-                render.set(CARAVAN_RIGHT);
-                render.scaleX = 1;
             }
 
             if (UP.isPressed()) {
                 deltaY = +1;
-                render.set(CARAVAN_UP);
             } else if (DOWN.isPressed()) {
                 deltaY = -1;
-                render.set(CARAVAN_DOWN);
             }
 
             if (deltaX != 0 && deltaY != 0) {

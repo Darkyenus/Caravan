@@ -3,19 +3,7 @@ package caravan;
 import caravan.components.Components;
 import caravan.debug.WorldDebugService;
 import caravan.input.GameInput;
-import caravan.services.CameraFocusSystem;
-import caravan.services.CaravanAIService;
-import caravan.services.EntitySpawnService;
-import caravan.services.MoveSystem;
-import caravan.services.PlayerControlSystem;
-import caravan.services.RenderSystem;
-import caravan.services.RenderingService;
-import caravan.services.TimeService;
-import caravan.services.StatefulService;
-import caravan.services.TitleRenderService;
-import caravan.services.TownSystem;
-import caravan.services.UIService;
-import caravan.services.WorldService;
+import caravan.services.*;
 import caravan.util.CaravanComponent;
 import caravan.world.Sprites;
 import caravan.world.Tiles;
@@ -70,7 +58,8 @@ public final class GameScreen extends CaravanApplication.UIScreen {
 				new WorldService(worldWidth, worldHeight, Tiles.Water),
 				new RenderSystem(),
 				new TitleRenderService(),
-				new WorldDebugService()
+				new WorldDebugService(),
+				new GraphicCService()
 		);
 		renderingServices = engine.getServices(RenderingService.class).toArray(new RenderingService[0]);
 
