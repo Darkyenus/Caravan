@@ -2,6 +2,7 @@ package caravan.services;
 
 import caravan.CaravanApplication;
 import caravan.Inputs;
+import caravan.NotesScreen;
 import caravan.TradingScreen;
 import caravan.components.CaravanC;
 import caravan.components.Components;
@@ -50,9 +51,11 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
     private final BoundInputFunction RIGHT;
 
     private final BoundInputFunction MOVE;
+    private final BoundInputFunction NOTES;
 
     private final CaravanApplication application;
     private final TradingScreen tradingScreen;
+    private final NotesScreen notesScreen;
 
     /** Used for alternating direction */
     private boolean nextMoveVertical = false;
@@ -68,10 +71,11 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
         DOWN = gameInput.use(Inputs.DOWN);
         LEFT = gameInput.use(Inputs.LEFT);
         RIGHT = gameInput.use(Inputs.RIGHT);
-
         MOVE = gameInput.use(Inputs.MOVE);
+        NOTES = gameInput.use(Inputs.NOTES);
 
         tradingScreen = new TradingScreen();
+        notesScreen = new NotesScreen();
     }
 
     @Override
@@ -138,7 +142,11 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
             move.waypoints.clear();
             directionalMove = false;
         }
-
+        if (NOTES.isPressed()){
+            if (application.addScreen(notesScreen)){
+                notesScreen.reset(playerC);
+            }
+        }
         if (!directionalMove && MOVE.isJustPressed()) {
             // Move to clicked location
             final Vector3 clickedTarget = cameraFocusSystem.unproject(Gdx.input.getX(), Gdx.input.getY());
