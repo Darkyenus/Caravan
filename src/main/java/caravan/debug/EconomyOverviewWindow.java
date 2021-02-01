@@ -5,6 +5,7 @@ import caravan.components.Components;
 import caravan.components.PositionC;
 import caravan.components.TownC;
 import caravan.services.TownSystem;
+import caravan.util.Tooltip;
 import caravan.world.Merchandise;
 import caravan.world.Production;
 import com.badlogic.gdx.math.FloatCounter;
@@ -14,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.StringBuilder;
 import com.darkyen.retinazer.Engine;
 import com.darkyen.retinazer.EntitySetView;
 import com.darkyen.retinazer.Mapper;
@@ -93,10 +95,10 @@ public class EconomyOverviewWindow extends Window {
 			updateProcessors.add(() -> {
 				counter.reset();
 				forEach(towns, town, (town) -> counter.put(town.production.get(production, 0)));
-				total.setText((int) counter.total);
-				min.setText((int) counter.min);
-				max.setText((int) counter.max);
-				average.setText(String.format("%.2f", counter.average));
+				setText(total, (int) counter.total);
+				setText(min, (int) counter.min);
+				setText(max, (int) counter.max);
+				setText(average, String.format("%.2f", counter.average));
 			});
 		}
 
@@ -123,9 +125,9 @@ public class EconomyOverviewWindow extends Window {
 			updateProcessors.add(() -> {
 				counter.reset();
 				forEach(towns, town, (town) -> counter.put(town.prices.basePrice(merch)));
-				min.setText(String.format("%.2f", counter.min));
-				max.setText(String.format("%.2f", counter.max));
-				average.setText(String.format("%.2f", counter.average));
+				setText(min, String.format("%.2f", counter.min));
+				setText(max, String.format("%.2f", counter.max));
+				setText(average, String.format("%.2f", counter.average));
 			});
 		}
 
@@ -177,10 +179,10 @@ public class EconomyOverviewWindow extends Window {
 
 			updateProcessors.add(() -> {
 				if (selectedTown == null) {
-					profit.setText("?");
+					setText(profit, "?");
 					return;
 				}
-				profit.setText(String.format("%.2f", TownSystem.productionProfit(selectedTown, production)));
+				setText(profit, String.format("%.2f", TownSystem.productionProfit(selectedTown, production)));
 			});
 
 		}
@@ -212,10 +214,10 @@ public class EconomyOverviewWindow extends Window {
 		updateProcessors.add(() -> {
 			counter.reset();
 			forEach(towns, town, (town) -> counter.put(func.get(town)));
-			total.setText(String.format("%.2f", counter.total));
-			min.setText(String.format("%.2f", counter.min));
-			max.setText(String.format("%.2f", counter.max));
-			average.setText(String.format("%.2f", counter.average));
+			setText(total, String.format("%.2f", counter.total));
+			setText(min, String.format("%.2f", counter.min));
+			setText(max, String.format("%.2f", counter.max));
+			setText(average, String.format("%.2f", counter.average));
 		});
 	}
 
@@ -238,5 +240,20 @@ public class EconomyOverviewWindow extends Window {
 		if (visible) {
 			refresh();
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private static void setText(@NotNull Label label, @NotNull Object text) {
+		Tooltip<Label> tooltip = (Tooltip<Label>) label.getUserObject();
+		if (tooltip == null) {
+			tooltip = new Tooltip<>(new Label("", uiSkin(), "tooltip"));
+			tooltip.setParent(label);
+			label.setUserObject(tooltip);
+		}
+		final StringBuilder labelText = label.getText();
+		tooltip.getActor().setText(labelText);
+		labelText.clear();
+		labelText.append(text);
+		label.invalidateHierarchy();
 	}
 }

@@ -2,10 +2,12 @@ package caravan.services;
 
 import caravan.components.Components;
 import caravan.components.PositionC;
+import caravan.components.RenderC;
 import caravan.components.TownC;
 import caravan.util.Inventory;
 import caravan.world.Merchandise;
 import caravan.world.Production;
+import caravan.world.Sprites;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.RandomXS128;
 import com.badlogic.gdx.utils.Array;
@@ -32,6 +34,12 @@ public final class TownSystem extends EntityProcessorSystem {
 	private Mapper<TownC> town;
 	@Wire
 	private Mapper<PositionC> position;
+	@Wire
+	private Mapper<RenderC> render;
+
+	private static final int MIN_POPULATION = 10;
+	private static final int CASTLE_POPULATION = 80;
+	private static final int MAX_POPULATION = 100;
 
 	public TownSystem() {
 		super(Components.DOMAIN.familyWith(TownC.class, PositionC.class));
@@ -46,7 +54,13 @@ public final class TownSystem extends EntityProcessorSystem {
 
 	@Override
 	protected void process(int entity) {
-		simulateInternalEconomy(town.get(entity));
+		final TownC town = this.town.get(entity);
+		if (simulateInternalEconomy(town) != 0) {
+			final RenderC render = this.render.getOrNull(entity);
+			if (render != null) {
+				render.sprite = town.population >= CASTLE_POPULATION ? Sprites.CASTLE : Sprites.VILLAGE;
+			}
+		}
 	}
 
 	public int getNearestTown(@NotNull PositionC position, float maxDistance, int excludingTownEntity) {
@@ -76,11 +90,12 @@ public final class TownSystem extends EntityProcessorSystem {
 		return getNearestTown(position, 1.5f, -1);
 	}
 
-	public static void simulateInternalEconomy(@NotNull TownC town) {
-		updateProduction(town);
+	public static int simulateInternalEconomy(@NotNull TownC town) {
+		int popGrowth = updateProduction(town);
 		simulateInternalProduction(town);
-		simulateInternalConsumption(town);
+		simulateInternalConsumption(town, popGrowth);
 		town.prices.update();
+		return popGrowth;
 	}
 
 	private static void simulateInternalProduction(@NotNull TownC town) {
@@ -176,7 +191,7 @@ public final class TownSystem extends EntityProcessorSystem {
 		return spentValue;
 	}
 
-	private static void simulateInternalConsumption(@NotNull TownC town) {
+	private static void simulateInternalConsumption(@NotNull TownC town, int popGrowth) {
 		float valueOfBoughtStuff = 0;
 
 		// Basic food
@@ -189,6 +204,11 @@ public final class TownSystem extends EntityProcessorSystem {
 		// Basic goods
 		valueOfBoughtStuff += fulfillNeed(town, Merchandise.COMMON_GOODS, town.population * 0.02f, Float.POSITIVE_INFINITY, 0.4f);
 
+		if (popGrowth > 0) {
+			// Building materials
+			valueOfBoughtStuff += fulfillNeed(town, Merchandise.BUILDING_MATERIALS, popGrowth * 5f, town.money - valueOfBoughtStuff + 300f, 0.5f);
+		}
+
 		// Luxury goods, as budget allows
 		float budget = (town.money - valueOfBoughtStuff) * 0.5f;
 		town.wealth = MathUtils.clamp(town.wealth + (float) Math.tanh(budget * 0.1) * 0.1f, -1, 1);
@@ -197,7 +217,7 @@ public final class TownSystem extends EntityProcessorSystem {
 	}
 
 	/** Pick which production leads to most money. */
-	private static void updateProduction(@NotNull TownC town) {
+	private static int updateProduction(@NotNull TownC town) {
 		final RandomXS128 random = new RandomXS128();
 
 		final int productionCount = Production.REGISTRY.count();
@@ -236,6 +256,18 @@ public final class TownSystem extends EntityProcessorSystem {
 		}
 
 		int unemployed = town.population - employed;
+		int populationGrowth = 0;
+
+		if (unemployed > 0 && town.wealth <= -1f && town.population > MIN_POPULATION) {
+			// Decrease population
+			town.population--;
+			unemployed--;
+			populationGrowth--;
+		} else if (town.wealth >= 1f && town.population < MAX_POPULATION) {
+			unemployed++;
+			town.population++;
+			populationGrowth++;
+		}
 
 		// Pick new profitable industries
 		while (unemployed > 0) {
@@ -255,6 +287,8 @@ public final class TownSystem extends EntityProcessorSystem {
 			unemployed -= giveToMostProfitable;
 			town.production.getAndIncrement(Production.REGISTRY.getDense(mostProfitable), 0, giveToMostProfitable);
 		}
+
+		return populationGrowth;
 	}
 
 	public static float productionProfit(@NotNull TownC town, @NotNull Production production) {

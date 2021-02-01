@@ -59,7 +59,7 @@ public final class TownC extends CaravanComponent {
 	public int realSellPrice(@NotNull Merchandise m) {
 		int price = prices.sellPrice(m);
 
-		if (wealth <= 0.3f && Merchandise.LUXURY_GOODS_SET.contains(m)) {
+		if (wealth <= 0.3f && Merchandise.WEALTHY_DEMAND_ONLY.contains(m)) {
 			float factor = (1f + wealth) / 1.3f;
 			price = Math.round(price * (factor * factor * factor));
 		}

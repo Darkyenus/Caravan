@@ -142,7 +142,27 @@ public enum Merchandise {
 			MEAD
 	};
 
-	public static final EnumSet<Merchandise> LUXURY_GOODS_SET = EnumSet.of(LUXURY_GOODS[0], LUXURY_GOODS);
+	/** Set of items that only wealthy towns want, poor towns will not buy these at full price. */
+	public static final EnumSet<Merchandise> WEALTHY_DEMAND_ONLY = EnumSet.of(
+			CLOTH_LUXURY,
+			CLOTHING_LUXURY,
+			BOOK,
+			PERFUME,
+			JEWELRY,
+			MEAT_LUXURY,
+			BAKED_GOODS_LUXURY,
+			FRUIT_DRIED,
+			FRUIT_JAM,
+			VEGETABLES_PICKLED,
+			BEER,
+			WINE,
+			LIQUOR,
+			MEAD,
+			SPICES,
+			METAL_RARE_ORE,
+			METAL_RARE_INGOT,
+			JEWELS
+	);
 
 	/** Towns that grow require these materials. */
 	public static final Merchandise[] BUILDING_MATERIALS = new Merchandise[] {

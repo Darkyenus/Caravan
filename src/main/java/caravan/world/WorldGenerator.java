@@ -133,7 +133,7 @@ public final class WorldGenerator {
 
 			final TownC town = townMapper.get(townEntity);
 			town.name = townName;
-			town.population = 10 + random.nextInt(90);
+			town.population = 10 + random.nextInt(91);
 			town.money = town.population * 10 + random.nextInt(50);
 			if (townIndex < 4) {
 				town.prices.initialize((short) 10, (short) 10);
