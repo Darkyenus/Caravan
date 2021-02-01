@@ -12,6 +12,8 @@ public final class PlayerC extends CaravanComponent {
     public boolean selected;
     public boolean openTradeOnArrival;
 
+    public String notes;
+
     public void set(boolean selected) {
         this.selected = selected;
     }
@@ -20,17 +22,20 @@ public final class PlayerC extends CaravanComponent {
     public void reset() {
         selected = false;
         openTradeOnArrival = false;
+        notes = "";
     }
 
     @Override
     public void save(@NotNull Output output) {
         output.writeBoolean(selected);
         output.writeBoolean(openTradeOnArrival);
+        output.writeString(notes);
     }
 
     @Override
     public void load(@NotNull Input input, int version) {
         selected = input.readBoolean();
         openTradeOnArrival = input.readBoolean();
+        notes = input.readString();
     }
 }

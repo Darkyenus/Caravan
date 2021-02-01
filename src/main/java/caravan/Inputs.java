@@ -4,10 +4,7 @@ import caravan.input.Binding;
 import caravan.input.InputFunction;
 import com.badlogic.gdx.Input;
 
-import static com.badlogic.gdx.Input.Keys.A;
-import static com.badlogic.gdx.Input.Keys.D;
-import static com.badlogic.gdx.Input.Keys.S;
-import static com.badlogic.gdx.Input.Keys.W;
+import static com.badlogic.gdx.Input.Keys.*;
 
 /**
  * Collection of used input functions.
@@ -27,6 +24,8 @@ public final class Inputs {
 	public static final InputFunction ZOOM_IN = InputFunction.function("Zoom In", Binding.scrollWheelY(false));
 	public static final InputFunction ZOOM_OUT = InputFunction.function("Zoom Out", Binding.scrollWheelY(true));
 
+	public static final InputFunction NOTES = InputFunction.function("Notes", Binding.keyboard(N));
+
 	public static final InputFunction[] ALL_INPUTS = new InputFunction[] {
 			UP,
 			DOWN,
@@ -36,6 +35,7 @@ public final class Inputs {
 			PAUSE,
 			SCROLL,
 			ZOOM_IN,
-			ZOOM_OUT
+			ZOOM_OUT,
+			NOTES
 	};
 }
