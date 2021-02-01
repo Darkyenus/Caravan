@@ -1,18 +1,20 @@
 package caravan.services;
 
+import caravan.components.CaravanC;
 import caravan.components.Components;
 import caravan.components.MoveC;
 import caravan.components.PositionC;
 import caravan.components.RenderC;
-import com.darkyen.retinazer.Family;
 import com.darkyen.retinazer.Mapper;
 import com.darkyen.retinazer.Wire;
 import com.darkyen.retinazer.systems.EntityProcessorSystem;
-import org.jetbrains.annotations.NotNull;
 
-import static caravan.world.Sprites.*;
+import static caravan.world.Sprites.CARAVAN_DOWN;
+import static caravan.world.Sprites.CARAVAN_RIGHT;
+import static caravan.world.Sprites.CARAVAN_UP;
 
-public class GraphicCService extends EntityProcessorSystem {
+public class CaravanAnimationService extends EntityProcessorSystem {
+
     @Wire
     private Mapper<RenderC> rendererMapper;
     @Wire
@@ -20,8 +22,8 @@ public class GraphicCService extends EntityProcessorSystem {
     @Wire
     private Mapper<MoveC> moveMapper;
 
-    public GraphicCService() {
-        super(Components.DOMAIN.familyWith(PositionC.class, MoveC.class));
+    public CaravanAnimationService() {
+        super(Components.DOMAIN.familyWith(PositionC.class, MoveC.class, CaravanC.class));
     }
 
     @Override
@@ -30,10 +32,9 @@ public class GraphicCService extends EntityProcessorSystem {
         final MoveC move = moveMapper.get(entity);
         final PositionC position = positionMapper.get(entity);
         if (move.waypoints.size >= 3) {
-            final float targetX = move.waypoints.get(0);
-            final float targetY = move.waypoints.get(1);
-            final float deltaX = targetX - position.x;
-            final float deltaY = targetY - position.y;
+            final float deltaX = move.waypoints.get(0) - position.x;
+            final float deltaY = move.waypoints.get(1) - position.y;
+
             if (deltaX > 0) {
                 renderer.set(CARAVAN_RIGHT);
                 renderer.scaleX = 1;
@@ -45,7 +46,6 @@ public class GraphicCService extends EntityProcessorSystem {
             } else {
                 renderer.set(CARAVAN_DOWN);
             }
-
         }
     }
 }
