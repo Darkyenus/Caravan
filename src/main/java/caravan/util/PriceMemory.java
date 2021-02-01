@@ -111,7 +111,6 @@ public final class PriceMemory implements Pool.Poolable {
 
 		final int priceOffset = index * Merchandise.COUNT;
 		final Merchandise[] merchandise = Merchandise.VALUES;
-		final int maxSellPrice = town.money;
 		final PriceList prices = town.prices;
 		final short[] buyPrices = this.buyPrices;
 		final short[] sellPrices = this.sellPrices;
@@ -120,7 +119,7 @@ public final class PriceMemory implements Pool.Poolable {
 			final Merchandise m = merchandise[i];
 			final int priceIndex = priceOffset + i;
 			buyPrices[priceIndex] = Util.toShortClampUnsigned(prices.buyPrice(m));
-			sellPrices[priceIndex] = Util.toShortClampUnsigned(Math.min(maxSellPrice, prices.sellPrice(m)));
+			sellPrices[priceIndex] = Util.toShortClampUnsigned(town.realSellPrice(m));
 		}
 	}
 

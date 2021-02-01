@@ -8,7 +8,6 @@ import caravan.components.Components;
 import caravan.components.MoveC;
 import caravan.components.PlayerC;
 import caravan.components.PositionC;
-import caravan.components.RenderC;
 import caravan.components.TownC;
 import caravan.input.BoundInputFunction;
 import caravan.input.GameInput;
@@ -18,10 +17,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.darkyen.retinazer.Mapper;
 import com.darkyen.retinazer.Wire;
 import com.darkyen.retinazer.systems.EntityProcessorSystem;
-
-import static caravan.world.Sprites.CARAVAN_DOWN;
-import static caravan.world.Sprites.CARAVAN_RIGHT;
-import static caravan.world.Sprites.CARAVAN_UP;
 
 /**
  * A system for controlling the player movement on the map.
@@ -38,8 +33,6 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
 	private Mapper<CaravanC> caravanMapper;
 	@Wire
 	private Mapper<TownC> townMapper;
-	@Wire
-    private Mapper<RenderC> rendererMapper;
 
     @Wire
     private TimeService timeService;
@@ -90,9 +83,7 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
 
         final PositionC position = positionMapper.get(entity);
         final CaravanC caravan = caravanMapper.get(entity);
-
         final MoveC move = moveMapper.get(entity);
-        final RenderC render = rendererMapper.get(entity);
 
         float speed = caravan.speed;
 

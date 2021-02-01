@@ -3,6 +3,8 @@ package caravan.world;
 import caravan.util.EnumSerializer;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.EnumSet;
+
 /**
  * Types of merchandise.
  */
@@ -139,6 +141,8 @@ public enum Merchandise {
 			LIQUOR,
 			MEAD
 	};
+
+	public static final EnumSet<Merchandise> LUXURY_GOODS_SET = EnumSet.of(LUXURY_GOODS[0], LUXURY_GOODS);
 
 	/** Towns that grow require these materials. */
 	public static final Merchandise[] BUILDING_MATERIALS = new Merchandise[] {

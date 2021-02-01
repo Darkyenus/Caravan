@@ -4,6 +4,7 @@ import caravan.util.CaravanComponent;
 import caravan.util.PriceList;
 import caravan.util.Rumors;
 import caravan.world.Environment;
+import caravan.world.Merchandise;
 import caravan.world.Production;
 import com.badlogic.gdx.utils.ObjectIntMap;
 import com.esotericsoftware.kryo.io.Input;
@@ -51,6 +52,19 @@ public final class TownC extends CaravanComponent {
 
 	{
 		reset();
+	}
+
+	/** The real sell price of a merchandise may be lower than what the market dictates,
+	 * because the town may not have enough money or don't care about this merchandise. */
+	public int realSellPrice(@NotNull Merchandise m) {
+		int price = prices.sellPrice(m);
+
+		if (wealth <= 0.3f && Merchandise.LUXURY_GOODS_SET.contains(m)) {
+			float factor = (1f + wealth) / 1.3f;
+			price = Math.round(price * (factor * factor * factor));
+		}
+
+		return Math.min(price, money);
 	}
 
 	@Override

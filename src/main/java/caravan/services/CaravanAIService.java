@@ -66,13 +66,13 @@ public final class CaravanAIService extends EntityProcessorSystem {
 		final int nextTown;
 		if (nearbyTown != -1) {
 			final TownC town = this.town.get(nearbyTown);
-			town.rumors.addRandomPriceRumors(caravan.priceMemory, town.prices, nearbyTown, timeService.day);
+			town.rumors.addRandomPriceRumors(caravan.priceMemory, town, nearbyTown, timeService.day);
 			final PriceMemory priceMemory = caravan.priceMemory;
 
 			// Sell everything that makes profit
 			for (Merchandise m : Merchandise.VALUES) {
 				final short buyPrice = caravan.inventoryPriceBuyMemory[m.ordinal()];
-				while (caravan.inventory.get(m) > 0 && town.prices.sellPrice(m) > buyPrice) {
+				while (caravan.inventory.get(m) > 0 && town.realSellPrice(m) > buyPrice) {
 					TradingScreen.performSell(town, caravan, m, true);
 				}
 			}

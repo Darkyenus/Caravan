@@ -106,11 +106,11 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 			buyButton.setDisabled(buyPrice > caravan.money || !visible);
 
 			final int amountInInventory = caravan.inventory.get(merch);
-			final int sellPrice = town.prices.sellPrice(merch);
-			final int realSellPrice = Math.min(sellPrice, town.money);
-			sellButton.getLabel().setText(realSellPrice);
+			final int rawSellPrice = town.prices.sellPrice(merch);
+			final int sellPrice = town.realSellPrice(merch);
+			sellButton.getLabel().setText(sellPrice);
 			sellButton.setDisabled(amountInInventory < 1 || !visible);
-			sellButton.setStyle(sellPrice == realSellPrice ? textButtonStyleDefault : textButtonStyleDefaultDangerous);
+			sellButton.setStyle(rawSellPrice == sellPrice ? textButtonStyleDefault : textButtonStyleDefaultDangerous);
 
 			inventoryLabel.setVisible(visible);
 			inventoryLabel.setText(amountInInventory);
@@ -399,7 +399,7 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 
 	public static boolean performSell(@NotNull TownC town, @NotNull CaravanC caravan, @NotNull Merchandise m, boolean allForPrice) {
 		boolean soldSomething = false;
-		final int sellPrice = Math.min(town.prices.sellPrice(m), town.money);
+		final int sellPrice = town.realSellPrice(m);
 		do {
 			if (caravan.inventory.get(m) <= 0) {
 				return soldSomething;
@@ -410,7 +410,7 @@ public final class TradingScreen extends CaravanApplication.UIScreen {
 			caravan.inventory.add(m, -1);
 			town.prices.sellUnit(m);
 			caravan.inventoryPriceSellMemory[m.ordinal()] = Util.toShortClampUnsigned(sellPrice);
-		} while (allForPrice && sellPrice == Math.min(town.prices.sellPrice(m), town.money));
+		} while (allForPrice && sellPrice == town.realSellPrice(m));
 		return true;
 	}
 }

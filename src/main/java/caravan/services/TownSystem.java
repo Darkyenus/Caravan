@@ -261,12 +261,12 @@ public final class TownSystem extends EntityProcessorSystem {
 		final Inventory inv = new Inventory();
 		final float result = production.produce(town.environment, inv);
 
-		float gained = result * town.prices.sellPrice(production.output);
+		float gained = result * town.prices.buyPrice(production.output);
 		float lost = 0f;
 		for (Merchandise m : Merchandise.VALUES) {
 			final int amount = inv.get(m);
 			if (amount != 0) {
-				lost += amount * town.prices.buyPrice(m);
+				lost += amount * town.prices.sellPrice(m);
 			}
 		}
 

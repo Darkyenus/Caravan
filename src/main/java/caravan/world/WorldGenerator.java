@@ -425,7 +425,7 @@ public final class WorldGenerator {
 
 			while (true) {
 				final int buy = localPrices.buyPrice(m);
-				final int sell = Math.min(otherPrices.sellPrice(m), otherTown.money);
+				final int sell = otherTown.realSellPrice(m);
 				float caravanProfit = sell - buy - distance * 0.05f;
 				if (caravanProfit <= 0) {
 					break;

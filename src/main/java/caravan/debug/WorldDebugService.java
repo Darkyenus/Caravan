@@ -4,6 +4,7 @@ import caravan.CaravanApplication;
 import caravan.components.Components;
 import caravan.components.PositionC;
 import caravan.services.RenderingService;
+import caravan.services.TimeService;
 import caravan.services.UIService;
 import caravan.services.WorldService;
 import caravan.world.Tile;
@@ -18,6 +19,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.darkyen.retinazer.EntitySystem;
+import com.darkyen.retinazer.Wire;
 import org.jetbrains.annotations.NotNull;
 
 /** World debug rendering. */
@@ -30,6 +32,9 @@ public class WorldDebugService extends EntitySystem implements RenderingService,
 	private ShapeRenderer shapeRenderer;
 
 	private final Vector2 worldSpaceCursor = new Vector2();
+
+	@Wire
+	private TimeService timeService;
 
 	public WorldDebugService() {
 		super(Components.DOMAIN.familyWith(PositionC.class));
@@ -79,6 +84,10 @@ public class WorldDebugService extends EntitySystem implements RenderingService,
 		}
 		if (Gdx.input.isKeyJustPressed(Input.Keys.F6)) {
 			economyOverviewWindow.setVisible(!economyOverviewWindow.isVisible());
+		}
+
+		if (timeService.dayAdvances > 0 && economyOverviewWindow.isVisible()) {
+			economyOverviewWindow.refresh();
 		}
 	}
 

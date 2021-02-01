@@ -1,5 +1,6 @@
 package caravan.util;
 
+import caravan.components.TownC;
 import caravan.world.Merchandise;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Pool;
@@ -39,9 +40,10 @@ public final class Rumors implements Pool.Poolable {
 		update(today);
 	}
 
-	public void addRandomPriceRumors(@NotNull PriceMemory caravanMemory, @NotNull PriceList townPrices, int thisTownEntity, int today) {
+	public void addRandomPriceRumors(@NotNull PriceMemory caravanMemory, @NotNull TownC town, int thisTownEntity, int today) {
 		final int offset = MathUtils.random.nextInt(Merchandise.COUNT);
 		int count = MathUtils.random(5, 10);
+		final PriceList townPrices = town.prices;
 
 		Merchandise bestBuyPriceMerch = null;
 		int bestBuyPriceDifference = 0;
@@ -61,7 +63,7 @@ public final class Rumors implements Pool.Poolable {
 			}
 
 			final int localBuyPrice = townPrices.buyPrice(m);
-			final int localSellPrice = townPrices.sellPrice(m);
+			final int localSellPrice = town.realSellPrice(m);
 
 			for (int ms = 0; ms < caravanMemory.capacity(); ms++) {
 				if (!caravanMemory.isMemorySlotValid(ms, today - 14, thisTownEntity)) {
