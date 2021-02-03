@@ -25,7 +25,7 @@ val packResources by key<Unit>("Pack resources")
 val caravan:Project by project(Archetypes.JavaProject) {
 	projectName set { "Caravan" }
 	projectGroup set { "caravan" }
-	projectVersion set { "0.0" }
+	projectVersion set { "1.0" }
 
 	resources modify { it + FileSet(packedResourcesDir.get()) }
 
