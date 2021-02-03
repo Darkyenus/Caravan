@@ -142,7 +142,7 @@ public final class PlayerControlSystem extends EntityProcessorSystem {
             move.waypoints.clear();
             directionalMove = false;
         }
-        if (NOTES.isPressed()){
+        if (NOTES.isJustReleased()){
             if (application.addScreen(notesScreen)){
                 notesScreen.reset(playerC);
             }

@@ -6,13 +6,13 @@ import com.esotericsoftware.kryo.io.Output;
 import org.jetbrains.annotations.NotNull;
 
 /** Entities with this component are player controllable. */
-@CaravanComponent.Serialized(name = "Player", version = 1)
+@CaravanComponent.Serialized(name = "Player", version = 2)
 public final class PlayerC extends CaravanComponent {
 
     public boolean selected;
     public boolean openTradeOnArrival;
 
-    public String notes;
+    public @NotNull String notes = "";
 
     public void set(boolean selected) {
         this.selected = selected;
@@ -36,6 +36,8 @@ public final class PlayerC extends CaravanComponent {
     public void load(@NotNull Input input, int version) {
         selected = input.readBoolean();
         openTradeOnArrival = input.readBoolean();
-        notes = input.readString();
+        if (version >= 2) {
+            notes = input.readString();
+        }
     }
 }

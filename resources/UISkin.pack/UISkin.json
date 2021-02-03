@@ -71,6 +71,10 @@
       "selection": "d-light-green", "cursor": "cursor",
       "messageFont": "regular-medium", "messageFontColor": "p-blue"
     },
+    "no-background": { "font": "regular-medium", "fontColor": "p-dark", "disabledFontColor": "p-blue",
+      "selection": "d-light-green", "cursor": "cursor",
+      "messageFont": "regular-medium", "messageFontColor": "p-blue"
+    },
     "faded": { "font": "regular-medium", "fontColor": "p-dark", "disabledFontColor": "p-blue",
       "background": "ui15-faded", "focusedBackground": "ui14-faded", "disabledBackground": "ui16-faded",
       "selection": "d-light-green", "cursor": "cursor",

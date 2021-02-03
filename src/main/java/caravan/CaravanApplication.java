@@ -86,7 +86,7 @@ public final class CaravanApplication implements ApplicationListener, InputProce
 		try {
 			final Screen[] screens = activeScreens.begin();
 			final int screenCount = activeScreens.size;
-			for (int i = 0; i < screenCount; i++) {
+			for (int i = screenCount - 1; i >= 0; i--) {
 				final Screen screen = screens[i];
 				if (!all && screen.sticky) {
 					continue;
